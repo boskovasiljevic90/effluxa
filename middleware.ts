@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -7,14 +8,19 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware((auth, req) => {
-  if (!isPublicRoute(req)) auth().protect();
+  const { userId } = auth();
+
+  if (!isPublicRoute(req) && !userId) {
+    const signInUrl = new URL("/sign-in", req.url);
+    return NextResponse.redirect(signInUrl);
+  }
+
+  return NextResponse.next();
 });
 
 export const config = {
   matcher: [
-    // Skip Next internals and static files
     "/((?!_next|.*\\.(?:css|js|json|png|jpg|jpeg|gif|svg|ico|woff|woff2|txt|map)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };
