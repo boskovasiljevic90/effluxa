@@ -6,28 +6,32 @@ import {
   RedirectToSignIn,
   UserButton,
   OrganizationSwitcher,
+  useAuth,
 } from "@clerk/nextjs";
 
 export default function AppHome() {
-  async function startCheckout() {
-    const res = await fetch("/api/checkout", { method: "POST" });
-    const text = await res.text();
+  const { getToken, orgId } = useAuth();
 
+  async function startCheckout() {
+    const token = await getToken({ template: "effluxa" });
+
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token ?? ""}`,
+        "X-CLERK-ORG-ID": orgId ?? "",
+      },
+    });
+
+    const text = await res.text();
     if (!res.ok) {
       alert("Checkout error: " + res.status + "\n\n" + text);
       return;
     }
 
-    let data: any = null;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      alert("Checkout returned non-JSON:\n\n" + text);
-      return;
-    }
-
+    const data = JSON.parse(text);
     if (!data?.url) {
-      alert("Checkout returned no URL:\n\n" + text);
+      alert("No checkout URL returned:\n\n" + text);
       return;
     }
 
