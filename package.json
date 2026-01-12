@@ -9,10 +9,12 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/backend": "^2.29.2",
     "@clerk/nextjs": "^6.36.7",
     "next": "16.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "stripe": "^20.1.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
