@@ -11,31 +11,59 @@ import {
 import { useEffect, useState } from "react";
 
 export default function AppHome() {
-  const { getToken } = useAuth();
+  const { getToken, orgId } = useAuth();
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(false);
 
   useEffect(() => {
     async function check() {
-      const token = await getToken({ template: "effluxa" });
-      const res = await fetch("/api/billing/status", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      setActive(Boolean(data.active));
-      setLoading(false);
+      try {
+        const token = await getToken({ template: "effluxa" });
+        const res = await fetch("/api/billing/status", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token ?? ""}` },
+        });
+        const data = await res.json();
+        setActive(Boolean(data.active));
+      } catch {
+        setActive(false);
+      } finally {
+        setLoading(false);
+      }
     }
     check();
   }, [getToken]);
 
   async function startCheckout() {
     const token = await getToken({ template: "effluxa" });
+
     const res = await fetch("/api/checkout", {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
+      headers: {
+        Authorization: `Bearer ${token ?? ""}`,
+        "X-CLERK-ORG-ID": orgId ?? "",
+      },
     });
-    const data = await res.json();
+
+    const text = await res.text();
+    if (!res.ok) {
+      alert("Checkout error: " + res.status + "\n\n" + text);
+      return;
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      alert("Checkout returned non-JSON:\n\n" + text);
+      return;
+    }
+
+    if (!data?.url) {
+      alert("No checkout URL returned:\n\n" + text);
+      return;
+    }
+
     window.location.href = data.url;
   }
 
@@ -60,12 +88,12 @@ export default function AppHome() {
           ) : active ? (
             <section style={{ marginTop: 24 }}>
               <p>✅ Subscription active. App unlocked.</p>
-              <p>Next: upload invoices, payments and price list.</p>
             </section>
           ) : (
             <section style={{ marginTop: 24 }}>
               <h2>Billing</h2>
               <p>An active subscription is required.</p>
+
               <button
                 onClick={startCheckout}
                 style={{

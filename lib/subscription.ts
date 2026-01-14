@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "./prisma";
 
 export async function hasActiveSubscription(orgId: string) {
   const sub = await prisma.organizationSubscription.findUnique({
