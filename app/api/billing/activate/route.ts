@@ -19,27 +19,25 @@ export async function POST(req: Request) {
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!CLERK_JWT_PUBLIC_KEY) return NextResponse.json({ error: "Missing CLERK_JWT_PUBLIC_KEY" }, { status: 500 });
 
-    const { payload } = await verifyToken(token, { jwtKey: CLERK_JWT_PUBLIC_KEY });
+    const vt = await verifyToken(token, { jwtKey: CLERK_JWT_PUBLIC_KEY });
+    const payload: any = (vt as any)?.payload || {};
 
-    const userId = (payload?.sub as string) || "";
+    const userId: string = payload?.sub || "";
     const headerOrgId = req.headers.get("x-clerk-org-id") || "";
-    const tokenOrgId = (payload as any)?.o?.id || "";
+    const tokenOrgId: string = payload?.o?.id || payload?.org_id || "";
     const orgId = headerOrgId || tokenOrgId;
 
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!orgId) return NextResponse.json({ error: "Missing organization" }, { status: 400 });
 
-    // Activate for 30 days (test subscription). We'll replace this with Lemon webhook truth later.
+    // ✅ Temporary activation for 30 days (test flow).
+    // Later: replace with Lemon webhook truth.
     const now = new Date();
     const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
     await prisma.organizationSubscription.upsert({
       where: { orgId },
-      update: {
-        status: "active",
-        currentPeriodEnd: periodEnd,
-        // Keep old stripe fields untouched; we can migrate later
-      },
+      update: { status: "active", currentPeriodEnd: periodEnd },
       create: {
         orgId,
         stripeCustomerId: "lemon_test",
@@ -49,7 +47,12 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ ok: true, orgId, status: "active", currentPeriodEnd: periodEnd.toISOString() });
+    return NextResponse.json({
+      ok: true,
+      orgId,
+      status: "active",
+      currentPeriodEnd: periodEnd.toISOString(),
+    });
   } catch (e: any) {
     return NextResponse.json(
       { error: "Internal error", message: e?.message ?? String(e) },
