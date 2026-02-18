@@ -1,0 +1,470 @@
+import { auth } from "@clerk/nextjs/server";
+import { prisma } from "../../../lib/prisma";
+
+type Status = "PAID" | "PARTIAL" | "UNPAID" | "OVERPAID" | "MISMATCH";
+
+function fmtMoney(amount: any, currency: string | null) {
+  const n = typeof amount === "number" ? amount : amount?.toNumber?.() ?? Number(amount ?? 0);
+  const cur = currency || "";
+  const fixed = Number.isFinite(n) ? n.toFixed(2) : "0.00";
+  return `${fixed} ${cur}`.trim();
+}
+
+function fmtDate(d: any) {
+  if (!d) return "-";
+  const dt = d instanceof Date ? d : new Date(d);
+  if (isNaN(dt.getTime())) return "-";
+  return dt.toISOString().slice(0, 10);
+}
+
+function StatusPill({ status }: { status: Status }) {
+  const bg =
+    status === "PAID"
+      ? "#16a34a"
+      : status === "PARTIAL"
+      ? "#f59e0b"
+      : status === "OVERPAID"
+      ? "#0ea5e9"
+      : status === "MISMATCH"
+      ? "#a855f7"
+      : "#ef4444";
+
+  return (
+    <span
+      style={{
+        display: "inline-block",
+        padding: "4px 10px",
+        borderRadius: 999,
+        color: "white",
+        fontSize: 12,
+        fontWeight: 800,
+        background: bg,
+      }}
+    >
+      {status}
+    </span>
+  );
+}
+
+function parseStatuses(v: string | null | undefined): Status[] {
+  if (!v) return [];
+  return v
+    .split(",")
+    .map((x) => x.trim().toUpperCase())
+    .filter(Boolean)
+    .filter((x) => ["PAID", "PARTIAL", "UNPAID", "OVERPAID", "MISMATCH"].includes(x)) as Status[];
+}
+
+function buildStatusCounts(results: { status: Status }[]) {
+  const counts = { PAID: 0, PARTIAL: 0, UNPAID: 0, OVERPAID: 0, MISMATCH: 0 } as Record<Status, number>;
+  for (const r of results) counts[r.status] = (counts[r.status] || 0) + 1;
+  return counts;
+}
+
+function reasonsToText(matchReasons: any): string {
+  if (!matchReasons) return "";
+  try {
+    const arr = Array.isArray(matchReasons) ? matchReasons : [];
+    if (!arr.length) return "";
+
+    // Pretty print: TYPE: note
+    return arr
+      .map((x) => {
+        const t = String(x?.type ?? "").trim();
+        const note = String(x?.note ?? "").trim();
+        if (t && note) return `${t}: ${note}`;
+        if (note) return note;
+        if (t) return t;
+        return "";
+      })
+      .filter(Boolean)
+      .join("\n");
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * Commercial grouping:
+ * - One row per invoiceNo (latest reconcileResult row kept)
+ * - If invoiceNo missing -> fallback to invoiceRowId
+ */
+function groupByInvoiceNo(rows: any[]) {
+  const map = new Map<string, any>();
+
+  for (const r of rows) {
+    const invNo = String(r?.invoiceRow?.invoiceNo ?? "").trim();
+    const key = invNo || String(r?.invoiceRowId ?? r?.id ?? "");
+
+    const prev = map.get(key);
+    if (!prev) {
+      map.set(key, r);
+      continue;
+    }
+
+    // Keep latest by createdAt (fallback id compare)
+    const a = prev?.createdAt ? new Date(prev.createdAt).getTime() : 0;
+    const b = r?.createdAt ? new Date(r.createdAt).getTime() : 0;
+
+    if (b >= a) map.set(key, r);
+  }
+
+  return Array.from(map.values());
+}
+
+export default async function ResultsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const runId = typeof sp.runId === "string" ? sp.runId : undefined;
+  const q = typeof sp.q === "string" ? sp.q : "";
+  const statuses = parseStatuses(typeof sp.status === "string" ? sp.status : undefined);
+
+  // DEV toggle: show duplicates (RAW)
+  const raw = typeof sp.raw === "string" ? sp.raw === "1" : false;
+  const isDev = process.env.NODE_ENV !== "production";
+  const mode: "GROUPED" | "RAW" = isDev && raw ? "RAW" : "GROUPED";
+
+  const { userId, orgId } = await auth();
+
+  if (!userId) {
+    return (
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: 24 }}>
+        <div style={{ fontSize: 26, fontWeight: 950 }}>Reconciliation Results</div>
+        <div style={{ marginTop: 10, padding: 12, border: "1px solid #e5e7eb", borderRadius: 12 }}>
+          You are not signed in.
+        </div>
+      </div>
+    );
+  }
+
+  if (!orgId) {
+    return (
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: 24 }}>
+        <div style={{ fontSize: 26, fontWeight: 950 }}>Reconciliation Results</div>
+        <div style={{ marginTop: 10, padding: 12, border: "1px solid #e5e7eb", borderRadius: 12 }}>
+          Missing organization. Switch from Personal to an Organization in the Clerk UI (top-right) and retry.
+        </div>
+      </div>
+    );
+  }
+
+  const run =
+    (runId ? await prisma.reconcileRun.findFirst({ where: { id: runId, orgId } }) : null) ||
+    (await prisma.reconcileRun.findFirst({ where: { orgId }, orderBy: { createdAt: "desc" } }));
+
+  if (!run) {
+    return (
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: 24 }}>
+        <div style={{ fontSize: 26, fontWeight: 950 }}>Reconciliation Results</div>
+        <div style={{ marginTop: 10, padding: 12, border: "1px solid #e5e7eb", borderRadius: 12 }}>
+          No reconciliation runs found yet. Go to <a href="/app/upload">Upload</a> and click “Run reconciliation”.
+        </div>
+      </div>
+    );
+  }
+
+  // URL helper (keeps runId, q, status, raw)
+  function withParams(p: Record<string, string | undefined>) {
+    const u = new URL("http://local/app/results");
+
+    u.searchParams.set("runId", run.id);
+
+    const nextQ = p.q ?? q;
+    if (nextQ) u.searchParams.set("q", nextQ);
+    else u.searchParams.delete("q");
+
+    const nextStatus = p.status ?? (statuses.length ? statuses.join(",") : "");
+    if (nextStatus) u.searchParams.set("status", nextStatus);
+    else u.searchParams.delete("status");
+
+    const nextRaw = p.raw ?? (raw ? "1" : "");
+    if (nextRaw) u.searchParams.set("raw", nextRaw);
+    else u.searchParams.delete("raw");
+
+    const s = u.searchParams.toString();
+    return "/app/results" + (s ? `?${s}` : "");
+  }
+
+  const toggleStatusLink = (s: Status) => {
+    const set = new Set(statuses);
+    if (set.has(s)) set.delete(s);
+    else set.add(s);
+    const next = Array.from(set).join(",");
+    return withParams({ status: next || undefined });
+  };
+
+  // Fetch results + invoice info
+  const results = await prisma.reconcileResult.findMany({
+    where: {
+      orgId,
+      runId: run.id,
+      ...(statuses.length ? { status: { in: statuses } } : {}),
+    },
+    include: { invoiceRow: true },
+    orderBy: [{ createdAt: "asc" }],
+  });
+
+  // search: invoiceNo OR notes OR currency OR reasons text
+  const qNorm = (q || "").toLowerCase().trim();
+  const filteredRaw = qNorm
+    ? results.filter((r: any) => {
+        const invNo = String(r.invoiceRow?.invoiceNo ?? "").toLowerCase();
+        const notes = String(r.notes ?? "").toLowerCase();
+        const currency = String(r.currency ?? "").toLowerCase();
+        const reasons = reasonsToText(r.matchReasons).toLowerCase();
+        return invNo.includes(qNorm) || notes.includes(qNorm) || currency.includes(qNorm) || reasons.includes(qNorm);
+      })
+    : results;
+
+  // Commercial: grouped list (unless dev raw toggle)
+  const groupedFiltered = groupByInvoiceNo(filteredRaw);
+  const rowsToRender = mode === "RAW" ? filteredRaw : groupedFiltered;
+
+  const countsAll = buildStatusCounts(results as any);
+  const countsShown = buildStatusCounts(rowsToRender as any);
+
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: 24 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 26, fontWeight: 950 }}>Reconciliation Results</div>
+          <div style={{ marginTop: 6, opacity: 0.75, fontSize: 13 }}>
+            Run: <b>{run.id}</b> • Finished:{" "}
+            <b>
+              {(run as any).summary?.finishedAt
+                ? String((run as any).summary.finishedAt).slice(0, 19).replace("T", " ")
+                : "-"}
+            </b>
+          </div>
+        </div>
+
+        <a
+          href="/app/upload"
+          style={{
+            padding: "8px 12px",
+            borderRadius: 10,
+            border: "1px solid #e5e7eb",
+            textDecoration: "none",
+            fontWeight: 700,
+            background: "white",
+          }}
+        >
+          ← Back to Upload
+        </a>
+      </div>
+
+      {/* KPI + mode */}
+      <div style={{ marginTop: 14, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ fontSize: 12, opacity: 0.8 }}>
+          SHOWN: <b>{rowsToRender.length}</b> • RAW: <b>{filteredRaw.length}</b> • MODE: <b>{mode}</b>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {(["PAID", "PARTIAL", "UNPAID", "OVERPAID", "MISMATCH"] as Status[]).map((s) => {
+            const active = statuses.includes(s);
+            return (
+              <a
+                key={s}
+                href={toggleStatusLink(s)}
+                style={{
+                  textDecoration: "none",
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  border: "1px solid #e5e7eb",
+                  fontSize: 12,
+                  fontWeight: 900,
+                  background: active ? "#111827" : "white",
+                  color: active ? "white" : "#111827",
+                }}
+                title="Click to toggle filter"
+              >
+                {s}: {countsAll[s]}
+              </a>
+            );
+          })}
+        </div>
+
+        {isDev ? (
+          <a
+            href={withParams({ raw: mode === "RAW" ? undefined : "1" })}
+            style={{
+              marginLeft: 6,
+              padding: "6px 10px",
+              borderRadius: 999,
+              border: "1px solid #e5e7eb",
+              textDecoration: "none",
+              fontSize: 12,
+              fontWeight: 900,
+              background: mode === "RAW" ? "#111827" : "white",
+              color: mode === "RAW" ? "white" : "#111827",
+            }}
+            title="Dev only"
+          >
+            DEV: Show duplicates
+          </a>
+        ) : null}
+      </div>
+
+      {/* Search */}
+      <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
+        <form
+          action="/app/results"
+          method="GET"
+          style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}
+        >
+          <input type="hidden" name="runId" value={run.id} />
+          {statuses.length ? <input type="hidden" name="status" value={statuses.join(",")} /> : null}
+          {isDev && mode === "RAW" ? <input type="hidden" name="raw" value="1" /> : null}
+
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="Search invoice number / notes / currency / reasons..."
+            style={{
+              width: 380,
+              maxWidth: "90vw",
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb",
+              fontSize: 14,
+            }}
+          />
+
+          <button
+            type="submit"
+            style={{
+              padding: "10px 12px",
+              borderRadius: 12,
+              border: "1px solid #e5e7eb",
+              background: "white",
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            Search
+          </button>
+
+          <a href={withParams({ q: undefined })} style={{ fontSize: 13, textDecoration: "none", opacity: 0.8 }}>
+            Clear
+          </a>
+        </form>
+      </div>
+
+      {/* Table */}
+      <div style={{ marginTop: 14 }}>
+        <table
+          style={{
+            width: "100%",
+            borderCollapse: "collapse",
+            border: "1px solid #e5e7eb",
+            borderRadius: 12,
+            overflow: "hidden",
+          }}
+        >
+          <thead style={{ background: "#f9fafb" }}>
+            <tr>
+              <th style={{ textAlign: "left", padding: 12, fontSize: 12, opacity: 0.8 }}>Invoice</th>
+              <th style={{ textAlign: "left", padding: 12, fontSize: 12, opacity: 0.8 }}>Inv date</th>
+              <th style={{ textAlign: "left", padding: 12, fontSize: 12, opacity: 0.8 }}>Status</th>
+              <th style={{ textAlign: "left", padding: 12, fontSize: 12, opacity: 0.8 }}>Paid</th>
+              <th style={{ textAlign: "left", padding: 12, fontSize: 12, opacity: 0.8 }}>Outstanding</th>
+              <th style={{ textAlign: "left", padding: 12, fontSize: 12, opacity: 0.8 }}>Why</th>
+              <th style={{ textAlign: "right", padding: 12, fontSize: 12, opacity: 0.8 }}>View</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {rowsToRender.map((r: any) => {
+              const inv = r.invoiceRow || {};
+              const tooltip = reasonsToText(r.matchReasons);
+              const hasTooltip = Boolean(tooltip && tooltip.trim().length);
+
+              return (
+                <tr key={r.id} style={{ borderTop: "1px solid #eef2f7" }}>
+                  <td style={{ padding: 12, fontWeight: 900 }}>{inv.invoiceNo ?? "-"}</td>
+                  <td style={{ padding: 12 }}>{fmtDate(inv.invoiceDate ?? null)}</td>
+                  <td style={{ padding: 12 }}>
+                    <StatusPill status={r.status} />
+                  </td>
+                  <td style={{ padding: 12 }}>{fmtMoney(r.paidTotal, r.currency ?? null)}</td>
+                  <td style={{ padding: 12 }}>{fmtMoney(r.outstanding, r.currency ?? null)}</td>
+
+                  <td style={{ padding: 12 }}>
+                    {hasTooltip ? (
+                      <details style={{ display: "inline-block" }}>
+                        <summary
+                          style={{
+                            listStyle: "none",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            cursor: "pointer",
+                            fontWeight: 900,
+                            border: "1px solid #e5e7eb",
+                            borderRadius: 999,
+                            padding: "4px 10px",
+                            background: "#fff",
+                          }}
+                        >
+                          <span aria-hidden="true">ℹ️</span> Why
+                        </summary>
+                        <div
+                          style={{
+                            marginTop: 8,
+                            padding: 10,
+                            border: "1px solid #e5e7eb",
+                            borderRadius: 12,
+                            background: "#f9fafb",
+                            maxWidth: 520,
+                            whiteSpace: "pre-wrap",
+                            fontSize: 12,
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {tooltip}
+                        </div>
+                      </details>
+                    ) : (
+                      <span style={{ opacity: 0.5, fontSize: 12 }}>—</span>
+                    )}
+                  </td>
+
+                  <td style={{ padding: 12, textAlign: "right" }}>
+                    <a
+                      href={`/app/results/${inv.id}?runId=${run.id}`}
+                      style={{
+                        textDecoration: "none",
+                        border: "1px solid #e5e7eb",
+                        padding: "8px 12px",
+                        borderRadius: 12,
+                        fontWeight: 900,
+                        display: "inline-block",
+                        background: "white",
+                      }}
+                    >
+                      View
+                    </a>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* DEV DEBUG */}
+      {isDev ? (
+        <div style={{ marginTop: 18, border: "1px dashed #e5e7eb", borderRadius: 12, padding: 14, opacity: 0.9 }}>
+          <div style={{ fontWeight: 900, marginBottom: 10 }}>DEV DEBUG</div>
+          <div style={{ fontSize: 13 }}>userId: <b>{userId}</b></div>
+          <div style={{ fontSize: 13 }}>orgId: <b>{orgId}</b></div>
+          <div style={{ fontSize: 13 }}>runId: <b>{run.id}</b></div>
+          <div style={{ fontSize: 13 }}>mode: <b>{mode}</b></div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

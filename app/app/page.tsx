@@ -21,7 +21,10 @@ export default function AppHome() {
         const token = await getToken({ template: "effluxa" });
         const res = await fetch("/api/billing/status", {
           method: "POST",
-          headers: { Authorization: `Bearer ${token ?? ""}` },
+          headers: {
+            Authorization: `Bearer ${token ?? ""}`,
+            "X-CLERK-ORG-ID": orgId ?? "",
+          },
         });
         const data = await res.json();
         setActive(Boolean(data.active));
@@ -32,7 +35,7 @@ export default function AppHome() {
       }
     }
     check();
-  }, [getToken]);
+  }, [getToken, orgId]);
 
   async function startCheckout() {
     const token = await getToken({ template: "effluxa" });
@@ -51,14 +54,7 @@ export default function AppHome() {
       return;
     }
 
-    let data: any;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      alert("Checkout returned non-JSON:\n\n" + text);
-      return;
-    }
-
+    const data = JSON.parse(text);
     if (!data?.url) {
       alert("No checkout URL returned:\n\n" + text);
       return;
@@ -88,6 +84,7 @@ export default function AppHome() {
           ) : active ? (
             <section style={{ marginTop: 24 }}>
               <p>✅ Subscription active. App unlocked.</p>
+              <p><a href="/app/upload">Go to Upload →</a></p>
             </section>
           ) : (
             <section style={{ marginTop: 24 }}>

@@ -14,13 +14,11 @@ function getBearerToken(req: Request) {
 export async function POST(req: Request) {
   try {
     const token = getBearerToken(req);
-    if (!token) {
-      return NextResponse.json({ active: false, reason: "no_token" }, { status: 200 });
-    }
+    if (!token) return NextResponse.json({ active: false, reason: "no_token" }, { status: 200 });
 
-    let payload: any;
+    // Verify user token (we only need to know it's valid)
     try {
-      payload = await verifyToken(token, {
+      await verifyToken(token, {
         secretKey: process.env.CLERK_SECRET_KEY!,
         authorizedParties: ["http://localhost:3000"],
       });
@@ -28,13 +26,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ active: false, reason: "invalid_token" }, { status: 200 });
     }
 
-    const orgId = payload?.org_id || payload?.orgId;
-    if (!orgId) {
-      return NextResponse.json({ active: false, reason: "missing_org" }, { status: 200 });
-    }
+    // IMPORTANT: orgId from header (matches UI-selected org)
+    const orgId = req.headers.get("x-clerk-org-id") || "";
+    if (!orgId) return NextResponse.json({ active: false, reason: "missing_org_header" }, { status: 200 });
 
     const active = await hasActiveSubscription(orgId);
-    return NextResponse.json({ active, reason: active ? "active" : "inactive" }, { status: 200 });
+    return NextResponse.json({ active, reason: active ? "active" : "inactive", orgId }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json(
       { active: false, reason: "server_error", message: String(e?.message || e) },
