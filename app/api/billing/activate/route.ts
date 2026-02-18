@@ -5,58 +5,45 @@ import { prisma } from "../../../../lib/prisma";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const CLERK_JWT_PUBLIC_KEY = process.env.CLERK_JWT_PUBLIC_KEY || "";
-
-function getBearerToken(req: Request) {
-  const h = req.headers.get("authorization") || "";
-  const m = h.match(/^Bearer\s+(.+)$/i);
-  return m?.[1] || "";
-}
-
+// This route is only for activating billing after checkout.
+// We keep it TS-safe for Vercel builds by casting Clerk payload to `any`.
 export async function POST(req: Request) {
   try {
-    const token = getBearerToken(req);
-    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (!CLERK_JWT_PUBLIC_KEY) return NextResponse.json({ error: "Missing CLERK_JWT_PUBLIC_KEY" }, { status: 500 });
+    const CLERK_JWT_PUBLIC_KEY = process.env.CLERK_JWT_PUBLIC_KEY;
 
-    const vt = await verifyToken(token, { jwtKey: CLERK_JWT_PUBLIC_KEY });
-    const payload: any = (vt as any)?.payload || {};
+    if (!CLERK_JWT_PUBLIC_KEY) {
+      return NextResponse.json({ error: "Missing CLERK_JWT_PUBLIC_KEY" }, { status: 500 });
+    }
 
-    const userId: string = payload?.sub || "";
+    const authHeader = req.headers.get("authorization") || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { payload } = await verifyToken(token, { jwtKey: CLERK_JWT_PUBLIC_KEY });
+
+    const p: any = payload as any;
+    const userId = (p?.sub as string) || "";
+
+    // org id can come from header (preferred) or token `o.id`
     const headerOrgId = req.headers.get("x-clerk-org-id") || "";
-    const tokenOrgId: string = payload?.o?.id || payload?.org_id || "";
+    const tokenOrgId = p?.o?.id || "";
     const orgId = headerOrgId || tokenOrgId;
 
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Missing user" }, { status: 400 });
     if (!orgId) return NextResponse.json({ error: "Missing organization" }, { status: 400 });
 
-    // ✅ Temporary activation for 30 days (test flow).
-    // Later: replace with Lemon webhook truth.
-    const now = new Date();
-    const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-
-    await prisma.organizationSubscription.upsert({
+    // Mark org as active (simple flag). Adjust if your schema differs.
+    await prisma.subscription.upsert({
       where: { orgId },
-      update: { status: "active", currentPeriodEnd: periodEnd },
-      create: {
-        orgId,
-        stripeCustomerId: "lemon_test",
-        stripeSubscriptionId: "lemon_test",
-        status: "active",
-        currentPeriodEnd: periodEnd,
-      },
+      update: { status: "active" },
+      create: { orgId, status: "active" },
     });
 
-    return NextResponse.json({
-      ok: true,
-      orgId,
-      status: "active",
-      currentPeriodEnd: periodEnd.toISOString(),
-    });
+    return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json(
-      { error: "Internal error", message: e?.message ?? String(e) },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal error", message: e?.message ?? String(e) }, { status: 500 });
   }
 }
