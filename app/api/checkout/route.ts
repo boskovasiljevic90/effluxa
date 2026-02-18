@@ -1,75 +1,63 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import Stripe from "stripe";
+import { verifyToken } from "@clerk/backend";
+
+// Lemon hosted checkout URL (copy from Lemon variant “Checkout URL”)
+const LEMON_CHECKOUT_URL = process.env.LEMON_CHECKOUT_URL || "";
+const CLERK_JWT_PUBLIC_KEY = process.env.CLERK_JWT_PUBLIC_KEY || "";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getOrigin(req: Request) {
-  const url = new URL(req.url);
-  const proto = req.headers.get("x-forwarded-proto") || url.protocol.replace(":", "");
-  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || url.host;
-  return `${proto}://${host}`;
+function getBearerToken(req: Request) {
+  const h = req.headers.get("authorization") || "";
+  const m = h.match(/^Bearer\s+(.+)$/i);
+  return m?.[1] || "";
 }
 
 export async function POST(req: Request) {
   try {
-    const a = await auth();
+    const token = getBearerToken(req);
+    if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!CLERK_JWT_PUBLIC_KEY) return NextResponse.json({ error: "Missing CLERK_JWT_PUBLIC_KEY" }, { status: 500 });
 
-    const userId = a.userId;
-    const sessionClaims: any = a.sessionClaims;
+    const { payload } = await verifyToken(token, { jwtKey: CLERK_JWT_PUBLIC_KEY });
 
-    // Clerk sometimes doesn't populate orgId, but it exists in sessionClaims ("o.id")
-    const orgId =
-      a.orgId ||
-      sessionClaims?.o?.id ||
-      sessionClaims?.org_id ||
-      null;
+    const userId = (payload?.sub as string) || "";
+    // orgId: prefer header, fallback to token claim "o.id" if present
+    const headerOrgId = req.headers.get("x-clerk-org-id") || "";
+    const tokenOrgId = (payload as any)?.o?.id || "";
+    const orgId = headerOrgId || tokenOrgId;
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!orgId) return NextResponse.json({ error: "Missing organization" }, { status: 400 });
+
+    if (!LEMON_CHECKOUT_URL) {
+      return NextResponse.json(
+        { error: "Missing LEMON_CHECKOUT_URL" },
+        { status: 500 }
+      );
     }
 
-    // Hard fallback so app can work even without org context.
-    const tenantId = orgId || userId;
+    // Build Lemon URL with optional custom fields (safe even if Lemon ignores)
+    const u = new URL(LEMON_CHECKOUT_URL);
 
-    const stripeSecret = process.env.STRIPE_SECRET_KEY;
-    const stripePriceId = process.env.STRIPE_PRICE_ID;
+    // Lemon supports custom fields on hosted checkout in many setups; harmless if ignored
+    u.searchParams.set("checkout[custom][orgId]", orgId);
+    u.searchParams.set("checkout[custom][userId]", userId);
 
-    if (!stripeSecret) return NextResponse.json({ error: "Missing STRIPE_SECRET_KEY" }, { status: 500 });
-    if (!stripePriceId) return NextResponse.json({ error: "Missing STRIPE_PRICE_ID" }, { status: 500 });
-
-    const stripe = new Stripe(stripeSecret); // no apiVersion to avoid TS mismatch
-
-    const origin = getOrigin(req);
-    const successUrl = `${origin}/app?checkout=success`;
-    const cancelUrl = `${origin}/app?checkout=cancel`;
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [{ price: stripePriceId, quantity: 1 }],
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      metadata: {
-        tenantId, // <-- orgId if available, else userId
-        userId,
-      },
-    });
-
-    if (!session?.url) {
-      return NextResponse.json({ error: "Failed to create checkout session" }, { status: 500 });
+    // Where Lemon should send the user back after payment
+    // IMPORTANT: you must set these in Lemon too (Return/Redirect URLs), but we also add them here.
+    const origin = req.headers.get("x-forwarded-origin") || req.headers.get("origin") || "";
+    if (origin) {
+      u.searchParams.set("checkout[success_url]", `${origin}/app?checkout=success`);
+      u.searchParams.set("checkout[cancel_url]", `${origin}/app?checkout=cancel`);
     }
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: u.toString() });
   } catch (e: any) {
     return NextResponse.json(
       { error: "Internal error", message: e?.message ?? String(e) },
       { status: 500 }
     );
   }
-}
-
-// Optional: allow GET too (some UIs call GET by mistake)
-export async function GET(req: Request) {
-  return POST(req);
 }
