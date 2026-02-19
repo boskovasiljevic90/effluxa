@@ -13,9 +13,12 @@ export async function POST(req: Request) {
       );
     }
 
-    await runReconciliation(orgId);
+    const result = await runReconciliation(orgId);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      runId: result.runId,
+    });
   } catch (e: any) {
     return NextResponse.json(
       {
