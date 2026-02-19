@@ -1,41 +1,33 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@clerk/backend";
-import { hasActiveSubscription } from "../../../../lib/subscription";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@clerk/nextjs/server";
 
-export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function getBearerToken(req: Request) {
-  const auth = req.headers.get("authorization") || "";
-  const match = auth.match(/^Bearer\s+(.+)$/i);
-  return match?.[1] || null;
-}
+export async function GET() {
+  const { userId, orgId } = auth();
 
-export async function POST(req: Request) {
-  try {
-    const token = getBearerToken(req);
-    if (!token) return NextResponse.json({ active: false, reason: "no_token" }, { status: 200 });
-
-    // Verify user token (we only need to know it's valid)
-    try {
-      await verifyToken(token, {
-        secretKey: process.env.CLERK_SECRET_KEY!,
-        authorizedParties: ["http://localhost:3000"],
-      });
-    } catch {
-      return NextResponse.json({ active: false, reason: "invalid_token" }, { status: 200 });
-    }
-
-    // IMPORTANT: orgId from header (matches UI-selected org)
-    const orgId = req.headers.get("x-clerk-org-id") || "";
-    if (!orgId) return NextResponse.json({ active: false, reason: "missing_org_header" }, { status: 200 });
-
-    const active = await hasActiveSubscription(orgId);
-    return NextResponse.json({ active, reason: active ? "active" : "inactive", orgId }, { status: 200 });
-  } catch (e: any) {
-    return NextResponse.json(
-      { active: false, reason: "server_error", message: String(e?.message || e) },
-      { status: 200 }
-    );
+  if (!userId || !orgId) {
+    return NextResponse.json({ active: false });
   }
+
+  const org = await prisma.organization.findUnique({
+    where: { clerkOrgId: orgId }
+  });
+
+  if (!org) {
+    await prisma.organization.create({
+      data: {
+        clerkOrgId: orgId,
+        subscription: "FREE"
+      }
+    });
+
+    return NextResponse.json({ active: true, plan: "FREE" });
+  }
+
+  return NextResponse.json({
+    active: org.subscription === "PRO" || org.subscription === "FREE",
+    plan: org.subscription
+  });
 }
