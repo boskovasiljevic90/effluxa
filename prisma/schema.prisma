@@ -8,25 +8,17 @@ datasource db {
 }
 
 model Organization {
-  id        String   @id
-  name      String   @default("Demo")
-  plan      String   @default("free") // free | pro
+  id                 String   @id
+  plan               String   @default("free")
 
-  // Weekly usage limits for FREE plan
-  usageResetAt          DateTime @default(now())
-  weeklyInvoiceUploads  Int      @default(0)
-  weeklyPaymentUploads  Int      @default(0)
-  weeklyPriceListUploads Int     @default(0)
+  weeklyInvoiceCount Int      @default(0)
+  weeklyPaymentCount Int      @default(0)
+  weeklyPriceCount   Int      @default(0)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  usageResetAt       DateTime @default(now())
 
-  uploadBatches    UploadBatch[]
-  invoiceRows      InvoiceRow[]
-  paymentRows      PaymentRow[]
-  priceListRows    PriceListRow[]
-  reconcileRuns    ReconcileRun[]
-  reconcileResults ReconcileResult[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 model UploadBatch {
@@ -35,14 +27,6 @@ model UploadBatch {
   kind      String
   filename  String
   createdAt DateTime @default(now())
-
-  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-
-  invoiceRows   InvoiceRow[]
-  paymentRows   PaymentRow[]
-  priceListRows PriceListRow[]
-
-  @@index([orgId, kind, createdAt])
 }
 
 model InvoiceRow {
@@ -51,14 +35,6 @@ model InvoiceRow {
   batchId   String?
   raw       Json
   createdAt DateTime @default(now())
-
-  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  batch UploadBatch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
-
-  reconcileResults ReconcileResult[]
-
-  @@index([orgId, createdAt])
-  @@index([batchId])
 }
 
 model PaymentRow {
@@ -67,12 +43,6 @@ model PaymentRow {
   batchId   String?
   raw       Json
   createdAt DateTime @default(now())
-
-  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  batch UploadBatch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
-
-  @@index([orgId, createdAt])
-  @@index([batchId])
 }
 
 model PriceListRow {
@@ -81,12 +51,6 @@ model PriceListRow {
   batchId   String?
   raw       Json
   createdAt DateTime @default(now())
-
-  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  batch UploadBatch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
-
-  @@index([orgId, createdAt])
-  @@index([batchId])
 }
 
 model ReconcileRun {
@@ -95,10 +59,7 @@ model ReconcileRun {
   summary   Json?
   createdAt DateTime @default(now())
 
-  org     Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  results ReconcileResult[]
-
-  @@index([orgId, createdAt])
+  @@index([orgId])
 }
 
 model ReconcileResult {
@@ -110,14 +71,7 @@ model ReconcileResult {
   currency     String?
   paidTotal    Float?
   outstanding  Float?
-  matchReasons Json?
   createdAt    DateTime @default(now())
 
-  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  run        ReconcileRun? @relation(fields: [runId], references: [id], onDelete: SetNull)
-  invoiceRow InvoiceRow?   @relation(fields: [invoiceRowId], references: [id], onDelete: SetNull)
-
-  @@index([orgId, createdAt])
-  @@index([runId])
-  @@index([invoiceRowId])
+  @@index([orgId])
 }
