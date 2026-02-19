@@ -19,8 +19,9 @@ model Organization {
   uploadBatches    UploadBatch[]
   invoiceRows      InvoiceRow[]
   paymentRows      PaymentRow[]
-  reconcileResults ReconcileResult[]
+  priceListRows    PriceListRow[]
   reconcileRuns    ReconcileRun[]
+  reconcileResults ReconcileResult[]
 }
 
 model UploadBatch {
@@ -33,6 +34,7 @@ model UploadBatch {
   org       Organization @relation(fields: [orgId], references: [id])
   invoices  InvoiceRow[]
   payments  PaymentRow[]
+  prices    PriceListRow[]
 }
 
 model InvoiceRow {
@@ -48,6 +50,17 @@ model InvoiceRow {
 }
 
 model PaymentRow {
+  id        String   @id @default(cuid())
+  orgId     String
+  batchId   String?
+  raw       Json
+  createdAt DateTime @default(now())
+
+  org       Organization @relation(fields: [orgId], references: [id])
+  batch     UploadBatch? @relation(fields: [batchId], references: [id])
+}
+
+model PriceListRow {
   id        String   @id @default(cuid())
   orgId     String
   batchId   String?
