@@ -13,7 +13,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body style={{ fontFamily: "Arial, sans-serif", margin: 0 }}>
+        <body style={{ fontFamily: "sans-serif" }}>
           {children}
         </body>
       </html>
