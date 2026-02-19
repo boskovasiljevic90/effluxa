@@ -1,117 +1,117 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { prisma } from "../../../lib/prisma";
-import { parseTabular } from "../../../lib/parse-tabular";
-import JSZip from "jszip";
+import { parseTabular } from "@/lib/parse-tabular";
+import { parsePdfInvoice } from "@/lib/parse-pdf-invoice";
+import { prisma } from "@/lib/prisma";
+import { getOrgIdFromRequest } from "@/lib/auth";
+import { ensureOrg } from "@/lib/org";
+import { enforceWeeklyFreeLimit } from "@/lib/subscription";
+import { normalizeInvoiceRaw, normalizePaymentRaw, normalizePriceListRaw } from "@/lib/normalize";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Kind = "invoices" | "payments" | "price-list";
 
-async function extractFiles(formData: FormData) {
-  const files: File[] = [];
-  for (const value of formData.values()) {
-    if (value instanceof File) files.push(value);
+async function readMultipartFiles(req: Request): Promise<{ filename: string; buffer: Buffer }[]> {
+  const form = await req.formData();
+  const files = form.getAll("file").filter(Boolean) as File[];
+  const out: { filename: string; buffer: Buffer }[] = [];
+
+  for (const f of files) {
+    const ab = await f.arrayBuffer();
+    out.push({ filename: f.name || "upload.bin", buffer: Buffer.from(ab) });
   }
-  return files;
+  return out;
 }
 
 export async function handleUpload(req: Request, kind: Kind) {
   try {
-    const { userId, orgId } = await auth();
+    const orgId = getOrgIdFromRequest(req);
+    await ensureOrg(orgId);
 
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // FREE plan weekly limit: 1 upload per kind per week
+    await enforceWeeklyFreeLimit(orgId, kind);
 
-    if (!orgId) {
-      return NextResponse.json({ error: "Missing organization" }, { status: 400 });
-    }
+    const url = new URL(req.url);
+    const replace = url.searchParams.get("replace") === "1";
 
-    const form = await req.formData();
-    const files = await extractFiles(form);
-
+    const files = await readMultipartFiles(req);
     if (!files.length) {
-      return NextResponse.json({ error: "Missing file" }, { status: 400 });
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    const batches = [];
+    // Create batch per request (keep simple)
+    const batch = await prisma.uploadBatch.create({
+      data: {
+        orgId,
+        kind,
+        filename: files.length === 1 ? files[0].filename : `${kind}-${files.length}-files`,
+      },
+    });
+
+    if (replace) {
+      if (kind === "invoices") await prisma.invoiceRow.deleteMany({ where: { orgId } });
+      if (kind === "payments") await prisma.paymentRow.deleteMany({ where: { orgId } });
+      if (kind === "price-list") await prisma.priceListRow.deleteMany({ where: { orgId } });
+    }
+
+    let totalRows = 0;
 
     for (const f of files) {
-      const batch = await prisma.uploadBatch.create({
-        data: {
-          orgId,
-          kind,
-          filename: f.name || "upload"
-        }
-      });
+      const name = f.filename.toLowerCase();
 
-      const buffer = Buffer.from(await f.arrayBuffer());
+      let rows: any[] = [];
 
-      const rows = await parseTabular(buffer, f.name);
+      if (kind === "invoices" && name.endsWith(".pdf")) {
+        const extracted = await parsePdfInvoice(f.buffer);
+        rows = extracted ? [extracted] : [];
+      } else {
+        rows = (await parseTabular(f.buffer, f.filename)) || [];
+      }
 
-      if (!rows || !rows.length) continue;
+      if (!rows.length) continue;
 
       if (kind === "invoices") {
-        await prisma.invoiceRow.createMany({
-          data: rows.map((r: any) => ({
-            orgId,
-            batchId: batch.id,
-            raw: r,
-            invoiceNo: r.invoice_number || null,
-            amount: r.total || null,
-            currency: r.currency || null,
-            invoiceDate: r.invoice_date ? new Date(r.invoice_date) : null
-          }))
-        });
+        const data = rows.map((r) => ({
+          orgId,
+          batchId: batch.id,
+          raw: normalizeInvoiceRaw(r),
+        }));
+        await prisma.invoiceRow.createMany({ data });
+        totalRows += data.length;
       }
 
       if (kind === "payments") {
-        await prisma.paymentRow.createMany({
-          data: rows.map((r: any) => ({
-            orgId,
-            batchId: batch.id,
-            raw: r,
-            reference: r.reference || null,
-            amount: r.amount || null,
-            currency: r.currency || null,
-            paymentDate: r.payment_date ? new Date(r.payment_date) : null
-          }))
-        });
+        const data = rows.map((r) => ({
+          orgId,
+          batchId: batch.id,
+          raw: normalizePaymentRaw(r),
+        }));
+        await prisma.paymentRow.createMany({ data });
+        totalRows += data.length;
       }
 
       if (kind === "price-list") {
-        await prisma.priceListRow.createMany({
-          data: rows.map((r: any) => ({
-            orgId,
-            batchId: batch.id,
-            raw: r,
-            sku: r.sku || null,
-            name: r.name || null,
-            unitPrice: r.price || null,
-            currency: r.currency || null
-          }))
-        });
+        const data = rows.map((r) => ({
+          orgId,
+          batchId: batch.id,
+          raw: normalizePriceListRaw(r),
+        }));
+        await prisma.priceListRow.createMany({ data });
+        totalRows += data.length;
       }
-
-      batches.push({
-        batchId: batch.id,
-        filename: f.name,
-        rows: rows.length
-      });
     }
 
     return NextResponse.json({
-      ok: true,
+      success: true,
       kind,
-      orgId,
-      batches
+      batchId: batch.id,
+      rowsInserted: totalRows,
+      message: `${kind} upload working`,
     });
-
   } catch (e: any) {
     return NextResponse.json(
-      { error: "Internal error", message: e?.message ?? String(e) },
+      { error: "Internal error", message: e?.message || "Unknown error" },
       { status: 500 }
     );
   }

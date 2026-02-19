@@ -1,181 +1,140 @@
 import { prisma } from "./prisma";
+import { normalizeInvoiceRaw, normalizePaymentRaw } from "./normalize";
 
-type AnyRow = { id: string; orgId: string; raw: any; createdAt: Date };
+type Reason = { reason: string; weight?: number; paymentRowId?: string };
 
-function asString(v: any): string {
-  if (v == null) return "";
-  return typeof v === "string" ? v : String(v);
+function safeLower(v: any) {
+  return (v ?? "").toString().trim().toLowerCase();
 }
 
-function asNumber(v: any): number | null {
-  if (v == null || v === "") return null;
-  const n =
-    typeof v === "number" ? v : Number(String(v).replace(/,/g, "."));
-  return Number.isFinite(n) ? n : null;
+function sameCurrency(a?: string | null, b?: string | null) {
+  if (!a || !b) return false;
+  return safeLower(a) === safeLower(b);
 }
 
-function asDate(v: any): Date | null {
-  if (!v) return null;
-  const d = v instanceof Date ? v : new Date(v);
-  return isNaN(d.getTime()) ? null : d;
-}
-
-function pickNumber(raw: any, keys: string[]): number | null {
-  for (const k of keys) {
-    const val = raw?.[k];
-    const n = asNumber(val);
-    if (n != null) return n;
-  }
-  return null;
-}
-
-function pickString(raw: any, keys: string[]): string {
-  for (const k of keys) {
-    const val = raw?.[k];
-    const s = asString(val).trim();
-    if (s) return s;
-  }
-  return "";
-}
-
-function pickDate(raw: any, keys: string[]): Date | null {
-  for (const k of keys) {
-    const d = asDate(raw?.[k]);
-    if (d) return d;
-  }
-  return null;
+function abs(n: number) {
+  return n < 0 ? -n : n;
 }
 
 export async function runReconciliation(orgId: string) {
   const run = await prisma.reconcileRun.create({
-    data: {
-      orgId,
-      summary: { startedAt: new Date().toISOString() },
-    },
+    data: { orgId, summary: { startedAt: new Date().toISOString() } },
   });
 
-  const invoices: AnyRow[] = await prisma.invoiceRow.findMany({
+  const invoicesDb = await prisma.invoiceRow.findMany({
     where: { orgId },
     orderBy: [{ createdAt: "asc" }],
   });
 
-  const payments: AnyRow[] = await prisma.paymentRow.findMany({
+  const paymentsDb = await prisma.paymentRow.findMany({
     where: { orgId },
     orderBy: [{ createdAt: "asc" }],
   });
 
-  invoices.sort((a, b) => {
-    const da =
-      pickDate(a.raw, ["invoiceDate", "date", "issuedAt", "issued", "Invoice Date"]) ||
-      a.createdAt;
-    const db =
-      pickDate(b.raw, ["invoiceDate", "date", "issuedAt", "issued", "Invoice Date"]) ||
-      b.createdAt;
-    return da.getTime() - db.getTime();
-  });
+  const invoices = invoicesDb.map((i) => ({ db: i, n: normalizeInvoiceRaw(i.raw as any) }));
+  const payments = paymentsDb.map((p) => ({ db: p, n: normalizePaymentRaw(p.raw as any) }));
 
-  payments.sort((a, b) => {
-    const da =
-      pickDate(a.raw, ["paymentDate", "date", "paidAt", "paid", "Payment Date"]) ||
-      a.createdAt;
-    const db =
-      pickDate(b.raw, ["paymentDate", "date", "paidAt", "paid", "Payment Date"]) ||
-      b.createdAt;
-    return da.getTime() - db.getTime();
-  });
-
-  let matched = 0;
-  let unmatched = 0;
+  // wipe previous results for org (keep it simple for MVP)
+  await prisma.reconcileResult.deleteMany({ where: { orgId } });
 
   for (const inv of invoices) {
-    const invNo = pickString(inv.raw, [
-      "invoiceNo",
-      "invoiceNumber",
-      "number",
-      "Invoice #",
-      "Invoice No",
-      "Invoice",
-    ]);
+    const invAmount = inv.n.total;
+    const invCur = inv.n.currency ?? null;
 
-    const currency = pickString(inv.raw, ["currency", "Currency"]).toUpperCase() || null;
+    const invRef = safeLower(inv.n.reference || inv.n.invoiceNumber);
+    const invCounterparty = safeLower(inv.n.counterparty);
 
-    const invAmount = pickNumber(inv.raw, [
-      "amount",
-      "total",
-      "gross",
-      "invoiceTotal",
-      "Total",
-      "Amount",
-    ]);
+    let matched: { paymentId: string; reasons: Reason[]; score: number }[] = [];
 
-    const candidates = payments.filter((p) => {
-      const pRef = pickString(p.raw, [
-        "reference",
-        "ref",
-        "invoiceNo",
-        "invoiceNumber",
-        "Reference",
-      ]);
+    for (const pay of payments) {
+      const payAmount = pay.n.amount;
+      const payCur = pay.n.currency ?? null;
 
-      const pCur = pickString(p.raw, ["currency", "Currency"]).toUpperCase() || null;
-      if (currency && pCur && currency !== pCur) return false;
+      // must have amount to compare
+      if (invAmount === null || payAmount === null) continue;
 
-      if (invNo && pRef && pRef.includes(invNo)) return true;
+      let score = 0;
+      const reasons: Reason[] = [];
 
-      const pAmt = pickNumber(p.raw, ["amount", "paid", "value", "Total", "Amount"]);
-      if (invAmount != null && pAmt != null && Math.abs(invAmount - pAmt) < 0.01)
-        return true;
+      // Currency match
+      if (invCur && payCur && sameCurrency(invCur, payCur)) {
+        score += 2;
+        reasons.push({ reason: "Currency matches", weight: 2, paymentRowId: pay.db.id });
+      }
 
-      return false;
-    });
+      // Reference match
+      const payRef = safeLower(pay.n.reference);
+      if (invRef && payRef && (payRef.includes(invRef) || invRef.includes(payRef))) {
+        score += 5;
+        reasons.push({ reason: "Reference matches", weight: 5, paymentRowId: pay.db.id });
+      }
 
-    const paidTotal = candidates.reduce((sum, p) => {
-      const pAmt = pickNumber(p.raw, ["amount", "paid", "value", "Total", "Amount"]);
-      return sum + (pAmt ?? 0);
-    }, 0);
+      // Counterparty match (weak)
+      const payCounterparty = safeLower(pay.n.counterparty);
+      if (invCounterparty && payCounterparty && (payCounterparty.includes(invCounterparty) || invCounterparty.includes(payCounterparty))) {
+        score += 1;
+        reasons.push({ reason: "Counterparty matches", weight: 1, paymentRowId: pay.db.id });
+      }
 
-    const outstanding = invAmount != null ? Math.max(invAmount - paidTotal, 0) : null;
+      // Amount match (strong)
+      const diff = abs(payAmount - invAmount);
+      if (diff < 0.0001) {
+        score += 6;
+        reasons.push({ reason: "Amount matches exactly", weight: 6, paymentRowId: pay.db.id });
+      } else if (diff <= Math.max(1, invAmount * 0.01)) {
+        score += 3;
+        reasons.push({ reason: "Amount close (<=1% or <=1 unit)", weight: 3, paymentRowId: pay.db.id });
+      }
 
-    const status =
-      invAmount == null
-        ? candidates.length
-          ? "MATCHED"
-          : "UNKNOWN"
-        : outstanding === 0
-        ? "PAID"
-        : paidTotal > 0
-        ? "PARTIAL"
-        : "UNPAID";
+      if (score > 0) {
+        matched.push({ paymentId: pay.db.id, reasons, score });
+      }
+    }
+
+    matched.sort((a, b) => b.score - a.score);
+
+    const best = matched[0];
+    if (!best) {
+      await prisma.reconcileResult.create({
+        data: {
+          orgId,
+          runId: run.id,
+          invoiceRowId: inv.db.id,
+          status: "unmatched",
+          currency: invCur,
+          paidTotal: 0,
+          outstanding: invAmount ?? null,
+          matchReasons: { reasons: [{ reason: "No matching payments found" }] },
+        },
+      });
+      continue;
+    }
+
+    // For MVP: take the best payment only
+    const bestPay = payments.find((p) => p.db.id === best.paymentId);
+    const paid = bestPay?.n.amount ?? 0;
+
+    const outstanding =
+      invAmount === null ? null : Math.max(0, (invAmount ?? 0) - (paid ?? 0));
 
     await prisma.reconcileResult.create({
       data: {
         orgId,
         runId: run.id,
-        invoiceRowId: inv.id,
-        status,
-        currency,
-        paidTotal,
+        invoiceRowId: inv.db.id,
+        status: outstanding && outstanding > 0 ? "partial" : "matched",
+        currency: invCur,
+        paidTotal: paid ?? 0,
         outstanding,
+        matchReasons: { reasons: best.reasons },
       },
     });
-
-    if (candidates.length) matched += 1;
-    else unmatched += 1;
   }
 
   await prisma.reconcileRun.update({
     where: { id: run.id },
-    data: {
-      summary: {
-        startedAt: (run.summary as any)?.startedAt ?? new Date().toISOString(),
-        finishedAt: new Date().toISOString(),
-        invoices: invoices.length,
-        payments: payments.length,
-        matched,
-        unmatched,
-      },
-    },
+    data: { summary: { finishedAt: new Date().toISOString(), invoices: invoices.length, payments: payments.length } },
   });
 
-  return { runId: run.id, matched, unmatched };
+  return run;
 }
