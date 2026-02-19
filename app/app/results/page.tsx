@@ -1,10 +1,7 @@
 import { prisma } from "@/lib/prisma";
 
 export default async function ResultsPage() {
-  const orgId = "demo-org"; // privremeno
-
   const results = await prisma.reconcileResult.findMany({
-    where: { orgId },
     orderBy: { createdAt: "desc" },
     take: 50,
   });
@@ -36,6 +33,9 @@ export default async function ResultsPage() {
             <div>Currency: {r.currency || "-"}</div>
             <div>Paid: {r.paidTotal ?? "-"}</div>
             <div>Outstanding: {r.outstanding ?? "-"}</div>
+            <div style={{ fontSize: 12, color: "#666" }}>
+              Org: {r.orgId}
+            </div>
           </div>
         ))}
       </div>
