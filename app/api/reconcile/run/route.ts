@@ -1,24 +1,14 @@
 import { NextResponse } from "next/server";
 import { runReconciliation } from "@/lib/reconcile";
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    const body = await req.json();
-    const orgId = body?.orgId;
+    const orgId = "demo-org";
 
-    if (!orgId) {
-      return NextResponse.json(
-        { error: "Missing orgId" },
-        { status: 400 }
-      );
-    }
+    await runReconciliation(orgId);
 
-    const result = await runReconciliation(orgId);
+    return NextResponse.json({ success: true });
 
-    return NextResponse.json({
-      success: true,
-      runId: result.runId,
-    });
   } catch (e: any) {
     return NextResponse.json(
       {
