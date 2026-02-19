@@ -1,19 +1,20 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
-  const { userId, orgId } = await auth();
+  try {
+    const orgId = "demo-org";
 
-  if (!userId || !orgId) {
-    return NextResponse.json({ results: [] });
+    const results = await prisma.reconcileResult.findMany({
+      where: { orgId },
+      orderBy: { createdAt: "desc" },
+    });
+
+    return NextResponse.json({ success: true, results });
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: "Internal error", message: e?.message },
+      { status: 500 }
+    );
   }
-
-  const results = await prisma.reconcileResult.findMany({
-    where: { orgId },
-    orderBy: { createdAt: "desc" },
-    take: 200,
-  });
-
-  return NextResponse.json({ results });
 }

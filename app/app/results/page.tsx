@@ -1,44 +1,43 @@
-import { prisma } from "@/lib/prisma";
+"use client";
 
-export default async function ResultsPage() {
-  const results = await prisma.reconcileResult.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 50,
-  });
+import { useEffect, useState } from "react";
+
+export default function ResultsPage() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/results")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) setData(d.results);
+      });
+  }, []);
 
   return (
     <div style={{ padding: 40 }}>
-      <h1 style={{ fontSize: 32, fontWeight: 800 }}>
+      <h1 style={{ fontSize: 32, fontWeight: 700 }}>
         Reconciliation Results
       </h1>
 
-      {results.length === 0 && (
-        <div style={{ marginTop: 20 }}>
-          No results yet.
-        </div>
-      )}
-
-      <div style={{ marginTop: 30 }}>
-        {results.map((r) => (
+      {data.length === 0 ? (
+        <p>No results yet.</p>
+      ) : (
+        data.map((r) => (
           <div
             key={r.id}
             style={{
-              padding: 16,
-              marginBottom: 12,
-              border: "1px solid #eee",
+              marginTop: 20,
+              padding: 20,
+              border: "1px solid #ccc",
               borderRadius: 8,
             }}
           >
             <div>Status: {r.status}</div>
-            <div>Currency: {r.currency || "-"}</div>
-            <div>Paid: {r.paidTotal ?? "-"}</div>
-            <div>Outstanding: {r.outstanding ?? "-"}</div>
-            <div style={{ fontSize: 12, color: "#666" }}>
-              Org: {r.orgId}
-            </div>
+            <div>Paid: {r.paidTotal}</div>
+            <div>Outstanding: {r.outstanding}</div>
           </div>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 }
