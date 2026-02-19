@@ -29,3 +29,12 @@ model ReconcileResult {
 
   @@index([orgId])
 }
+
+model ReconcileRun {
+  id        String   @id @default(cuid())
+  orgId     String
+  createdAt DateTime @default(now())
+
+  @@index([orgId])
+}
+
