@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Organization" ADD COLUMN     "monthlyInvoiceCount" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "usageResetAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
