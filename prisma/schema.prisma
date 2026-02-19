@@ -8,11 +8,24 @@ datasource db {
 }
 
 model Organization {
-  id               String   @id @default(cuid())
-  clerkOrgId       String   @unique
-  subscription     String   @default("FREE")
-  monthlyInvoiceCount Int   @default(0)
-  usageResetAt     DateTime @default(now())
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  clerkOrgId          String   @unique
+  subscription        String   @default("FREE")
+  monthlyInvoiceCount Int      @default(0)
+  usageResetAt        DateTime @default(now())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model ReconcileResult {
+  id           String   @id @default(cuid())
+  orgId        String
+  invoiceRowId String?
+  status       String
+  currency     String?
+  paidTotal    Float?
+  outstanding  Float?
+  createdAt    DateTime @default(now())
+
+  @@index([orgId])
 }
