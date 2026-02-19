@@ -1,6 +1,9 @@
-import { ClerkProvider } from "@clerk/nextjs";
+import "./globals.css";
 
-export const metadata = {
+import type { Metadata } from "next";
+import Providers from "./providers";
+
+export const metadata: Metadata = {
   title: "Effluxa",
   description: "AI invoice reconciliation platform",
 };
@@ -11,12 +14,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body style={{ fontFamily: "sans-serif" }}>
-          {children}
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
   );
 }
