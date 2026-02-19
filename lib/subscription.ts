@@ -1,57 +1,52 @@
-import { prisma } from "./prisma";
-import { ensureOrg } from "./org";
+import { prisma } from "@/lib/prisma";
 
-type Plan = "free" | "pro";
+export async function resetWeeklyUsageIfNeeded(orgId: string) {
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+  });
 
-function addDays(d: Date, days: number) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + days);
-  return x;
-}
+  if (!org) return;
 
-export async function getPlan(orgId: string): Promise<{ plan: Plan; active: boolean }> {
-  const org = await ensureOrg(orgId);
-  const plan = (org.plan as Plan) || "free";
-  return { plan, active: plan === "pro" };
-}
-
-export async function enforceWeeklyFreeLimit(orgId: string, kind: "invoices" | "payments" | "price-list") {
-  const org = await ensureOrg(orgId);
-
-  // reset weekly counters if needed
   const now = new Date();
-  const resetAt = org.usageResetAt ?? now;
-  const nextReset = addDays(resetAt, 7);
+  const resetAt = org.usageResetAt;
 
-  let updated = org;
-  if (now >= nextReset) {
-    updated = await prisma.organization.update({
+  if (!resetAt || now > resetAt) {
+    await prisma.organization.update({
       where: { id: orgId },
       data: {
-        usageResetAt: now,
-        weeklyInvoiceUploads: 0,
-        weeklyPaymentUploads: 0,
-        weeklyPriceListUploads: 0,
+        usageResetAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+        weeklyInvoiceCount: 0,
+        weeklyPaymentCount: 0,
+        weeklyPriceCount: 0,
       },
     });
   }
+}
 
-  const plan = ((updated.plan as Plan) || "free");
-  if (plan !== "free") return; // Pro has no weekly limits here
+export async function getSubscriptionStatus(orgId: string) {
+  const org = await prisma.organization.findUnique({
+    where: { id: orgId },
+  });
 
-  const field =
-    kind === "invoices" ? "weeklyInvoiceUploads" :
-    kind === "payments" ? "weeklyPaymentUploads" :
-    "weeklyPriceListUploads";
-
-  const current = (updated as any)[field] as number;
-
-  if (current >= 1) {
-    throw new Error(`Free plan limit reached: 1 ${kind} upload per week.`);
+  if (!org) {
+    return {
+      plan: "free",
+      weeklyUsage: {
+        invoices: 0,
+        payments: 0,
+        priceList: 0,
+        resetAt: null,
+      },
+    };
   }
 
-  await prisma.organization.update({
-    where: { id: orgId },
-    data: { [field]: current + 1 } as any,
-  });
+  return {
+    plan: org.plan || "free",
+    weeklyUsage: {
+      invoices: org.weeklyInvoiceCount,
+      payments: org.weeklyPaymentCount,
+      priceList: org.weeklyPriceCount,
+      resetAt: org.usageResetAt,
+    },
+  };
 }
