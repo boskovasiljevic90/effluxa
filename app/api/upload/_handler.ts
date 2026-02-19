@@ -1,102 +1,77 @@
 import { prisma } from "@/lib/prisma";
 import { parsePdfInvoice } from "@/lib/parse-pdf-invoice";
 import { parseTabular } from "@/lib/parse-tabular";
-import { getOrgIdFromRequest } from "@/lib/auth";
-import { ensureOrg, incrementUsage } from "@/lib/org";
 
 export async function handleUpload(
   req: Request,
   kind: "invoices" | "payments" | "price-list"
 ) {
   try {
-    const orgId = getOrgIdFromRequest(req);
-    const org = await ensureOrg(orgId);
-
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const file = formData.get("file") as File;
 
     if (!file) {
-      return new Response(
-        JSON.stringify({ error: "No file uploaded" }),
-        { status: 400 }
-      );
+      return {
+        error: "No file provided"
+      };
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const name = file.name.toLowerCase();
+    const filename = file.name;
 
     let rows: any[] = [];
 
-    // ===== PDF invoice =====
-    if (kind === "invoices" && name.endsWith(".pdf")) {
-      const extracted = await parsePdfInvoice(buffer, orgId);
+    if (kind === "invoices" && filename.endsWith(".pdf")) {
+      const extracted = await parsePdfInvoice(buffer, filename);
       rows = extracted ? [extracted] : [];
     } else {
-      rows = (await parseTabular(buffer, file.name)) || [];
+      rows = await parseTabular(buffer, filename);
     }
 
-    if (!rows.length) {
-      return new Response(
-        JSON.stringify({ error: "No rows parsed" }),
-        { status: 400 }
-      );
+    if (!rows || rows.length === 0) {
+      return {
+        error: "No rows parsed from file"
+      };
     }
 
-    const batch = await prisma.uploadBatch.create({
-      data: {
-        orgId,
-        kind,
-        filename: file.name,
-      },
-    });
+    for (const row of rows) {
+      if (kind === "invoices") {
+        await prisma.invoiceRow.create({
+          data: {
+            orgId: "demo-org",
+            raw: row
+          }
+        });
+      }
 
-    if (kind === "invoices") {
-      await prisma.invoiceRow.createMany({
-        data: rows.map((r: any) => ({
-          orgId,
-          batchId: batch.id,
-          raw: r,
-        })),
-      });
+      if (kind === "payments") {
+        await prisma.paymentRow.create({
+          data: {
+            orgId: "demo-org",
+            raw: row
+          }
+        });
+      }
 
-      await incrementUsage(orgId, "invoice");
+      if (kind === "price-list") {
+        await prisma.priceListRow.create({
+          data: {
+            orgId: "demo-org",
+            raw: row
+          }
+        });
+      }
     }
 
-    if (kind === "payments") {
-      await prisma.paymentRow.createMany({
-        data: rows.map((r: any) => ({
-          orgId,
-          batchId: batch.id,
-          raw: r,
-        })),
-      });
+    return {
+      success: true,
+      inserted: rows.length
+    };
 
-      await incrementUsage(orgId, "payment");
-    }
-
-    if (kind === "price-list") {
-      await prisma.priceListRow.createMany({
-        data: rows.map((r: any) => ({
-          orgId,
-          batchId: batch.id,
-          raw: r,
-        })),
-      });
-
-      await incrementUsage(orgId, "price");
-    }
-
-    return new Response(
-      JSON.stringify({ success: true, count: rows.length }),
-      { status: 200 }
-    );
   } catch (e: any) {
-    return new Response(
-      JSON.stringify({
-        error: "Internal error",
-        message: e?.message || "Unknown error",
-      }),
-      { status: 500 }
-    );
+    return {
+      error: "Upload failed",
+      message: e?.message
+    };
   }
 }
