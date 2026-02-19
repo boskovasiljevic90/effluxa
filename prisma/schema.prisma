@@ -8,20 +8,13 @@ datasource db {
 }
 
 model Organization {
-  id                  String   @id @default(cuid())
-  clerkOrgId          String   @unique
-  subscription        String   @default("FREE")
-  monthlyInvoiceCount Int      @default(0)
-  usageResetAt        DateTime @default(now())
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  uploadBatches    UploadBatch[]
-  invoiceRows      InvoiceRow[]
-  paymentRows      PaymentRow[]
-  priceListRows    PriceListRow[]
-  reconcileRuns    ReconcileRun[]
-  reconcileResults ReconcileResult[]
+  id                   String   @id @default(cuid())
+  clerkOrgId           String   @unique
+  subscription         String   @default("FREE")
+  monthlyInvoiceCount  Int      @default(0)
+  usageResetAt         DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model UploadBatch {
@@ -30,11 +23,6 @@ model UploadBatch {
   kind      String
   filename  String
   createdAt DateTime @default(now())
-
-  org       Organization @relation(fields: [orgId], references: [id])
-  invoices  InvoiceRow[]
-  payments  PaymentRow[]
-  prices    PriceListRow[]
 }
 
 model InvoiceRow {
@@ -43,10 +31,6 @@ model InvoiceRow {
   batchId   String?
   raw       Json
   createdAt DateTime @default(now())
-
-  org       Organization @relation(fields: [orgId], references: [id])
-  batch     UploadBatch? @relation(fields: [batchId], references: [id])
-  results   ReconcileResult[]
 }
 
 model PaymentRow {
@@ -55,9 +39,6 @@ model PaymentRow {
   batchId   String?
   raw       Json
   createdAt DateTime @default(now())
-
-  org       Organization @relation(fields: [orgId], references: [id])
-  batch     UploadBatch? @relation(fields: [batchId], references: [id])
 }
 
 model PriceListRow {
@@ -66,18 +47,15 @@ model PriceListRow {
   batchId   String?
   raw       Json
   createdAt DateTime @default(now())
-
-  org       Organization @relation(fields: [orgId], references: [id])
-  batch     UploadBatch? @relation(fields: [batchId], references: [id])
 }
 
 model ReconcileRun {
   id        String   @id @default(cuid())
   orgId     String
+  summary   Json?
   createdAt DateTime @default(now())
 
-  org       Organization @relation(fields: [orgId], references: [id])
-  results   ReconcileResult[]
+  @@index([orgId])
 }
 
 model ReconcileResult {
@@ -90,10 +68,6 @@ model ReconcileResult {
   paidTotal    Float?
   outstanding  Float?
   createdAt    DateTime @default(now())
-
-  org         Organization @relation(fields: [orgId], references: [id])
-  run         ReconcileRun? @relation(fields: [runId], references: [id])
-  invoiceRow  InvoiceRow?   @relation(fields: [invoiceRowId], references: [id])
 
   @@index([orgId])
 }
