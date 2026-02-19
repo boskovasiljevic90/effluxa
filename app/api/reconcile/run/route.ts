@@ -3,12 +3,8 @@ import { runReconciliation } from "@/lib/reconcile";
 
 export async function POST() {
   try {
-    const orgId = "demo-org";
-
-    await runReconciliation(orgId);
-
+    await runReconciliation();
     return NextResponse.json({ success: true });
-
   } catch (e: any) {
     return NextResponse.json(
       {
