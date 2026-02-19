@@ -1,31 +1,11 @@
-import { prisma } from "../../../../../lib/prisma";
+import { prisma } from "../../../../lib/prisma";
 
-export default async function VendorPage({ params, searchParams }: any) {
+export default async function VendorPage({ params }: any) {
   const vendor = params.vendor;
-  const currency = searchParams?.currency || null;
-  const since = searchParams?.since ? new Date(searchParams.since) : null;
 
   const results = await prisma.reconcileResult.findMany({
-    include: {
-      invoiceRow: true,
-    },
     orderBy: { createdAt: "desc" },
     take: 200,
-  });
-
-  const filtered = results.filter((r: any) => {
-    if (!r.invoiceRow?.raw) return false;
-
-    const raw = r.invoiceRow.raw as any;
-
-    if (vendor && raw?.counterparty !== vendor) return false;
-    if (currency && raw?.currency !== currency) return false;
-    if (since && raw?.invoiceDate) {
-      const d = new Date(raw.invoiceDate);
-      if (d < since) return false;
-    }
-
-    return true;
   });
 
   return (
@@ -35,7 +15,7 @@ export default async function VendorPage({ params, searchParams }: any) {
       </h1>
 
       <div style={{ marginTop: 20 }}>
-        {filtered.map((r: any) => (
+        {results.map((r: any) => (
           <div
             key={r.id}
             style={{
