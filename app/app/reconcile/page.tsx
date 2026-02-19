@@ -3,46 +3,53 @@
 import { useState } from "react";
 
 export default function ReconcilePage() {
-  const [out, setOut] = useState<string>("Idle.");
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  async function run() {
-    setOut("Clicked. Calling /api/reconcile/run ...");
+  async function runReconcile() {
+    setLoading(true);
+    setResult(null);
 
-    try {
-      const res = await fetch("/api/reconcile/run", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-      });
+    const res = await fetch("/api/reconcile/run", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        orgId: "demo-org", // privremeno hardcoded
+      }),
+    });
 
-      const txt = await res.text();
-      setOut(`HTTP ${res.status}\n${txt}`);
-    } catch (e: any) {
-      setOut(`Client error: ${e?.message || String(e)}`);
-    }
+    const data = await res.json();
+    setResult(data);
+    setLoading(false);
   }
 
   return (
-    <main style={{ padding: 24, maxWidth: 900 }}>
-      <h1 style={{ marginTop: 0 }}>Reconciliation</h1>
-      <p>Runs matching between invoices and payments and stores results.</p>
+    <div style={{ padding: 40 }}>
+      <h1 style={{ fontSize: 32, fontWeight: 800 }}>
+        Run Reconciliation
+      </h1>
 
       <button
-        onClick={run}
+        onClick={runReconcile}
         style={{
-          padding: "10px 14px",
+          marginTop: 20,
+          padding: "12px 20px",
+          background: "black",
+          color: "white",
           borderRadius: 8,
-          border: "1px solid #ddd",
           cursor: "pointer",
-          fontWeight: 600,
         }}
       >
-        Run reconciliation
+        {loading ? "Running..." : "Run Reconciliation"}
       </button>
 
-      <pre style={{ marginTop: 18, background: "#111", color: "#0f0", padding: 12, borderRadius: 8, whiteSpace: "pre-wrap" }}>
-        {out}
-      </pre>
-    </main>
+      {result && (
+        <pre style={{ marginTop: 30 }}>
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      )}
+    </div>
   );
 }
