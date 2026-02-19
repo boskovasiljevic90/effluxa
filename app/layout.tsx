@@ -13,19 +13,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen bg-gray-50">
-          <header className="bg-white border-b">
-            <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-              <h1 className="text-2xl font-bold text-primary">
-                Effluxa
-              </h1>
-              <span className="text-sm text-gray-500">
-                AI Invoice Reconciliation
-              </span>
-            </div>
+        <div style={{ minHeight: "100vh" }}>
+          <header style={{
+            background: "white",
+            borderBottom: "1px solid #e5e5e5",
+            padding: "20px 40px",
+            display: "flex",
+            justifyContent: "space-between"
+          }}>
+            <h1 style={{ margin: 0 }}>Effluxa</h1>
+            <span style={{ color: "#666" }}>
+              AI Invoice Reconciliation
+            </span>
           </header>
 
-          <main className="max-w-6xl mx-auto px-6 py-10">
+          <main style={{ padding: "40px", maxWidth: "1000px", margin: "0 auto" }}>
             {children}
           </main>
         </div>
