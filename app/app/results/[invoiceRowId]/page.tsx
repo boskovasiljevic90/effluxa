@@ -4,24 +4,12 @@ export default async function InvoiceResultPage({ params }: any) {
   const { invoiceRowId } = params;
 
   const result = await prisma.reconcileResult.findFirst({
-    where: {
-      invoiceRowId,
-    },
-    include: {
-      invoiceRow: true,
-    },
+    where: { invoiceRowId },
   });
 
   if (!result) {
-    return (
-      <div style={{ padding: 24 }}>
-        <h1>Result not found</h1>
-      </div>
-    );
+    return <div style={{ padding: 24 }}>No result found.</div>;
   }
-
-  const inv: any = result.invoiceRow || {};
-  const raw: any = inv.raw || {};
 
   return (
     <div style={{ padding: 24 }}>
@@ -34,21 +22,6 @@ export default async function InvoiceResultPage({ params }: any) {
         <div>Currency: {result.currency}</div>
         <div>Paid: {result.paidTotal}</div>
         <div>Outstanding: {result.outstanding}</div>
-      </div>
-
-      <div style={{ marginTop: 30 }}>
-        <h2 style={{ fontWeight: 700 }}>Raw Invoice Data</h2>
-        <pre
-          style={{
-            background: "#f3f4f6",
-            padding: 12,
-            borderRadius: 8,
-            marginTop: 10,
-            overflow: "auto",
-          }}
-        >
-          {JSON.stringify(raw, null, 2)}
-        </pre>
       </div>
     </div>
   );
