@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { parsePdfInvoice } from "@/lib/parse-pdf-invoice";
 import { parseTabular } from "@/lib/parse-tabular";
+import { checkAndIncrementUsage } from "@/lib/limits";
 
 export async function handleUpload(
   req: Request,
@@ -9,12 +10,25 @@ export async function handleUpload(
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
+    const orgId = formData.get("orgId") as string;
 
     if (!file) {
-      return {
-        error: "No file provided"
-      };
+      return { error: "No file provided" };
     }
+
+    if (!orgId) {
+      return { error: "Missing orgId" };
+    }
+
+    // 🔒 PLAN LIMIT CHECK
+    const limitType =
+      kind === "invoices"
+        ? "invoice"
+        : kind === "payments"
+        ? "payment"
+        : "price";
+
+    await checkAndIncrementUsage(orgId, limitType as any);
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const filename = file.name;
@@ -29,16 +43,14 @@ export async function handleUpload(
     }
 
     if (!rows || rows.length === 0) {
-      return {
-        error: "No rows parsed from file"
-      };
+      return { error: "No rows parsed from file" };
     }
 
     for (const row of rows) {
       if (kind === "invoices") {
         await prisma.invoiceRow.create({
           data: {
-            orgId: "demo-org",
+            orgId,
             raw: row
           }
         });
@@ -47,7 +59,7 @@ export async function handleUpload(
       if (kind === "payments") {
         await prisma.paymentRow.create({
           data: {
-            orgId: "demo-org",
+            orgId,
             raw: row
           }
         });
@@ -56,7 +68,7 @@ export async function handleUpload(
       if (kind === "price-list") {
         await prisma.priceListRow.create({
           data: {
-            orgId: "demo-org",
+            orgId,
             raw: row
           }
         });
@@ -70,8 +82,7 @@ export async function handleUpload(
 
   } catch (e: any) {
     return {
-      error: "Upload failed",
-      message: e?.message
+      error: e?.message || "Upload failed"
     };
   }
 }
