@@ -8,21 +8,22 @@ datasource db {
 }
 
 model Organization {
-  id                 String   @id
-  plan               String   @default("free")
+  id                    String   @id
+  plan                  String   @default("free")
 
-  weeklyInvoiceCount Int      @default(0)
-  weeklyPaymentCount Int      @default(0)
-  weeklyPriceCount   Int      @default(0)
+  weeklyInvoiceCount    Int      @default(0)
+  weeklyPaymentCount    Int      @default(0)
+  weeklyPriceCount      Int      @default(0)
+  weeklyReconcileCount  Int      @default(0)
 
-  usageResetAt       DateTime @default(now())
+  usageResetAt          DateTime @default(now())
 
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
-  subscriptionStatus   String  @default("free")
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  subscriptionStatus    String   @default("free")
 
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model UploadBatch {
