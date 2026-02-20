@@ -1,29 +1,47 @@
-import { NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
+import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
+export const runtime = "nodejs";
+
 export async function POST(req: Request) {
-  console.log("WEBHOOK HIT");
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
   const body = await req.text();
-  const headerList = await headers();
-  const signature = headerList.get("stripe-signature");
+  const signature = req.headers.get("stripe-signature");
 
-  let event;
+  if (!signature) {
+    return new Response("No signature", { status: 400 });
+  }
+
+  let event: Stripe.Event;
 
   try {
     event = stripe.webhooks.constructEvent(
       body,
-      signature!,
+      signature,
       process.env.STRIPE_WEBHOOK_SECRET as string
     );
   } catch (err: any) {
-    console.log("Webhook signature error:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 400 });
+    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  console.log("Event type:", event.type);
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object as Stripe.Checkout.Session;
 
-  return NextResponse.json({ received: true });
+    const orgId = session.metadata?.orgId;
+
+    if (orgId) {
+      await prisma.organization.update({
+        where: { id: orgId },
+        data: {
+          stripeCustomerId: session.customer as string,
+          stripeSubscriptionId: session.subscription as string,
+          subscriptionStatus: "active",
+          plan: "pro",
+        },
+      });
+    }
+  }
+
+  return new Response("OK", { status: 200 });
 }
