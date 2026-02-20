@@ -28,50 +28,35 @@ export async function POST(req: Request) {
   }
 
   try {
-    switch (event.type) {
-      case "checkout.session.completed": {
-        const session: any = event.data.object;
+    if (event.type === "checkout.session.completed") {
+      const session: any = event.data.object;
+      const orgId = session.metadata?.orgId;
 
-        await prisma.organization.updateMany({
+      if (orgId) {
+        await prisma.organization.update({
+          where: { id: orgId },
           data: {
             stripeCustomerId: session.customer,
             stripeSubscriptionId: session.subscription,
             subscriptionStatus: "active",
+            plan: "pro",
           },
         });
-
-        break;
       }
+    }
 
-      case "invoice.payment_failed": {
-        const invoice: any = event.data.object;
+    if (event.type === "customer.subscription.deleted") {
+      const subscription: any = event.data.object;
 
-        await prisma.organization.updateMany({
-          where: {
-            stripeCustomerId: invoice.customer,
-          },
-          data: {
-            subscriptionStatus: "past_due",
-          },
-        });
-
-        break;
-      }
-
-      case "customer.subscription.deleted": {
-        const subscription: any = event.data.object;
-
-        await prisma.organization.updateMany({
-          where: {
-            stripeSubscriptionId: subscription.id,
-          },
-          data: {
-            subscriptionStatus: "canceled",
-          },
-        });
-
-        break;
-      }
+      await prisma.organization.updateMany({
+        where: {
+          stripeSubscriptionId: subscription.id,
+        },
+        data: {
+          subscriptionStatus: "canceled",
+          plan: "free",
+        },
+      });
     }
 
     return NextResponse.json({ received: true });
