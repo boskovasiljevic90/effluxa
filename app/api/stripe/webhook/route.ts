@@ -5,7 +5,8 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const body = await req.text();
-  const signature = headers().get("stripe-signature");
+  const headerList = await headers();
+  const signature = headerList.get("stripe-signature");
 
   if (!signature) {
     return NextResponse.json({ error: "No signature" }, { status: 400 });
@@ -17,7 +18,7 @@ export async function POST(req: Request) {
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET as string
     );
   } catch (err: any) {
     return NextResponse.json(
@@ -31,13 +32,10 @@ export async function POST(req: Request) {
       case "checkout.session.completed": {
         const session: any = event.data.object;
 
-        const customerId = session.customer;
-        const subscriptionId = session.subscription;
-
         await prisma.organization.updateMany({
           data: {
-            stripeCustomerId: customerId,
-            stripeSubscriptionId: subscriptionId,
+            stripeCustomerId: session.customer,
+            stripeSubscriptionId: session.subscription,
             subscriptionStatus: "active",
           },
         });
