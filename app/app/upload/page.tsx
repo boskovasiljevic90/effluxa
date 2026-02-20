@@ -15,6 +15,9 @@ export default function UploadPage() {
     const formData = new FormData();
     formData.append("file", file);
 
+    // ✅ ADD ORG ID
+    formData.append("orgId", "demo");
+
     const res = await fetch(`/api/upload/${kind}`, {
       method: "POST",
       body: formData,
@@ -28,7 +31,7 @@ export default function UploadPage() {
     const res = await fetch("/api/reconcile/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orgId: "demo-org" }),
+      body: JSON.stringify({ orgId: "demo" }),
     });
 
     const data = await res.json();
