@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkAndIncrementUsage } from "@/lib/limits";
 
 export async function POST(req: Request) {
   try {
     const orgId = "demo-org";
+
+    await checkAndIncrementUsage(orgId, "payment");
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -12,10 +15,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file" }, { status: 400 });
     }
 
-    const parsed = {
-      invoiceNumber: "INV-123",
-      amount: 100,
-    };
+    const text = await file.text();
+
+    let parsed;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      parsed = { paymentRef: "PAY-" + Date.now(), amount: 100 };
+    }
 
     const batch = await prisma.uploadBatch.create({
       data: {
@@ -39,7 +46,7 @@ export async function POST(req: Request) {
     });
   } catch (e: any) {
     return NextResponse.json(
-      { error: "Internal error", message: e?.message },
+      { error: e.message || "Internal error" },
       { status: 500 }
     );
   }

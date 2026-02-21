@@ -4,20 +4,17 @@ import { checkAndIncrementUsage } from "@/lib/limits";
 
 export async function POST(req: Request) {
   try {
+    const orgId = "demo-org";
+
+    // LIMIT CHECK
+    await checkAndIncrementUsage(orgId, "invoice");
+
     const formData = await req.formData();
     const file = formData.get("file") as File;
-    const orgId = formData.get("orgId") as string;
 
     if (!file) {
       return NextResponse.json({ error: "No file" }, { status: 400 });
     }
-
-    if (!orgId) {
-      return NextResponse.json({ error: "Missing orgId" }, { status: 400 });
-    }
-
-    // 🔒 PLAN LIMIT CHECK
-    await checkAndIncrementUsage(orgId, "invoice");
 
     const text = await file.text();
 
@@ -52,10 +49,9 @@ export async function POST(req: Request) {
       success: true,
       message: "Invoice stored in DB",
     });
-
   } catch (e: any) {
     return NextResponse.json(
-      { error: e?.message || "Internal error" },
+      { error: e.message || "Internal error" },
       { status: 500 }
     );
   }
