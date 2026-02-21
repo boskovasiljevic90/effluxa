@@ -1,22 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function UploadPage() {
+  const [plan, setPlan] = useState<string>("free");
+  const [response, setResponse] = useState<any>(null);
+  const [runResponse, setRunResponse] = useState<any>(null);
+
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
   const [priceFile, setPriceFile] = useState<File | null>(null);
-  const [response, setResponse] = useState<any>(null);
-  const [runResponse, setRunResponse] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/organization/status")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.plan) setPlan(data.plan);
+      });
+  }, []);
 
   async function upload(kind: string, file: File | null) {
     if (!file) return alert("Select file first");
 
     const formData = new FormData();
     formData.append("file", file);
-
-    // ✅ ADD ORG ID
-    formData.append("orgId", "demo");
 
     const res = await fetch(`/api/upload/${kind}`, {
       method: "POST",
@@ -31,20 +38,56 @@ export default function UploadPage() {
     const res = await fetch("/api/reconcile/run", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ orgId: "demo" }),
+      body: JSON.stringify({ orgId: "demo-org" }),
     });
 
     const data = await res.json();
     setRunResponse(data);
   }
 
+  async function upgradeToPro() {
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orgId: "demo-org" }),
+    });
+
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  }
+
   return (
     <div style={{ padding: 40 }}>
       <h1 style={{ fontSize: 32, fontWeight: 800 }}>
-        Upload (Free Plan)
+        Upload Dashboard
       </h1>
 
-      <div style={{ marginTop: 30 }}>
+      <div style={{ marginTop: 10, fontWeight: 600 }}>
+        Current Plan:{" "}
+        <span style={{ color: plan === "pro" ? "green" : "red" }}>
+          {plan.toUpperCase()}
+        </span>
+      </div>
+
+      {plan === "free" && (
+        <div style={{ marginTop: 20 }}>
+          <button
+            onClick={upgradeToPro}
+            style={{
+              background: "black",
+              color: "white",
+              padding: "10px 20px",
+              fontWeight: 600,
+            }}
+          >
+            Upgrade to Pro – $199.99/month
+          </button>
+        </div>
+      )}
+
+      <div style={{ marginTop: 40 }}>
         <h3>Invoices</h3>
         <input type="file" onChange={(e) => setInvoiceFile(e.target.files?.[0] || null)} />
         <br />
@@ -90,14 +133,6 @@ export default function UploadPage() {
           {JSON.stringify(runResponse, null, 2)}
         </pre>
       )}
-
-      <div style={{ marginTop: 20 }}>
-        <a href="/app/results">
-          <button style={{ padding: "10px 20px" }}>
-            View Results
-          </button>
-        </a>
-      </div>
 
       {response && (
         <pre style={{ marginTop: 40 }}>
