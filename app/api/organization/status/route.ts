@@ -11,7 +11,13 @@ export async function GET() {
   }
 
   return NextResponse.json({
+    orgId: org.id,
     plan: org.plan,
     subscriptionStatus: org.subscriptionStatus,
+    weeklyInvoiceCount: org.weeklyInvoiceCount,
+    weeklyPaymentCount: org.weeklyPaymentCount,
+    weeklyPriceCount: org.weeklyPriceCount,
+    weeklyReconcileCount: (org as any).weeklyReconcileCount ?? 0,
+    usageResetAt: org.usageResetAt,
   });
 }
