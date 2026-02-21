@@ -8,22 +8,18 @@ datasource db {
 }
 
 model Organization {
-  id                    String   @id
-  plan                  String   @default("free")
-
-  weeklyInvoiceCount    Int      @default(0)
-  weeklyPaymentCount    Int      @default(0)
-  weeklyPriceCount      Int      @default(0)
-  weeklyReconcileCount  Int      @default(0)
-
-  usageResetAt          DateTime @default(now())
-
-  stripeCustomerId      String?
-  stripeSubscriptionId  String?
-  subscriptionStatus    String   @default("free")
-
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                   String   @id
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  usageResetAt         DateTime @default(now())
+  plan                 String   @default("free")
+  weeklyInvoiceCount   Int      @default(0)
+  weeklyPaymentCount   Int      @default(0)
+  weeklyPriceCount     Int      @default(0)
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   String   @default("free")
+  weeklyReconcileCount Int      @default(0)
 }
 
 model UploadBatch {
@@ -61,8 +57,8 @@ model PriceListRow {
 model ReconcileRun {
   id        String   @id @default(cuid())
   orgId     String
-  summary   Json?
   createdAt DateTime @default(now())
+  summary   Json?
 
   @@index([orgId])
 }
