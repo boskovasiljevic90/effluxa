@@ -43,6 +43,10 @@ export default function HomePage() {
               How it works
             </a>
 
+            <a href="#pricing" style={{ color: "#334155", fontWeight: 600 }}>
+              Pricing
+            </a>
+
             <Link href="/login" style={{ color: "#334155", fontWeight: 600 }}>
               Login
             </Link>
@@ -353,6 +357,201 @@ export default function HomePage() {
         </div>
       </section>
     
+
+      <section
+        id="pricing"
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "20px 24px 120px",
+        }}
+      >
+        <div style={{ textAlign: "center", marginBottom: "50px" }}>
+          <h2
+            style={{
+              fontSize: "48px",
+              fontWeight: 900,
+              letterSpacing: "-2px",
+              color: "#0f172a",
+            }}
+          >
+            Simple Pay-Per-Audit Pricing
+          </h2>
+
+          <p
+            style={{
+              marginTop: "18px",
+              color: "#475569",
+              fontSize: "20px",
+              lineHeight: 1.6,
+            }}
+          >
+            Start free. Pay only when you want to unlock the full AI audit.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
+            gap: "28px",
+            maxWidth: "900px",
+            margin: "0 auto",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              border: "1px solid #e2e8f0",
+              borderRadius: "28px",
+              padding: "38px",
+              boxShadow: "0 10px 30px rgba(15,23,42,0.04)",
+            }}
+          >
+            <div style={{ fontSize: "20px", fontWeight: 800 }}>
+              Free Preview
+            </div>
+
+            <div
+              style={{
+                fontSize: "52px",
+                fontWeight: 900,
+                marginTop: "18px",
+              }}
+            >
+              €0
+            </div>
+
+            <p style={{ color: "#64748b", marginTop: "12px", lineHeight: 1.7 }}>
+              Upload your financial file and receive a preview analysis.
+            </p>
+
+            <ul style={{ marginTop: "28px", lineHeight: 2, color: "#334155" }}>
+              <li>✓ Upload PDF, CSV, XLSX</li>
+              <li>✓ AI executive summary</li>
+              <li>✓ Leakage score preview</li>
+              <li>✓ Up to 3 free previews</li>
+            </ul>
+          </div>
+
+          <div
+            style={{
+              background: "#0f172a",
+              color: "white",
+              borderRadius: "28px",
+              padding: "38px",
+              boxShadow: "0 18px 50px rgba(15,23,42,0.25)",
+              border: "1px solid #1e293b",
+            }}
+          >
+            <div style={{ fontSize: "20px", fontWeight: 800 }}>
+              Full AI Audit
+            </div>
+
+            <div
+              style={{
+                fontSize: "52px",
+                fontWeight: 900,
+                marginTop: "18px",
+              }}
+            >
+              €29
+            </div>
+
+            <p style={{ color: "#cbd5e1", marginTop: "12px", lineHeight: 1.7 }}>
+              One-time unlock for a complete AI financial leak audit report.
+            </p>
+
+            <ul style={{ marginTop: "28px", lineHeight: 2, color: "#e2e8f0" }}>
+              <li>✓ Estimated savings opportunity</li>
+              <li>✓ Key findings</li>
+              <li>✓ Vendor analysis</li>
+              <li>✓ AI recommendations</li>
+              <li>✓ Downloadable PDF audit</li>
+            </ul>
+
+            <a href="/signup">
+              <button
+                style={{
+                  marginTop: "34px",
+                  width: "100%",
+                  height: "58px",
+                  borderRadius: "18px",
+                  border: "none",
+                  background: "white",
+                  color: "#0f172a",
+                  fontWeight: 900,
+                  fontSize: "17px",
+                  cursor: "pointer",
+                }}
+              >
+                Start Free Audit
+              </button>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section
+        style={{
+          maxWidth: "1000px",
+          margin: "0 auto",
+          padding: "0 24px 120px",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "42px",
+            fontWeight: 900,
+            letterSpacing: "-1.5px",
+            textAlign: "center",
+            color: "#0f172a",
+            marginBottom: "42px",
+          }}
+        >
+          Frequently Asked Questions
+        </h2>
+
+        <div style={{ display: "grid", gap: "18px" }}>
+          {[
+            {
+              q: "Is Effluxa a subscription?",
+              a: "No. Effluxa V1 uses one-time payment per full audit. You only pay €29 when you choose to unlock a complete report."
+            },
+            {
+              q: "What files can I upload?",
+              a: "Effluxa supports PDF, CSV, XLSX, and XLS financial files such as invoices, statements, exports, and expense reports."
+            },
+            {
+              q: "Is this financial advice?",
+              a: "No. Effluxa provides AI-generated informational analysis. It is not financial, tax, legal, accounting, or investment advice."
+            },
+            {
+              q: "Do I need accounting software integration?",
+              a: "No. Effluxa is designed for fast upload-based analysis without complex setup or integrations."
+            }
+          ].map((item, index) => (
+            <div
+              key={index}
+              style={{
+                background: "white",
+                border: "1px solid #e2e8f0",
+                borderRadius: "22px",
+                padding: "28px",
+              }}
+            >
+              <h3 style={{ fontSize: "22px", fontWeight: 800 }}>
+                {item.q}
+              </h3>
+
+              <p style={{ marginTop: "12px", color: "#475569", lineHeight: 1.7 }}>
+                {item.a}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <footer
         className="landing-footer"
         style={{
