@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
+import Stripe from "stripe";
 import UpgradeButton from "./UpgradeButton";
 
 async function getUser() {
@@ -25,16 +26,19 @@ interface Props {
   params: {
     id: string;
   };
+  searchParams?: {
+    session_id?: string;
+  };
 }
 
-export default async function ReportPage({ params }: Props) {
+export default async function ReportPage({ params, searchParams }: Props) {
   const user = await getUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const report = await prisma.upload.findFirst({
+  let report = await prisma.upload.findFirst({
     where: {
       id: params.id,
       userId: user.id,
@@ -43,6 +47,45 @@ export default async function ReportPage({ params }: Props) {
 
   if (!report) {
     return <div style={{ padding: "40px" }}>Report not found.</div>;
+  }
+
+  if (!report.unlocked && searchParams?.session_id && process.env.STRIPE_SECRET_KEY) {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2026-02-25.clover",
+      });
+
+      const session = await stripe.checkout.sessions.retrieve(
+        searchParams.session_id
+      );
+
+      const paid =
+        session.payment_status === "paid" ||
+        session.status === "complete";
+
+      const sessionReportId = session.metadata?.reportId;
+      const sessionUserId = session.metadata?.userId;
+
+      if (paid && sessionReportId === report.id && sessionUserId === user.id) {
+        await prisma.upload.update({
+          where: { id: report.id },
+          data: {
+            unlocked: true,
+            unlockedAt: new Date(),
+            checkoutSessionId: session.id,
+          },
+        });
+
+        report = await prisma.upload.findFirst({
+          where: {
+            id: params.id,
+            userId: user.id,
+          },
+        });
+      }
+    } catch (error) {
+      console.error("STRIPE SESSION VERIFY ERROR:", error);
+    }
   }
 
   const data = report.parsedData as any;
@@ -128,7 +171,6 @@ export default async function ReportPage({ params }: Props) {
                 </button>
               </a>
             </div>
-
           </>
         ) : (
           <div

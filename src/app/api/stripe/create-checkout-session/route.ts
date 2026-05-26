@@ -38,8 +38,12 @@ export async function POST(req: NextRequest) {
     }
 
     if (report.unlocked) {
-      return NextResponse.json({ url: `/dashboard/reports/${report.id}` });
+      return NextResponse.json({
+        url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/reports/${report.id}`,
+      });
     }
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://effluxa.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -65,8 +69,8 @@ export async function POST(req: NextRequest) {
         product: "full_audit_unlock",
       },
 
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/reports/${report.id}?unlocked=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/reports/${report.id}`,
+      success_url: `${appUrl}/dashboard/reports/${report.id}?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appUrl}/dashboard/reports/${report.id}`,
     });
 
     return NextResponse.json({ url: session.url });
