@@ -37,7 +37,7 @@ export default function SignupPage() {
         return;
       }
 
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err) {
       console.error(err);
       alert("Signup failed");
