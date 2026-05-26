@@ -88,6 +88,10 @@ export default async function ReportPage({ params, searchParams }: Props) {
     }
   }
 
+  if (!report) {
+    return <div style={{ padding: "40px" }}>Report not found.</div>;
+  }
+
   const data = report.parsedData as any;
   const isUnlocked = report.unlocked;
 
