@@ -222,3 +222,43 @@ input {
   color: #15803d;
   margin-top: 16px;
 }
+
+@media (max-width: 768px) {
+  .auth-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-hero {
+    padding: 40px 24px !important;
+  }
+
+  .auth-title {
+    font-size: 42px !important;
+  }
+
+  .auth-panel {
+    border-left: none !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    padding: 24px !important;
+  }
+
+  .landing-nav {
+    flex-direction: column !important;
+    gap: 20px !important;
+    align-items: flex-start !important;
+  }
+
+  .landing-title {
+    font-size: 44px !important;
+    letter-spacing: -1.5px !important;
+  }
+
+  .landing-subtitle {
+    font-size: 19px !important;
+  }
+
+  .landing-footer {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+}

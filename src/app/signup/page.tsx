@@ -48,6 +48,7 @@ export default function SignupPage() {
   return (
     <div className="page-container">
       <div
+        className="auth-grid"
         style={{
           minHeight: "100vh",
           display: "grid",
@@ -55,6 +56,7 @@ export default function SignupPage() {
         }}
       >
         <div
+          className="auth-hero"
           style={{
             padding: "80px",
             display: "flex",
@@ -67,6 +69,7 @@ export default function SignupPage() {
           </div>
 
           <div
+            className="auth-title"
             style={{
               fontSize: "64px",
               lineHeight: 1.05,
@@ -91,6 +94,7 @@ export default function SignupPage() {
         </div>
 
         <div
+          className="auth-panel"
           style={{
             background: "rgba(255,255,255,0.04)",
             borderLeft: "1px solid rgba(255,255,255,0.08)",
