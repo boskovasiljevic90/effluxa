@@ -7,72 +7,36 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Organization {
-  id                   String   @id
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  usageResetAt         DateTime @default(now())
-  plan                 String   @default("free")
-  weeklyInvoiceCount   Int      @default(0)
-  weeklyPaymentCount   Int      @default(0)
-  weeklyPriceCount     Int      @default(0)
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
-  subscriptionStatus   String   @default("free")
-  weeklyReconcileCount Int      @default(0)
+enum Role {
+  FREE
+  PRO
 }
 
-model UploadBatch {
-  id        String   @id @default(cuid())
-  orgId     String
-  kind      String
-  filename  String
-  createdAt DateTime @default(now())
+model User {
+  id                    String   @id @default(uuid())
+  email                 String   @unique
+  password              String
+  role                  Role     @default(FREE)
+  weeklyUploadCount     Int      @default(0)
+  weeklyResetDate       DateTime @default(now())
+  stripeCustomerId      String?
+  subscriptionId        String?
+  subscriptionEndDate   DateTime?
+  preferredLanguage     String   @default("en")
+  uploads               Upload[]
+  createdAt             DateTime @default(now())
 }
 
-model InvoiceRow {
-  id        String   @id @default(cuid())
-  orgId     String
-  batchId   String?
-  raw       Json
-  createdAt DateTime @default(now())
-}
-
-model PaymentRow {
-  id        String   @id @default(cuid())
-  orgId     String
-  batchId   String?
-  raw       Json
-  createdAt DateTime @default(now())
-}
-
-model PriceListRow {
-  id        String   @id @default(cuid())
-  orgId     String
-  batchId   String?
-  raw       Json
-  createdAt DateTime @default(now())
-}
-
-model ReconcileRun {
-  id        String   @id @default(cuid())
-  orgId     String
-  createdAt DateTime @default(now())
-  summary   Json?
-
-  @@index([orgId])
-}
-
-model ReconcileResult {
-  id           String   @id @default(cuid())
-  orgId        String
-  runId        String?
-  invoiceRowId String?
-  status       String
-  currency     String?
-  paidTotal    Float?
-  outstanding  Float?
-  createdAt    DateTime @default(now())
-
-  @@index([orgId])
+model Upload {
+  id                String    @id @default(uuid())
+  userId            String
+  fileUrl           String
+  parsedData        Json?
+  summary           String?
+  shareToken        String?   @unique
+  unlocked          Boolean   @default(false)
+  unlockedAt        DateTime?
+  checkoutSessionId String?
+  createdAt         DateTime  @default(now())
+  user              User      @relation(fields: [userId], references: [id])
 }

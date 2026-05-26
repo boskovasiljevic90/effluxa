@@ -1,0 +1,144 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import jwt from "jsonwebtoken";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+
+export const runtime = "nodejs";
+
+interface Props {
+  params: {
+    id: string;
+  };
+}
+
+function wrapText(text: string, maxLength = 85) {
+  const words = String(text || "").split(" ");
+  const lines: string[] = [];
+  let line = "";
+
+  for (const word of words) {
+    if ((line + " " + word).trim().length > maxLength) {
+      lines.push(line.trim());
+      line = word;
+    } else {
+      line += " " + word;
+    }
+  }
+
+  if (line.trim()) lines.push(line.trim());
+  return lines;
+}
+
+export async function GET(req: NextRequest, { params }: Props) {
+  try {
+    const token = req.cookies.get("token")?.value;
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
+    };
+
+    const report = await prisma.upload.findFirst({
+      where: {
+        id: params.id,
+        userId: decoded.userId,
+      },
+    });
+
+    if (!report) {
+      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+    }
+
+    if (!report.unlocked) {
+      return NextResponse.json({ error: "Report is locked" }, { status: 403 });
+    }
+
+    const data = report.parsedData as any;
+
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    let y = 790;
+
+    function text(value: string, size = 11, isBold = false, color = rgb(0.1, 0.1, 0.1)) {
+      page.drawText(String(value || ""), {
+        x: 50,
+        y,
+        size,
+        font: isBold ? bold : font,
+        color,
+      });
+      y -= size + 8;
+    }
+
+    function section(title: string) {
+      y -= 8;
+      text(title, 16, true, rgb(0.05, 0.1, 0.2));
+      y -= 4;
+    }
+
+    function paragraph(value: string) {
+      const lines = wrapText(value, 86);
+      for (const line of lines) {
+        text(line, 11);
+      }
+    }
+
+    text("Effluxa AI Financial Leak Audit", 24, true, rgb(0.05, 0.1, 0.2));
+    y -= 10;
+
+    text(`File: ${report.fileUrl}`, 10, false, rgb(0.4, 0.4, 0.4));
+    text(`Date: ${new Date(report.createdAt).toLocaleString()}`, 10, false, rgb(0.4, 0.4, 0.4));
+
+    section("Executive Summary");
+    paragraph(
+      data?.executive_summary ||
+      "Effluxa detected financial optimization opportunities in this document."
+    );
+
+    section("Leakage Score");
+    text(`${data?.leakage_score ?? 0}/100`, 18, true);
+
+    section("Estimated Savings Opportunity");
+    text(`EUR ${data?.estimated_savings?.toLocaleString?.() || "N/A"}`, 20, true, rgb(0, 0.45, 0.15));
+
+    section("Key Findings");
+    (data?.key_findings || []).forEach((item: string) => paragraph(`- ${item}`));
+
+    section("Top Vendors");
+    (data?.top_vendors || []).forEach((vendor: any) => {
+      paragraph(`- ${vendor.vendor || "Unknown vendor"} - EUR ${vendor.amount || 0}`);
+    });
+
+    section("AI Recommendations");
+    (data?.recommendations || []).forEach((item: string) => paragraph(`- ${item}`));
+
+    y -= 20;
+    paragraph(
+      "Disclaimer: Effluxa reports are AI-generated and provided for informational purposes only. They are not financial, legal, accounting, tax, or investment advice."
+    );
+
+    const pdfBytes = await pdfDoc.save();
+
+    return new NextResponse(Buffer.from(pdfBytes), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="effluxa-audit-${report.id}.pdf"`,
+      },
+    });
+  } catch (error: any) {
+    console.error("PDF DOWNLOAD ERROR:", error);
+
+    return NextResponse.json(
+      { error: error.message || "Failed to generate PDF" },
+      { status: 500 }
+    );
+  }
+}
