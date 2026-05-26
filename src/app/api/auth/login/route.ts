@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       value: token,
       httpOnly: true,
       path: "/",
-      secure: false, // localhost
+      secure: process.env.NODE_ENV === "production", // localhost
       sameSite: "lax",
     });
 
