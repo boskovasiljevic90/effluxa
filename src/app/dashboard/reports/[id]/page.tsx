@@ -38,9 +38,11 @@ export default async function ReportPage({ params, searchParams }: Props) {
     redirect("/login");
   }
 
+  const reportId = params.id;
+
   let report = await prisma.upload.findFirst({
     where: {
-      id: params.id,
+      id: reportId,
       userId: user.id,
     },
   });
@@ -78,7 +80,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
         report = await prisma.upload.findFirst({
           where: {
-            id: params.id,
+            id: reportId,
             userId: user.id,
           },
         });
