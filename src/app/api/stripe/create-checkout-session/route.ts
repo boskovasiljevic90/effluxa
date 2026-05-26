@@ -65,8 +65,8 @@ export async function POST(req: NextRequest) {
         product: "full_audit_unlock",
       },
 
-      success_url: `http://localhost:3000/dashboard/reports/${report.id}?unlocked=true`,
-      cancel_url: `http://localhost:3000/dashboard/reports/${report.id}`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/reports/${report.id}?unlocked=true`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/reports/${report.id}`,
     });
 
     return NextResponse.json({ url: session.url });
