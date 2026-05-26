@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import { trackEvent } from "@/lib/events";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover",
@@ -45,6 +46,16 @@ export async function POST(req: NextRequest) {
           unlocked: true,
           unlockedAt: new Date(),
           checkoutSessionId: session.id,
+        },
+      });
+
+      await trackEvent({
+        type: "report_unlocked",
+        userId,
+        reportId,
+        metadata: {
+          sessionId: session.id,
+          paymentStatus: session.payment_status,
         },
       });
 

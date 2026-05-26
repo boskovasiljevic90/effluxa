@@ -40,3 +40,13 @@ model Upload {
   createdAt         DateTime  @default(now())
   user              User      @relation(fields: [userId], references: [id])
 }
+
+
+model Event {
+  id        String   @id @default(uuid())
+  type      String
+  userId    String?
+  reportId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+}

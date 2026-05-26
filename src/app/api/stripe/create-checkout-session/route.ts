@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { trackEvent } from "@/lib/events";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover",
@@ -71,6 +72,17 @@ export async function POST(req: NextRequest) {
 
       success_url: `${appUrl}/dashboard/reports/${report.id}?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/dashboard/reports/${report.id}`,
+    });
+
+    await trackEvent({
+      type: "checkout_created",
+      userId: decoded.userId,
+      reportId: report.id,
+      metadata: {
+        sessionId: session.id,
+        amount: 2900,
+        currency: "eur",
+      },
     });
 
     return NextResponse.json({ url: session.url });

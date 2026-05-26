@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { trackEvent } from "@/lib/events";
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,6 +52,14 @@ export async function POST(req: NextRequest) {
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
+
+    await trackEvent({
+      type: "signup",
+      userId: user.id,
+      metadata: {
+        email: user.email,
+      },
+    });
 
     const res = NextResponse.json({
       success: true,

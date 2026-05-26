@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import OpenAI from "openai";
 import * as XLSX from "xlsx";
+import { trackEvent } from "@/lib/events";
 
 export const runtime = "nodejs";
 
@@ -194,6 +195,16 @@ export async function POST(req: NextRequest) {
         weeklyUploadCount: {
           increment: 1,
         },
+      },
+    });
+
+    await trackEvent({
+      type: "upload_created",
+      userId: user.id,
+      reportId: upload.id,
+      metadata: {
+        fileName: file.name,
+        fileSize: file.size,
       },
     });
 
