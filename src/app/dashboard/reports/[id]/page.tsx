@@ -190,9 +190,55 @@ export default async function ReportPage({ params, searchParams }: Props) {
             }}
           >
             <h2>Unlock Full AI Audit</h2>
-            <p style={{ marginTop: "12px", color: "#334155" }}>
+
+            <p style={{ marginTop: "12px", color: "#334155", lineHeight: 1.7 }}>
               Unlock estimated savings, vendor insights, leakage analysis, and full AI recommendations.
             </p>
+
+            <div
+              style={{
+                marginTop: "24px",
+                padding: "22px",
+                borderRadius: "18px",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <h3 style={{ fontSize: "20px", marginBottom: "14px" }}>
+                What You Unlock For €29
+              </h3>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: "10px",
+                  color: "#334155",
+                  lineHeight: 1.7,
+                  fontSize: "15px",
+                }}
+              >
+                <div>✓ Full AI financial leak audit</div>
+                <div>✓ Estimated savings opportunity analysis</div>
+                <div>✓ Vendor and spend breakdown</div>
+                <div>✓ Executive summary</div>
+                <div>✓ AI-generated recommendations</div>
+                <div>✓ Downloadable PDF report</div>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "18px",
+                  paddingTop: "18px",
+                  borderTop: "1px solid #e2e8f0",
+                  color: "#64748b",
+                  fontSize: "13px",
+                  lineHeight: 1.7,
+                }}
+              >
+                One-time payment. No subscription. Effluxa provides AI-generated informational analysis and not financial, tax, legal, or investment advice.
+              </div>
+            </div>
+
             <UpgradeButton reportId={report.id} />
 
               <div
