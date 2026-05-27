@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         role: "FREE",
         weeklyUploadCount: 0,
-        termsAcceptedAt: new Date(),
       },
     });
 
