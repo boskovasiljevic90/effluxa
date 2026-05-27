@@ -1,9 +1,47 @@
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 
+
+async function getAdminUser() {
+  const token = cookies().get("token")?.value;
+
+  if (!token) return null;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
+    };
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) return null;
+
+    const adminEmail = process.env.ADMIN_EMAIL;
+
+    if (!adminEmail || user.email !== adminEmail) {
+      return null;
+    }
+
+    return user;
+  } catch {
+    return null;
+  }
+}
+
 export default async function AdminDashboardPage() {
+  const adminUser = await getAdminUser();
+
+  if (!adminUser) {
+    redirect("/dashboard");
+  }
+
   const usersCount = await prisma.user.count();
   const reportsCount = await prisma.upload.count();
   const unlockedReportsCount = await prisma.upload.count({
