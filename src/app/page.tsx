@@ -571,6 +571,7 @@ export default function HomePage() {
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms of Service</Link>
           <Link href="/login">Login</Link>
+          <Link href="/contact">Contact</Link>
         </div>
       </footer>
 
