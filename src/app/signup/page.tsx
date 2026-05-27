@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function SignupPage() {
-  const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSignup(e: any) {
@@ -26,6 +24,7 @@ export default function SignupPage() {
         body: JSON.stringify({
           email,
           password,
+          termsAccepted,
         }),
       });
 
@@ -89,7 +88,8 @@ export default function SignupPage() {
               maxWidth: "720px",
             }}
           >
-            Create a free Effluxa account, upload a financial PDF, and discover hidden leakage opportunities in minutes.
+            Create a free Effluxa account, upload a financial PDF, CSV, or Excel file,
+            and discover hidden leakage opportunities in minutes.
           </p>
         </div>
 
@@ -105,13 +105,7 @@ export default function SignupPage() {
             backdropFilter: "blur(20px)",
           }}
         >
-          <div
-            className="card"
-            style={{
-              width: "100%",
-              maxWidth: "420px",
-            }}
-          >
+          <div className="card" style={{ width: "100%", maxWidth: "420px" }}>
             <div
               style={{
                 fontSize: "34px",
@@ -149,7 +143,7 @@ export default function SignupPage() {
                 />
               </div>
 
-              <div style={{ marginBottom: "24px" }}>
+              <div style={{ marginBottom: "22px" }}>
                 <div style={{ marginBottom: "10px", fontSize: "14px" }}>
                   Password
                 </div>
@@ -171,6 +165,37 @@ export default function SignupPage() {
                   }}
                 />
               </div>
+
+              <label
+                style={{
+                  display: "flex",
+                  gap: "12px",
+                  alignItems: "flex-start",
+                  color: "#cbd5e1",
+                  fontSize: "14px",
+                  lineHeight: 1.6,
+                  marginBottom: "24px",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  style={{ marginTop: "5px" }}
+                />
+
+                <span>
+                  I agree to Effluxa&apos;s{" "}
+                  <Link href="/terms" style={{ color: "#60a5fa" }}>
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" style={{ color: "#60a5fa" }}>
+                    Privacy Policy
+                  </Link>
+                  .
+                </span>
+              </label>
 
               <button
                 type="submit"
