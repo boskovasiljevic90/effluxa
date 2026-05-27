@@ -194,6 +194,57 @@ export default async function ReportPage({ params, searchParams }: Props) {
               Unlock estimated savings, vendor insights, leakage analysis, and full AI recommendations.
             </p>
             <UpgradeButton reportId={report.id} />
+
+              <div
+                style={{
+                  marginTop: "26px",
+                  padding: "22px",
+                  borderRadius: "18px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: 700,
+                    marginBottom: "14px",
+                  }}
+                >
+                  What You Unlock For €29
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "10px",
+                    color: "#cbd5e1",
+                    lineHeight: 1.7,
+                    fontSize: "15px",
+                  }}
+                >
+                  <div>✓ Full AI financial leak audit</div>
+                  <div>✓ Estimated savings opportunity analysis</div>
+                  <div>✓ Vendor and spend breakdown</div>
+                  <div>✓ Executive summary</div>
+                  <div>✓ AI-generated recommendations</div>
+                  <div>✓ Downloadable PDF report</div>
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "18px",
+                    paddingTop: "18px",
+                    borderTop: "1px solid rgba(255,255,255,0.08)",
+                    color: "#94a3b8",
+                    fontSize: "13px",
+                    lineHeight: 1.7,
+                  }}
+                >
+                  One-time payment. No subscription. Effluxa provides AI-generated informational analysis and not financial, tax, legal, or investment advice.
+                </div>
+              </div>
+
           </div>
         )}
       </div>
