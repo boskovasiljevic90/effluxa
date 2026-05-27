@@ -198,6 +198,19 @@ export default function SignupPage() {
                 </span>
               </label>
 
+              {!termsAccepted && (
+                <p
+                  style={{
+                    color: "#fca5a5",
+                    fontSize: "14px",
+                    marginBottom: "16px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Please accept the Terms of Service and Privacy Policy to create your account.
+                </p>
+              )}
+
               <button
                 type="submit"
                 disabled={loading || !termsAccepted}
@@ -218,7 +231,8 @@ export default function SignupPage() {
                   marginTop: "28px",
                   textAlign: "center",
                   color: "#60a5fa",
-                  cursor: "pointer",
+                  cursor: loading || !termsAccepted ? "not-allowed" : "pointer",
+                  opacity: loading || !termsAccepted ? 0.6 : 1,
                 }}
               >
                 Already have an account? Login
