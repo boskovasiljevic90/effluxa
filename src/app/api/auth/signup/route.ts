@@ -8,11 +8,21 @@ import { trackEvent } from "@/lib/events";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const body = await req.json();
+    const email = body?.email;
+    const password = body?.password;
+    const termsAccepted = body?.termsAccepted === true;
 
     if (!email || !password) {
       return NextResponse.json(
         { error: "Email and password are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!termsAccepted) {
+      return NextResponse.json(
+        { error: "You must accept the Terms of Service and Privacy Policy." },
         { status: 400 }
       );
     }
@@ -43,25 +53,21 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         role: "FREE",
         weeklyUploadCount: 0,
+        termsAcceptedAt: new Date(),
       },
     });
-
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        role: user.role,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: "7d" }
-    );
 
     await trackEvent({
       type: "signup",
       userId: user.id,
-      metadata: {
-        email: user.email,
-      },
+      metadata: { email: user.email, termsAccepted: true },
     });
+
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
 
     const res = NextResponse.json({
       success: true,
@@ -83,10 +89,6 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (error) {
     console.error("SIGNUP ERROR:", error);
-
-    return NextResponse.json(
-      { error: "Signup failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Signup failed" }, { status: 500 });
   }
 }

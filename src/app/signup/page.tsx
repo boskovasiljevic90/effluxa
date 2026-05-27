@@ -179,6 +179,7 @@ export default function SignupPage() {
               >
                 <input
                   type="checkbox"
+                  required
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
                   style={{ marginTop: "5px" }}
@@ -199,7 +200,7 @@ export default function SignupPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !termsAccepted}
                 className="primary-button"
                 style={{
                   width: "100%",
