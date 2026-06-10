@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -57,18 +59,17 @@ export default async function ReportPage({ params, searchParams }: Props) {
         apiVersion: "2026-02-25.clover",
       });
 
-      const session = await stripe.checkout.sessions.retrieve(
-        searchParams.session_id
-      );
+      const session = await stripe.checkout.sessions.retrieve(searchParams.session_id);
 
       const paid =
         session.payment_status === "paid" ||
         session.status === "complete";
 
-      const sessionReportId = session.metadata?.reportId;
-      const sessionUserId = session.metadata?.userId;
-
-      if (paid && sessionReportId === report.id && sessionUserId === user.id) {
+      if (
+        paid &&
+        session.metadata?.reportId === report.id &&
+        session.metadata?.userId === user.id
+      ) {
         await prisma.upload.update({
           where: { id: report.id },
           data: {
@@ -239,18 +240,9 @@ export default async function ReportPage({ params, searchParams }: Props) {
               </div>
             </div>
 
-            <UpgradeButton reportId={report.id} />
-
-              <div
-                style={{
-                  marginTop: "26px",
-                  padding: "22px",
-                  borderRadius: "18px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                }}
-              >
-                
+            <div style={{ marginTop: "24px" }}>
+              <UpgradeButton reportId={report.id} />
+            </div>
           </div>
         )}
       </div>
