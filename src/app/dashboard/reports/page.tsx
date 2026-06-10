@@ -1,61 +1,125 @@
-"use client";
+export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+import { redirect } from "next/navigation";
 
-export default function ReportsPage() {
-  const [reports, setReports] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+async function getUser() {
+  const token = cookies().get("token")?.value;
 
-  useEffect(() => {
-    fetch("/api/reports")
-      .then(res => {
-        if (!res.ok) {
-          router.push("/login");
-          return null;
-        }
-        return res.json();
-      })
-      .then(data => {
-        if (data) setReports(data.uploads);
-        setLoading(false);
-      });
-  }, [router]);
+  if (!token) return null;
 
-  if (loading) return <p>Loading...</p>;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+      userId: string;
+    };
+
+    return await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+  } catch {
+    return null;
+  }
+}
+
+export default async function ReportsPage() {
+  const user = await getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const reports = await prisma.upload.findMany({
+    where: {
+      userId: user.id,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return (
-    <div style={{ padding: "40px", maxWidth: "900px" }}>
-      <h1>Your Reports</h1>
+    <div className="page-container">
+      <div style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
+        <Link href="/dashboard" style={{ color: "#60a5fa" }}>
+          ← Back to Dashboard
+        </Link>
 
-      {reports.length === 0 && <p>No reports yet.</p>}
+        <h1 style={{ fontSize: "42px", marginTop: "30px" }}>
+          Your AI Audit Reports
+        </h1>
 
-      {reports.map((report) => (
-        <div
-          key={report.id}
-          style={{
-            border: "1px solid #ddd",
-            padding: "20px",
-            borderRadius: "10px",
-            marginTop: "20px",
-            cursor: "pointer",
-          }}
-          onClick={() => router.push(`/dashboard/reports/${report.id}`)}
-        >
-          <p><strong>Date:</strong> {new Date(report.createdAt).toLocaleString()}</p>
+        <p className="gray" style={{ marginTop: "10px" }}>
+          View all previous Effluxa financial leak audits.
+        </p>
 
-          <p>
-            <strong>Total Expenses:</strong>{" "}
-            ${report.parsedData?.total_expenses?.toLocaleString() || "N/A"}
-          </p>
+        <div className="card" style={{ marginTop: "40px" }}>
+          {reports.length === 0 ? (
+            <p className="gray">No reports yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              {reports.map((report) => {
+                const data = report.parsedData as any;
 
-          <p>
-            <strong>Leakage Score:</strong>{" "}
-            {report.parsedData?.leakage_score ?? "N/A"}
-          </p>
+                return (
+                  <Link key={report.id} href={`/dashboard/reports/${report.id}`}>
+                    <div
+                      style={{
+                        padding: "22px",
+                        borderRadius: "16px",
+                        background: "rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          gap: "20px",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontWeight: "bold", fontSize: "18px" }}>
+                            {report.fileUrl}
+                          </div>
+
+                          <div className="gray" style={{ marginTop: "8px" }}>
+                            {new Date(report.createdAt).toLocaleString()}
+                          </div>
+
+                          <div className="gray" style={{ marginTop: "8px" }}>
+                            Leakage Score: {data?.leakage_score ?? "N/A"}/100
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            padding: "9px 15px",
+                            borderRadius: "999px",
+                            background: report.unlocked
+                              ? "rgba(34,197,94,0.15)"
+                              : "rgba(255,255,255,0.08)",
+                            color: report.unlocked ? "#4ade80" : "#cbd5e1",
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                          }}
+                        >
+                          {report.unlocked ? "UNLOCKED" : "PREVIEW"}
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
-      ))}
+      </div>
     </div>
   );
 }
