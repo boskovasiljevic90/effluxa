@@ -21,6 +21,7 @@ export default function PublicHeader() {
       <nav style={{ display: "flex", gap: "20px", alignItems: "center", flexWrap: "wrap" }}>
         <Link href="/#how-it-works">How it works</Link>
         <Link href="/#pricing">Pricing</Link>
+        <Link href="/contact">Contact</Link>
         <Link href="/login">Login</Link>
         <Link href="/signup">
           <button
