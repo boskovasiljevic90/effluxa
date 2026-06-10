@@ -1,10 +1,13 @@
 import Link from "next/link";
+import PublicHeader from "@/components/PublicHeader";
+import PublicFooter from "@/components/PublicFooter";
 
 export const dynamic = "force-dynamic";
 
 export default function ContactPage() {
   return (
-    <div className="page-container">
+    <div style={{ minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
+      <PublicHeader />
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 40px" }}>
         <Link href="/" style={{ color: "#60a5fa" }}>← Back to Effluxa</Link>
 
@@ -33,6 +36,7 @@ export default function ContactPage() {
           </p>
         </div>
       </div>
+          <PublicFooter />
     </div>
   );
 }
