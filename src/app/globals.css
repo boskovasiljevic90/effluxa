@@ -262,3 +262,23 @@ input {
     align-items: flex-start !important;
   }
 }
+
+.auth-page-shell {
+  min-height: calc(100vh - 160px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.auth-card-clean {
+  width: 100%;
+  max-width: 460px;
+}
+
+@media (max-width: 768px) {
+  .auth-page-shell {
+    padding: 24px 18px;
+    align-items: flex-start;
+  }
+}
