@@ -41,6 +41,10 @@ export default async function DashboardLayout({
             </div>
           </Link>
 
+          <div className="sidebar-subtitle">
+            AI Financial Leak Audit
+          </div>
+
           <div className="sidebar-menu">
             <Link href="/dashboard" className="sidebar-item">
               Dashboard
@@ -59,6 +63,13 @@ export default async function DashboardLayout({
                 Admin
               </Link>
             )}
+
+            <div className="sidebar-plan-card">
+              <div className="sidebar-plan-title">Current Plan</div>
+              <div className="sidebar-plan-value">
+                {user?.role || "FREE"}
+              </div>
+            </div>
 
             <LogoutButton />
           </div>

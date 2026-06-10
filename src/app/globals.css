@@ -282,3 +282,30 @@ input {
     align-items: flex-start;
   }
 }
+
+.sidebar-subtitle {
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: -28px;
+  margin-bottom: 34px;
+}
+
+.sidebar-plan-card {
+  margin-top: 28px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-plan-title {
+  font-size: 13px;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+
+.sidebar-plan-value {
+  font-weight: 800;
+  color: white;
+}
