@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import PublicHeader from "@/components/PublicHeader";
+import PublicFooter from "@/components/PublicFooter";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,6 +49,7 @@ export default function LoginPage() {
 
   return (
     <div className="page-container">
+      <PublicHeader />
       <div
         className="auth-grid"
         style={{
@@ -278,6 +281,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+          <PublicFooter />
     </div>
   );
 }

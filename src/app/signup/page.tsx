@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import PublicHeader from "@/components/PublicHeader";
+import PublicFooter from "@/components/PublicFooter";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -46,6 +48,7 @@ export default function SignupPage() {
 
   return (
     <div className="page-container">
+      <PublicHeader />
       <div
         className="auth-grid"
         style={{
@@ -241,6 +244,7 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
+          <PublicFooter />
     </div>
   );
 }
