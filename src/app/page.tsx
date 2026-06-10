@@ -1,4 +1,6 @@
 import Link from "next/link";
+import PublicHeader from "@/components/PublicHeader";
+import PublicFooter from "@/components/PublicFooter";
 
 export default function HomePage() {
   return (
@@ -17,57 +19,8 @@ export default function HomePage() {
           padding: "32px 24px 70px",
         }}
       >
-        <nav
-          className="landing-nav"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "90px",
-          }}
-        >
-          <Link href="/">
-            <div
-              style={{
-                fontSize: "30px",
-                fontWeight: 900,
-                letterSpacing: "-1px",
-              }}
-            >
-              Eff<span style={{ color: "#2563eb" }}>luxa</span>
-            </div>
-          </Link>
-
-          <div style={{ display: "flex", gap: "22px", alignItems: "center" }}>
-            <a href="#how-it-works" style={{ color: "#334155", fontWeight: 600 }}>
-              How it works
-            </a>
-
-            <a href="#pricing" style={{ color: "#334155", fontWeight: 600 }}>
-              Pricing
-            </a>
-
-            <Link href="/login" style={{ color: "#334155", fontWeight: 600 }}>
-              Login
-            </Link>
-
-            <Link href="/signup">
-              <button
-                style={{
-                  padding: "12px 20px",
-                  borderRadius: "14px",
-                  border: "none",
-                  background: "#0f172a",
-                  color: "white",
-                  fontWeight: 800,
-                  cursor: "pointer",
-                }}
-              >
-                Start Free
-              </button>
-            </Link>
-          </div>
-        </nav>
+      <PublicHeader />
+        
         <div
           style={{
             display: "inline-flex",
@@ -552,29 +505,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer
-        className="landing-footer"
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "40px 24px",
-          borderTop: "1px solid #e2e8f0",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: "20px",
-          color: "#64748b",
-        }}
-      >
-        <div>© 2026 Effluxa. AI Financial Leak Audit.</div>
+      
 
-        <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-          <Link href="/privacy">Privacy Policy</Link>
-          <Link href="/terms">Terms of Service</Link>
-          <Link href="/login">Login</Link>
-          <Link href="/contact">Contact</Link>
-        </div>
-      </footer>
-
+          <PublicFooter />
     </main>
   );
 }
