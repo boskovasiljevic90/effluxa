@@ -14,6 +14,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const recentMessages = await prisma.contactMessage.count({
+      where: {
+        email,
+        createdAt: {
+          gte: new Date(Date.now() - 60 * 60 * 1000),
+        },
+      },
+    });
+
+    if (recentMessages >= 3) {
+      return NextResponse.json(
+        { error: "Too many messages. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     await prisma.contactMessage.create({
       data: {
         name: name || null,
