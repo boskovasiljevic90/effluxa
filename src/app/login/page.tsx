@@ -266,10 +266,24 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <Link href="/forgot-password">
+              <div
+                style={{
+                  marginTop: "24px",
+                  textAlign: "center",
+                  color: "#60a5fa",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                }}
+              >
+                Forgot password?
+              </div>
+            </Link>
+
             <Link href="/">
               <div
                 style={{
-                  marginTop: "28px",
+                  marginTop: "18px",
                   textAlign: "center",
                   color: "#60a5fa",
                   cursor: "pointer",

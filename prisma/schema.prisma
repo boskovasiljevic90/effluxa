@@ -60,3 +60,13 @@ model ContactMessage {
   message   String
   createdAt DateTime @default(now())
 }
+
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
