@@ -99,8 +99,8 @@ export default async function ReportPage({ params, searchParams }: Props) {
   const isUnlocked = report.unlocked;
 
   return (
-    <div className="page-container">
-      <div style={{ padding: "40px", maxWidth: "1100px", margin: "0 auto" }}>
+    <>
+      <div style={{ maxWidth: "1100px" }}>
         <h1 style={{ fontSize: "42px", marginBottom: "18px" }}>
           Effluxa AI Financial Leak Audit
         </h1>
@@ -246,6 +246,6 @@ export default async function ReportPage({ params, searchParams }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }
