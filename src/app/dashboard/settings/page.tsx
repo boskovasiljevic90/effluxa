@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import ChangePasswordForm from "./ChangePasswordForm";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -63,6 +64,14 @@ export default async function SettingsPage() {
               Contact Support
             </button>
           </Link>
+        </div>
+
+        <div className="card full-width">
+          <div className="card-title">Change Password</div>
+          <p className="gray">
+            Update your account password securely.
+          </p>
+          <ChangePasswordForm />
         </div>
 
         <div className="card full-width">
