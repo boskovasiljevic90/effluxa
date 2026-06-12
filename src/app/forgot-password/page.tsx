@@ -7,7 +7,7 @@ import PublicFooter from "@/components/PublicFooter";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
-  const [resetUrl, setResetUrl] = useState("");
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -31,7 +31,7 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    setResetUrl(data.resetUrl || "");
+    setSuccess(true);
     setLoading(false);
   }
 
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
         </h1>
 
         <p style={{ marginTop: "14px", color: "#475569", lineHeight: 1.7 }}>
-          Enter your email address to generate a password reset link.
+          Enter your email address to receive a password reset link.
         </p>
 
         <form
@@ -91,10 +91,10 @@ export default function ForgotPasswordPage() {
               cursor: loading ? "not-allowed" : "pointer",
             }}
           >
-            {loading ? "Generating..." : "Generate Reset Link"}
+            {loading ? "Sending..." : "Send Reset Email"}
           </button>
 
-          {resetUrl && (
+          {success && (
             <div
               style={{
                 marginTop: "24px",
@@ -103,18 +103,25 @@ export default function ForgotPasswordPage() {
                 background: "#dcfce7",
                 color: "#166534",
                 lineHeight: 1.6,
-                wordBreak: "break-word",
               }}
             >
-              <strong>Temporary reset link:</strong>
-              <br />
-              <Link href={resetUrl}>{resetUrl}</Link>
+              <strong>✅ Password reset email sent.</strong>
+
+              <div style={{ marginTop: "8px" }}>
+                Please check your inbox and spam folder.
+              </div>
             </div>
           )}
         </form>
 
         <Link href="/login">
-          <div style={{ marginTop: "24px", color: "#2563eb", fontWeight: 800 }}>
+          <div
+            style={{
+              marginTop: "24px",
+              color: "#2563eb",
+              fontWeight: 800,
+            }}
+          >
             Back to login
           </div>
         </Link>
