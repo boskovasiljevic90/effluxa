@@ -35,3 +35,44 @@ export async function sendPasswordResetEmail({
     `,
   });
 }
+
+
+export async function sendContactNotificationEmail({
+  name,
+  email,
+  subject,
+  message,
+}: {
+  name?: string;
+  email: string;
+  subject?: string;
+  message: string;
+}) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const adminEmail =
+    process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL;
+
+  if (!adminEmail) return;
+
+  const fromEmail =
+    process.env.RESEND_FROM_EMAIL ||
+    "Effluxa <support@effluxa.com>";
+
+  await resend.emails.send({
+    from: fromEmail,
+    to: adminEmail,
+    subject: `New Contact Form Submission`,
+    html: `
+      <h2>New Contact Message</h2>
+
+      <p><strong>Name:</strong> ${name || "N/A"}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Subject:</strong> ${subject || "N/A"}</p>
+
+      <hr />
+
+      <p>${message}</p>
+    `,
+  });
+}

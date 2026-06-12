@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sendContactNotificationEmail } from "@/lib/email";
 import { trackError } from "@/lib/errorTracking";
 
 export async function POST(req: NextRequest) {
@@ -38,6 +39,13 @@ export async function POST(req: NextRequest) {
         subject: subject || null,
         message,
       },
+    });
+
+    await sendContactNotificationEmail({
+      name,
+      email,
+      subject,
+      message,
     });
 
     return NextResponse.json({
