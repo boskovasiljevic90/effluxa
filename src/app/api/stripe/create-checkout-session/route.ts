@@ -5,6 +5,7 @@ import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { trackEvent } from "@/lib/events";
+import { trackError } from "@/lib/errorTracking";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-02-25.clover",
@@ -90,6 +91,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("STRIPE SESSION ERROR:", error);
+    await trackError({ type: "stripe_session_error", error });
 
     return NextResponse.json(
       { error: "Stripe session failed" },

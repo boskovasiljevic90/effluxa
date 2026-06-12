@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { trackError } from "@/lib/errorTracking";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("CONTACT ERROR:", error);
+    await trackError({ type: "contact_error", error });
 
     return NextResponse.json(
       { error: "Failed to send message." },

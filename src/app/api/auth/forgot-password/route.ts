@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { trackError } from "@/lib/errorTracking";
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,6 +48,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
+    await trackError({ type: "forgot_password_error", error });
 
     return NextResponse.json(
       { error: "Failed to generate reset link." },

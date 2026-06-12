@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { trackError } from "@/lib/errorTracking";
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,6 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("RESET PASSWORD ERROR:", error);
+    await trackError({ type: "reset_password_error", error });
 
     return NextResponse.json(
       { error: "Failed to reset password." },

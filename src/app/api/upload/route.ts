@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import OpenAI from "openai";
 import * as XLSX from "xlsx";
 import { trackEvent } from "@/lib/events";
+import { trackError } from "@/lib/errorTracking";
 
 export const runtime = "nodejs";
 
@@ -216,6 +217,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("UPLOAD ERROR:", error);
+    await trackError({ type: "upload_error", error });
 
     return NextResponse.json(
       { error: error.message || "Upload failed" },
