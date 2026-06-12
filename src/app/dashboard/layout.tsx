@@ -58,6 +58,10 @@ export default async function DashboardLayout({
               Upload Audit
             </Link>
 
+            <Link href="/dashboard/settings" className="sidebar-item">
+              Settings
+            </Link>
+
             {isAdmin && (
               <Link href="/dashboard/admin" className="sidebar-item">
                 Admin
