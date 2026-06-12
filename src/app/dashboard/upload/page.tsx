@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 
 export default function UploadPage() {
   const router = useRouter();
-
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -18,110 +17,96 @@ export default function UploadPage() {
     const allowedExtensions = [".pdf", ".csv", ".xlsx", ".xls"];
     const lowerName = file.name.toLowerCase();
 
-    const validFile = allowedExtensions.some((ext) =>
-      lowerName.endsWith(ext)
-    );
-
-    if (!validFile) {
+    if (!allowedExtensions.some((ext) => lowerName.endsWith(ext))) {
       alert("Only PDF, CSV, XLSX, and XLS files are supported.");
       return;
     }
 
-    const maxSize = 10 * 1024 * 1024;
-
-    if (file.size > maxSize) {
+    if (file.size > 10 * 1024 * 1024) {
       alert("File is too large. Maximum size is 10MB.");
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
 
-      const formData = new FormData();
-      formData.append("file", file);
+    const formData = new FormData();
+    formData.append("file", file);
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        alert(data.error || "Upload failed");
-        setLoading(false);
-        return;
-      }
-
-      router.push(`/dashboard/reports/${data.upload.id}`);
-    } catch (error) {
-      console.error(error);
-      alert("Upload failed.");
+    if (!res.ok) {
+      alert(data.error || "Upload failed");
       setLoading(false);
+      return;
     }
+
+    router.push(`/dashboard/reports/${data.upload.id}`);
   }
 
   return (
-    <div className="page-container">
-      <div className="main-content">
-        <div className="topbar">
-          <div>
-            <div className="page-title">
-              Upload Financial File
-            </div>
-
-            <p className="gray" style={{ marginTop: "10px" }}>
-              Upload PDF, CSV, or Excel files and generate an AI Financial Leak Audit.
-            </p>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="upload-box">
-            <h2 style={{ marginBottom: "20px" }}>
-              Upload Financial Document
-            </h2>
-
-            <p className="gray">
-              Supported: PDF invoices, bank statements, CSV exports, Excel reports, and expense files.
-            </p>
-
-            <p className="gray" style={{ marginTop: "10px" }}>
-              Maximum file size: 10MB.
-            </p>
-
-            <input
-              type="file"
-              accept=".pdf,.csv,.xlsx,.xls,application/pdf,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-              onChange={(e) => {
-                const selected = e.target.files?.[0] || null;
-                setFile(selected);
-              }}
-              style={{
-                marginTop: "30px",
-                marginBottom: "30px",
-                color: "white",
-              }}
-            />
-
-            {file && (
-              <p className="gray" style={{ marginBottom: "20px" }}>
-                Selected file: {file.name}
-              </p>
-            )}
-
-            <div>
-              <button
-                onClick={handleUpload}
-                disabled={loading}
-                className="primary-button"
-              >
-                {loading ? "Analyzing..." : "Analyze with Effluxa AI"}
-              </button>
-            </div>
-          </div>
+    <>
+      <div className="topbar">
+        <div>
+          <div className="page-title">Upload Financial File</div>
+          <p className="gray" style={{ marginTop: "10px" }}>
+            Upload PDF, CSV, or Excel files and generate an AI Financial Leak Audit.
+          </p>
         </div>
       </div>
-    </div>
+
+      <div className="card">
+        <div className="upload-box">
+          <h2 style={{ marginBottom: "20px" }}>
+            Start New AI Audit
+          </h2>
+
+          <p className="gray">
+            Supported files: PDF invoices, bank statements, CSV exports, Excel reports, and expense files.
+          </p>
+
+          <p className="gray" style={{ marginTop: "10px" }}>
+            Maximum file size: 10MB.
+          </p>
+
+          <input
+            type="file"
+            accept=".pdf,.csv,.xlsx,.xls"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            style={{
+              marginTop: "30px",
+              marginBottom: "24px",
+              color: "white",
+            }}
+          />
+
+          {file && (
+            <div
+              style={{
+                marginBottom: "24px",
+                padding: "14px 18px",
+                borderRadius: "14px",
+                background: "rgba(255,255,255,0.06)",
+                color: "#cbd5e1",
+              }}
+            >
+              Selected: {file.name}
+            </div>
+          )}
+
+          <button
+            onClick={handleUpload}
+            disabled={loading}
+            className="primary-button"
+          >
+            {loading ? "Analyzing..." : "Analyze with Effluxa AI"}
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
