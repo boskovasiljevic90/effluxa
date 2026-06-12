@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import AdminResetUsageButton from "./AdminResetUsageButton";
 
 
 async function getAdminUser() {
@@ -41,6 +42,11 @@ export default async function AdminDashboardPage() {
   if (!adminUser) {
     redirect("/dashboard");
   }
+
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
 
   const usersCount = await prisma.user.count();
   const reportsCount = await prisma.upload.count();
@@ -117,6 +123,41 @@ export default async function AdminDashboardPage() {
           <div className="card">
             <div className="card-title">Estimated Revenue</div>
             <div className="metric-value green">€{estimatedRevenue}</div>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginTop: "40px" }}>
+          <div className="card-title">Recent Users</div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+            {users.map((user) => (
+              <div
+                key={user.id}
+                style={{
+                  padding: "18px",
+                  borderRadius: "14px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "16px",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <div style={{ fontWeight: "bold" }}>{user.email}</div>
+                  <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
+                    Role: {user.role} | Usage: {user.weeklyUploadCount}/3
+                  </div>
+                  <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
+                    Joined: {new Date(user.createdAt).toLocaleString()}
+                  </div>
+                </div>
+
+                <AdminResetUsageButton userId={user.id} />
+              </div>
+            ))}
           </div>
         </div>
 
