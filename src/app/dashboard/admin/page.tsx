@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminResetUsageButton from "./AdminResetUsageButton";
+import DeleteContactMessageButton from "./DeleteContactMessageButton";
 
 
 async function getAdminUser() {
@@ -193,6 +194,8 @@ export default async function AdminDashboardPage() {
                   <div className="gray" style={{ marginTop: "10px", fontSize: "13px" }}>
                     {new Date(message.createdAt).toLocaleString()}
                   </div>
+
+                  <DeleteContactMessageButton messageId={message.id} />
                 </div>
               ))}
             </div>
