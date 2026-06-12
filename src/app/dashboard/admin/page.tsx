@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AdminResetUsageButton from "./AdminResetUsageButton";
 import DeleteContactMessageButton from "./DeleteContactMessageButton";
+import DeleteEventButton from "./DeleteEventButton";
 
 
 async function getAdminUser() {
@@ -168,6 +169,8 @@ export default async function AdminDashboardPage() {
                     <div className="gray" style={{ marginTop: "8px", fontSize: "13px" }}>
                       {new Date(event.createdAt).toLocaleString()}
                     </div>
+
+                    <DeleteEventButton eventId={event.id} />
                   </div>
                 );
               })}
