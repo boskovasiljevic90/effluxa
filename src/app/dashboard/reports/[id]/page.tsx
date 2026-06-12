@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import UpgradeButton from "./UpgradeButton";
+import DeleteReportButton from "./DeleteReportButton";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -112,6 +113,8 @@ export default async function ReportPage({ params, searchParams }: Props) {
         <p>
           <strong>Date:</strong> {new Date(report.createdAt).toLocaleString()}
         </p>
+
+        <DeleteReportButton reportId={report.id} />
 
         <div className="audit-card" style={{ marginTop: "36px" }}>
           <h2>Preview Summary</h2>
