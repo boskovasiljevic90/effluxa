@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
+import { sendPasswordResetEmail } from "@/lib/email";
 import { trackError } from "@/lib/errorTracking";
 
 export async function POST(req: NextRequest) {
@@ -41,10 +42,14 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://effluxa.vercel.app";
     const resetUrl = `${appUrl}/reset-password?token=${token}`;
 
+    await sendPasswordResetEmail({
+      to: email,
+      resetUrl,
+    });
+
     return NextResponse.json({
       success: true,
-      message: "Password reset link generated.",
-      resetUrl,
+      message: "If this email exists, a reset link has been sent.",
     });
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
