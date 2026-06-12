@@ -315,3 +315,13 @@ input {
     grid-template-columns: 1fr !important;
   }
 }
+
+.sidebar-user-email {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  color: #94a3b8;
+  font-size: 13px;
+  word-break: break-word;
+}

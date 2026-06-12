@@ -71,6 +71,10 @@ export default async function DashboardLayout({
               </div>
             </div>
 
+            <div className="sidebar-user-email">
+              {user?.email}
+            </div>
+
             <LogoutButton />
           </div>
         </aside>
