@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.weeklyUploadCount >= 3) {
+    if (user.role === "FREE" && user.weeklyUploadCount >= 3) {
       return NextResponse.json(
         {
           error: "Free preview limit reached. Unlock reports for €29 or create a new paid audit.",
