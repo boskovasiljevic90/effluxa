@@ -60,6 +60,16 @@ export default async function AdminDashboardPage() {
     take: 30,
   });
 
+  const errorEvents = await prisma.event.findMany({
+    where: {
+      type: {
+        contains: "error",
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
   const contactMessages = await prisma.contactMessage.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
@@ -125,6 +135,44 @@ export default async function AdminDashboardPage() {
             <div className="card-title">Estimated Revenue</div>
             <div className="metric-value green">€{estimatedRevenue}</div>
           </div>
+        </div>
+
+        <div className="card" style={{ marginTop: "40px" }}>
+          <div className="card-title">Recent Errors</div>
+
+          {errorEvents.length === 0 ? (
+            <p className="gray">No errors tracked yet.</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {errorEvents.map((event) => {
+                const metadata = event.metadata as any;
+
+                return (
+                  <div
+                    key={event.id}
+                    style={{
+                      padding: "18px",
+                      borderRadius: "14px",
+                      background: "rgba(248,113,113,0.08)",
+                      border: "1px solid rgba(248,113,113,0.18)",
+                    }}
+                  >
+                    <div style={{ fontWeight: "bold", color: "#fca5a5" }}>
+                      {event.type}
+                    </div>
+
+                    <div className="gray" style={{ marginTop: "8px" }}>
+                      {metadata?.errorMessage || "Unknown error"}
+                    </div>
+
+                    <div className="gray" style={{ marginTop: "8px", fontSize: "13px" }}>
+                      {new Date(event.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="card" style={{ marginTop: "40px" }}>
