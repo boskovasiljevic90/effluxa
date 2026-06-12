@@ -67,7 +67,15 @@ export default async function DashboardPage() {
       </div>
 
       <div className="card">
-        <div className="card-title">Recent AI Audits</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+          <div className="card-title">Recent AI Audits</div>
+
+          <Link href="/dashboard/reports">
+            <button className="primary-button" style={{ padding: "10px 16px", fontSize: "14px" }}>
+              View All Reports
+            </button>
+          </Link>
+        </div>
 
         {reports.length === 0 ? (
           <p className="gray">No audits yet.</p>

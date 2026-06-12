@@ -95,6 +95,10 @@ export default async function ReportsPage() {
                           <div className="gray" style={{ marginTop: "8px" }}>
                             Leakage Score: {data?.leakage_score ?? "N/A"}/100
                           </div>
+
+                          <div className="gray" style={{ marginTop: "8px" }}>
+                            Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
+                          </div>
                         </div>
 
                         <div
