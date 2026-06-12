@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
     if (user.role === "FREE" && user.weeklyUploadCount >= 3) {
       return NextResponse.json(
         {
-          error: "Free preview limit reached. Unlock reports for €29 or create a new paid audit.",
+          error: "You have reached your free audit limit. You can still unlock existing reports for €29, or contact support for more access.",
         },
         { status: 403 }
       );
