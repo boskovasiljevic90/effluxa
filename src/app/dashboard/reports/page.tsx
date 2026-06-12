@@ -8,7 +8,6 @@ import { redirect } from "next/navigation";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
-
   if (!token) return null;
 
   try {
@@ -24,106 +23,196 @@ async function getUser() {
   }
 }
 
-export default async function ReportsPage() {
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams?: {
+    q?: string;
+    status?: string;
+  };
+}) {
   const user = await getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
+
+  const q = searchParams?.q?.trim() || "";
+  const status = searchParams?.status || "all";
 
   const reports = await prisma.upload.findMany({
     where: {
       userId: user.id,
+      ...(status === "unlocked" ? { unlocked: true } : {}),
+      ...(status === "preview" ? { unlocked: false } : {}),
+      ...(q
+        ? {
+            fileUrl: {
+              contains: q,
+              mode: "insensitive",
+            },
+          }
+        : {}),
     },
     orderBy: {
       createdAt: "desc",
     },
   });
 
+  const makeHref = (nextStatus: string) => {
+    const params = new URLSearchParams();
+
+    if (q) params.set("q", q);
+    if (nextStatus !== "all") params.set("status", nextStatus);
+
+    const query = params.toString();
+    return `/dashboard/reports${query ? `?${query}` : ""}`;
+  };
+
   return (
-    <div className="page-container">
-      <div style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
-        <Link href="/dashboard" style={{ color: "#60a5fa" }}>
-          ← Back to Dashboard
-        </Link>
+    <>
+      <h1 style={{ fontSize: "42px" }}>Your AI Audit Reports</h1>
 
-        <h1 style={{ fontSize: "42px", marginTop: "30px" }}>
-          Your AI Audit Reports
-        </h1>
+      <p className="gray" style={{ marginTop: "10px" }}>
+        Search, filter, and open previous Effluxa financial leak audits.
+      </p>
 
-        <p className="gray" style={{ marginTop: "10px" }}>
-          View all previous Effluxa financial leak audits.
-        </p>
+      <div className="card" style={{ marginTop: "34px", marginBottom: "28px" }}>
+        <form
+          action="/dashboard/reports"
+          style={{
+            display: "flex",
+            gap: "14px",
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <input
+            name="q"
+            defaultValue={q}
+            placeholder="Search reports by filename..."
+            style={{
+              flex: 1,
+              minWidth: "240px",
+              padding: "14px 16px",
+              borderRadius: "14px",
+              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.06)",
+              color: "white",
+              fontSize: "15px",
+            }}
+          />
 
-        <div className="card" style={{ marginTop: "40px" }}>
-          {reports.length === 0 ? (
-            <p className="gray">No reports yet.</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {reports.map((report) => {
-                const data = report.parsedData as any;
-
-                return (
-                  <Link key={report.id} href={`/dashboard/reports/${report.id}`}>
-                    <div
-                      style={{
-                        padding: "22px",
-                        borderRadius: "16px",
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          gap: "20px",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <div>
-                          <div style={{ fontWeight: "bold", fontSize: "18px" }}>
-                            {report.fileUrl}
-                          </div>
-
-                          <div className="gray" style={{ marginTop: "8px" }}>
-                            {new Date(report.createdAt).toLocaleString()}
-                          </div>
-
-                          <div className="gray" style={{ marginTop: "8px" }}>
-                            Leakage Score: {data?.leakage_score ?? "N/A"}/100
-                          </div>
-
-                          <div className="gray" style={{ marginTop: "8px" }}>
-                            Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
-                          </div>
-                        </div>
-
-                        <div
-                          style={{
-                            padding: "9px 15px",
-                            borderRadius: "999px",
-                            background: report.unlocked
-                              ? "rgba(34,197,94,0.15)"
-                              : "rgba(255,255,255,0.08)",
-                            color: report.unlocked ? "#4ade80" : "#cbd5e1",
-                            fontWeight: "bold",
-                            fontSize: "14px",
-                          }}
-                        >
-                          {report.unlocked ? "UNLOCKED" : "PREVIEW"}
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
+          {status !== "all" && (
+            <input type="hidden" name="status" value={status} />
           )}
+
+          <button className="primary-button" type="submit">
+            Search
+          </button>
+        </form>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "12px",
+            flexWrap: "wrap",
+            marginTop: "22px",
+          }}
+        >
+          {[
+            ["all", "All"],
+            ["unlocked", "Unlocked"],
+            ["preview", "Preview"],
+          ].map(([value, label]) => (
+            <Link key={value} href={makeHref(value)}>
+              <button
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background:
+                    status === value
+                      ? "linear-gradient(135deg, #2563eb, #7c3aed)"
+                      : "rgba(255,255,255,0.06)",
+                  color: "white",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                }}
+              >
+                {label}
+              </button>
+            </Link>
+          ))}
         </div>
       </div>
-    </div>
+
+      <div className="card">
+        {reports.length === 0 ? (
+          <p className="gray">No reports found.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {reports.map((report) => {
+              const data = report.parsedData as any;
+
+              return (
+                <Link key={report.id} href={`/dashboard/reports/${report.id}`}>
+                  <div
+                    style={{
+                      padding: "22px",
+                      borderRadius: "16px",
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "20px",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: "bold", fontSize: "18px" }}>
+                          {report.fileUrl}
+                        </div>
+
+                        <div className="gray" style={{ marginTop: "8px" }}>
+                          {new Date(report.createdAt).toLocaleString()}
+                        </div>
+
+                        <div className="gray" style={{ marginTop: "8px" }}>
+                          Leakage Score: {data?.leakage_score ?? "N/A"}/100
+                        </div>
+
+                        <div className="gray" style={{ marginTop: "8px" }}>
+                          Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          padding: "9px 15px",
+                          borderRadius: "999px",
+                          background: report.unlocked
+                            ? "rgba(34,197,94,0.15)"
+                            : "rgba(255,255,255,0.08)",
+                          color: report.unlocked ? "#4ade80" : "#cbd5e1",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                        }}
+                      >
+                        {report.unlocked ? "UNLOCKED" : "PREVIEW"}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
