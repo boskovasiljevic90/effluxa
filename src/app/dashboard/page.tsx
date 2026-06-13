@@ -96,10 +96,47 @@ export default async function DashboardPage() {
       </div>
 
       <div className="card" style={{ marginBottom: "28px" }}>
-        <div className="card-title">Free Plan Usage</div>
+        <div className="card-title">
+          {user.role === "BUSINESS"
+            ? "Business Plan"
+            : "Free Plan Usage"}
+        </div>
+
+        {user.role === "BUSINESS" ? (
+          <p className="gray" style={{ marginTop: "12px" }}>
+            Unlimited AI audits enabled.
+          </p>
+        ) : (
+          <p className="gray" style={{ marginTop: "12px" }}>
+            You used {user.weeklyUploadCount}/3 free AI audits.
+          </p>
+        )}
+      </div>
+
+      <div className="card" style={{ marginBottom: "28px" }}>
+        <div className="card-title">Business Plan</div>
+
         <p className="gray" style={{ marginTop: "12px" }}>
-          You used {user.weeklyUploadCount}/3 free AI audits.
+          Unlimited AI audits, unlimited reports,
+          5 team seats and priority processing.
         </p>
+
+        <div
+          style={{
+            marginTop: "20px",
+            fontSize: "28px",
+            fontWeight: 900,
+          }}
+        >
+          €44.99/month
+        </div>
+
+        <button
+          className="primary-button"
+          style={{ marginTop: "20px" }}
+        >
+          Upgrade To Business
+        </button>
       </div>
 
       <div className="card" style={{ marginBottom: "28px" }}>
