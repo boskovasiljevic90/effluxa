@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
+import BusinessUpgradeButton from "./BusinessUpgradeButton";
 
 export const dynamic = "force-dynamic";
 
@@ -131,12 +132,7 @@ export default async function DashboardPage() {
           €44.99/month
         </div>
 
-        <button
-          className="primary-button"
-          style={{ marginTop: "20px" }}
-        >
-          Upgrade To Business
-        </button>
+        <BusinessUpgradeButton />
       </div>
 
       <div className="card" style={{ marginBottom: "28px" }}>
