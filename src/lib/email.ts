@@ -50,18 +50,24 @@ export async function sendContactNotificationEmail({
 }) {
   if (!process.env.RESEND_API_KEY) return;
 
-  const adminEmail =
-    process.env.ADMIN_EMAIL || process.env.RESEND_FROM_EMAIL;
+  const recipients = Array.from(
+    new Set(
+      [
+        process.env.SUPPORT_EMAIL,
+        process.env.ADMIN_EMAIL,
+      ].filter(Boolean)
+    )
+  ) as string[];
 
-  if (!adminEmail) return;
+  if (recipients.length === 0) return;
 
   const fromEmail =
     process.env.RESEND_FROM_EMAIL ||
-    "Effluxa <support@effluxa.com>";
+    "Effluxa <noreply@effluxa.com>";
 
   await resend.emails.send({
     from: fromEmail,
-    to: adminEmail,
+    to: recipients,
     subject: `New Contact Form Submission`,
     html: `
       <h2>New Contact Message</h2>
