@@ -3,6 +3,7 @@ import LogoutButton from "@/components/LogoutButton";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+import { getWorkspaceOwner } from "@/lib/workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const user = await getUser();
+  const workspace = user ? await getWorkspaceOwner(user) : null;
   const isAdmin = user?.email === process.env.ADMIN_EMAIL;
+  const displayPlan = workspace?.hasBusinessAccess ? "BUSINESS" : user?.role || "FREE";
 
   return (
     <div className="page-container">
@@ -62,7 +65,7 @@ export default async function DashboardLayout({
               Settings
             </Link>
 
-            {user?.role === "BUSINESS" && (
+            {workspace?.hasBusinessAccess && (
               <Link href="/dashboard/team" className="sidebar-item">
                 Team
               </Link>
@@ -77,8 +80,14 @@ export default async function DashboardLayout({
             <div className="sidebar-plan-card">
               <div className="sidebar-plan-title">Current Plan</div>
               <div className="sidebar-plan-value">
-                {user?.role || "FREE"}
+                {displayPlan}
               </div>
+
+              {workspace?.isTeamMember && (
+                <div className="sidebar-plan-title" style={{ marginTop: "8px" }}>
+                  Team Workspace
+                </div>
+              )}
             </div>
 
             <div className="sidebar-user-email">
