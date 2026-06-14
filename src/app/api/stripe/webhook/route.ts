@@ -111,6 +111,73 @@ export async function POST(req: NextRequest) {
       }
     }
 
+
+    if (event.type === "customer.subscription.updated") {
+      const subscription = event.data.object as any;
+
+      const user = await prisma.user.findFirst({
+        where: {
+          subscriptionId: subscription.id,
+        },
+      });
+
+      if (user) {
+        const isActive =
+          subscription.status === "active" ||
+          subscription.status === "trialing";
+
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            role: isActive ? "BUSINESS" : "FREE",
+            subscriptionEndDate: subscription.current_period_end
+              ? new Date(subscription.current_period_end * 1000)
+              : user.subscriptionEndDate,
+          },
+        });
+
+        await trackEvent({
+          type: isActive
+            ? "business_subscription_updated"
+            : "business_subscription_inactive",
+          userId: user.id,
+          metadata: {
+            subscriptionId: subscription.id,
+            status: subscription.status,
+          },
+        });
+      }
+    }
+
+    if (event.type === "customer.subscription.deleted") {
+      const subscription = event.data.object as any;
+
+      const user = await prisma.user.findFirst({
+        where: {
+          subscriptionId: subscription.id,
+        },
+      });
+
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            role: "FREE",
+            subscriptionEndDate: new Date(),
+          },
+        });
+
+        await trackEvent({
+          type: "business_subscription_cancelled",
+          userId: user.id,
+          metadata: {
+            subscriptionId: subscription.id,
+            status: subscription.status,
+          },
+        });
+      }
+    }
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("STRIPE WEBHOOK ERROR:", error);
