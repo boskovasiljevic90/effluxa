@@ -130,6 +130,27 @@ export async function GET(req: NextRequest, { params }: Props) {
     section("Estimated Savings Opportunity");
     text(`EUR ${data?.estimated_savings?.toLocaleString?.() || "N/A"}`, 20, true, rgb(0, 0.45, 0.15));
 
+    section("Risk Level");
+    paragraph(`${data?.risk_level || "Insufficient data"} | Confidence: ${data?.confidence_level || "Insufficient data"}`);
+
+    section("Quick Wins");
+    (data?.quick_wins || []).forEach((item: string) => paragraph(`- ${item}`));
+
+    section("High Cost Categories");
+    (data?.high_cost_categories || []).forEach((item: any) => {
+      paragraph(`- ${item.category || "Unknown"} - EUR ${item.amount || 0} - ${item.observation || ""}`);
+    });
+
+    section("Anomalies & Duplicate Payment Risks");
+    (data?.anomalies || []).forEach((item: any) => paragraph(`- ${item.item || "Anomaly"} - ${item.reason || ""}`));
+    (data?.duplicate_payment_risks || []).forEach((item: any) => paragraph(`- ${item.item || "Duplicate risk"} - ${item.reason || ""}`));
+
+    section("Cash Flow Observations");
+    (data?.cashflow_observations || []).forEach((item: string) => paragraph(`- ${item}`));
+
+    section("CFO Summary");
+    paragraph(data?.cfo_summary || "Insufficient data");
+
     section("Key Findings");
     (data?.key_findings || []).forEach((item: string) => paragraph(`- ${item}`));
 

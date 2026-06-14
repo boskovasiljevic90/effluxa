@@ -92,6 +92,22 @@ export default async function SharedReportPage({
           </section>
 
           <section style={{ marginTop: "34px" }}>
+            <h2>Risk Level</h2>
+            <p style={{ marginTop: "12px", lineHeight: 1.8 }}>
+              {data?.risk_level || "Insufficient data"} — Confidence: {data?.confidence_level || "Insufficient data"}
+            </p>
+          </section>
+
+          <section style={{ marginTop: "34px" }}>
+            <h2>Quick Wins</h2>
+            <ul style={{ marginTop: "12px", lineHeight: 1.9 }}>
+              {(data?.quick_wins || []).map((item: string, index: number) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ul>
+          </section>
+
+          <section style={{ marginTop: "34px" }}>
             <h2>Key Findings</h2>
             <ul style={{ marginTop: "12px", lineHeight: 1.9 }}>
               {(data?.key_findings || []).map((item: string, index: number) => (

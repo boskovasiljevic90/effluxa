@@ -144,6 +144,65 @@ export default async function ReportPage({ params, searchParams }: Props) {
               </p>
             </div>
 
+
+            <div className="audit-card" style={{ marginTop: "28px" }}>
+              <h2>Risk Level</h2>
+              <p style={{ fontSize: "32px", fontWeight: 800, marginTop: "18px" }}>
+                {data?.risk_level || "Insufficient data"}
+              </p>
+              <p className="gray" style={{ marginTop: "10px" }}>
+                Confidence: {data?.confidence_level || "Insufficient data"}
+              </p>
+            </div>
+
+            <div className="audit-card" style={{ marginTop: "28px" }}>
+              <h2>Quick Wins</h2>
+              <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
+                {(data?.quick_wins || []).map((item: string, index: number) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="audit-card" style={{ marginTop: "28px" }}>
+              <h2>High Cost Categories</h2>
+              <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
+                {(data?.high_cost_categories || []).map((item: any, index: number) => (
+                  <li key={index}>
+                    {item.category} — €{item.amount || 0} — {item.observation}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="audit-card" style={{ marginTop: "28px" }}>
+              <h2>Anomalies & Duplicate Payment Risks</h2>
+              <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
+                {(data?.anomalies || []).map((item: any, index: number) => (
+                  <li key={`a-${index}`}>{item.item} — {item.reason}</li>
+                ))}
+                {(data?.duplicate_payment_risks || []).map((item: any, index: number) => (
+                  <li key={`d-${index}`}>{item.item} — {item.reason}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="audit-card" style={{ marginTop: "28px" }}>
+              <h2>Cash Flow Observations</h2>
+              <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
+                {(data?.cashflow_observations || []).map((item: string, index: number) => (
+                  <li key={index}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="audit-card" style={{ marginTop: "28px" }}>
+              <h2>CFO Summary</h2>
+              <p style={{ marginTop: "16px", lineHeight: 1.8 }}>
+                {data?.cfo_summary || "Insufficient data"}
+              </p>
+            </div>
+
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>Key Findings</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
