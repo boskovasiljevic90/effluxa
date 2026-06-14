@@ -174,7 +174,7 @@ export default async function DashboardPage({
         )}
       </div>
 
-      {user.role !== "BUSINESS" && (
+      {!workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
           <div className="card-title">Business Plan</div>
 
