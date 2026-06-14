@@ -52,15 +52,17 @@ export async function POST(req: NextRequest) {
             where: { id: userId },
             data: {
               role: "BUSINESS",
-              subscriptionStatus: "active",
               stripeCustomerId:
                 typeof session.customer === "string"
                   ? session.customer
                   : null,
-              stripeSubscriptionId:
+              subscriptionId:
                 typeof session.subscription === "string"
                   ? session.subscription
                   : null,
+              subscriptionEndDate: new Date(
+                Date.now() + 30 * 24 * 60 * 60 * 1000
+              ),
             },
           });
 
