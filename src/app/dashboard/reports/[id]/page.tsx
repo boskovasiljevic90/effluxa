@@ -99,7 +99,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
   }
 
   const data = report.parsedData as any;
-  const isUnlocked = report.unlocked;
+  const isUnlocked = report.unlocked || workspace.hasBusinessAccess;
 
   return (
     <>
