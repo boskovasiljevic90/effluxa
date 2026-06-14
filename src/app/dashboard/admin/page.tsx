@@ -200,7 +200,7 @@ export default async function AdminDashboardPage() {
                 <div>
                   <div style={{ fontWeight: "bold" }}>{user.email}</div>
                   <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
-                    Role: {user.role} | Usage: {user.role === "BUSINESS" ? "Unlimited" : `${user.weeklyUploadCount}/3`}
+                    Role: {user.role} | Usage: {`${user.weeklyUploadCount}/3`}
                   </div>
                   <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
                     Joined: {new Date(user.createdAt).toLocaleString()}

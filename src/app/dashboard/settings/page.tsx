@@ -50,7 +50,7 @@ export default async function SettingsPage() {
 
         <div className="card">
           <div className="card-title">Free Audit Usage</div>
-          <div className="metric-value">{user.role === "BUSINESS" ? "Unlimited" : `${user.weeklyUploadCount}/3`}</div>
+          <div className="metric-value">{`${user.weeklyUploadCount}/3`}</div>
         </div>
 
         <div className="card">
