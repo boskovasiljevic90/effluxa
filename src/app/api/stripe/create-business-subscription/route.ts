@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
           product: "business_subscription",
         },
       },
-      success_url: `${appUrl}/dashboard?business=success`,
+      success_url: `${appUrl}/dashboard?business=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${appUrl}/dashboard?business=cancelled`,
     });
 

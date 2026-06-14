@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
+import Stripe from "stripe";
 import BusinessUpgradeButton from "./BusinessUpgradeButton";
 
 export const dynamic = "force-dynamic";
@@ -24,10 +25,66 @@ async function getUser() {
   }
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: {
+    business?: string;
+    session_id?: string;
+  };
+}) {
   const user = await getUser();
 
   if (!user) redirect("/login");
+
+  if (
+    searchParams?.business === "success" &&
+    searchParams?.session_id &&
+    process.env.STRIPE_SECRET_KEY
+  ) {
+    try {
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2026-02-25.clover",
+      });
+
+      const session = await stripe.checkout.sessions.retrieve(
+        searchParams.session_id
+      );
+
+      const paid =
+        session.payment_status === "paid" ||
+        session.status === "complete";
+
+      if (
+        paid &&
+        session.mode === "subscription" &&
+        session.metadata?.product === "business_subscription" &&
+        session.metadata?.userId === user.id
+      ) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            role: "BUSINESS",
+            stripeCustomerId:
+              typeof session.customer === "string"
+                ? session.customer
+                : null,
+            subscriptionId:
+              typeof session.subscription === "string"
+                ? session.subscription
+                : null,
+            subscriptionEndDate: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000
+            ),
+          },
+        });
+
+        redirect("/dashboard");
+      }
+    } catch (error) {
+      console.error("BUSINESS SUCCESS VERIFY ERROR:", error);
+    }
+  }
 
   const reports = await prisma.upload.findMany({
     where: { userId: user.id },
