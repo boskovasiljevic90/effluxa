@@ -24,48 +24,103 @@ export async function POST(req: NextRequest) {
     );
   } catch (err) {
     console.error("Webhook signature error:", err);
-    await trackError({ type: "stripe_webhook_signature_error", error: err });
-    return NextResponse.json({ error: "Webhook error" }, { status: 400 });
+
+    await trackError({
+      type: "stripe_webhook_signature_error",
+      error: err,
+    });
+
+    return NextResponse.json(
+      { error: "Webhook error" },
+      { status: 400 }
+    );
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
+  try {
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
 
-    console.log("SESSION METADATA:", session.metadata);
+      const userId = session.metadata?.userId;
+      const reportId = session.metadata?.reportId;
+      const product = session.metadata?.product;
 
-    const userId = session.metadata?.userId;
-    const reportId = session.metadata?.reportId;
+      if (product === "business_subscription") {
+        if (!userId) {
+          console.log("BUSINESS SUBSCRIPTION MISSING USER ID");
+        } else {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              role: "BUSINESS",
+              subscriptionStatus: "active",
+              stripeCustomerId:
+                typeof session.customer === "string"
+                  ? session.customer
+                  : null,
+              stripeSubscriptionId:
+                typeof session.subscription === "string"
+                  ? session.subscription
+                  : null,
+            },
+          });
 
-    if (!userId || !reportId) {
-      console.log("MISSING USER ID OR REPORT ID IN METADATA");
-    }
+          await trackEvent({
+            type: "business_subscription_activated",
+            userId,
+            metadata: {
+              sessionId: session.id,
+            },
+          });
 
-    if (userId && reportId) {
-      await prisma.upload.updateMany({
-        where: {
-          id: reportId,
+          console.log(
+            "BUSINESS SUBSCRIPTION ACTIVATED:",
+            userId
+          );
+        }
+      }
+
+      if (userId && reportId) {
+        await prisma.upload.updateMany({
+          where: {
+            id: reportId,
+            userId,
+          },
+          data: {
+            unlocked: true,
+            unlockedAt: new Date(),
+            checkoutSessionId: session.id,
+          },
+        });
+
+        await trackEvent({
+          type: "report_unlocked",
           userId,
-        },
-        data: {
-          unlocked: true,
-          unlockedAt: new Date(),
-          checkoutSessionId: session.id,
-        },
-      });
+          reportId,
+          metadata: {
+            sessionId: session.id,
+            paymentStatus: session.payment_status,
+          },
+        });
 
-      await trackEvent({
-        type: "report_unlocked",
-        userId,
-        reportId,
-        metadata: {
-          sessionId: session.id,
-          paymentStatus: session.payment_status,
-        },
-      });
-
-      console.log("FULL AUDIT UNLOCKED FOR REPORT:", reportId);
+        console.log(
+          "FULL AUDIT UNLOCKED FOR REPORT:",
+          reportId
+        );
+      }
     }
-  }
 
-  return NextResponse.json({ received: true });
+    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error("STRIPE WEBHOOK ERROR:", error);
+
+    await trackError({
+      type: "stripe_webhook_error",
+      error,
+    });
+
+    return NextResponse.json(
+      { error: "Webhook failed" },
+      { status: 500 }
+    );
+  }
 }
