@@ -178,6 +178,42 @@ export async function POST(req: NextRequest) {
       }
     }
 
+
+    if (event.type === "invoice.payment_failed") {
+      const invoice = event.data.object as any;
+
+      const subscriptionId =
+        typeof invoice.subscription === "string"
+          ? invoice.subscription
+          : null;
+
+      if (subscriptionId) {
+        const user = await prisma.user.findFirst({
+          where: {
+            subscriptionId,
+          },
+        });
+
+        if (user) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              role: "FREE",
+            },
+          });
+
+          await trackEvent({
+            type: "business_subscription_payment_failed",
+            userId: user.id,
+            metadata: {
+              subscriptionId,
+              invoiceId: invoice.id,
+            },
+          });
+        }
+      }
+    }
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("STRIPE WEBHOOK ERROR:", error);
