@@ -62,6 +62,12 @@ export default async function DashboardLayout({
               Settings
             </Link>
 
+            {user?.role === "BUSINESS" && (
+              <Link href="/dashboard/team" className="sidebar-item">
+                Team
+              </Link>
+            )}
+
             {isAdmin && (
               <Link href="/dashboard/admin" className="sidebar-item">
                 Admin

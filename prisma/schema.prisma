@@ -71,3 +71,15 @@ model PasswordResetToken {
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+
+model TeamMember {
+  id        String   @id @default(uuid())
+  ownerId   String
+  email     String
+  status    String   @default("INVITED")
+  invitedAt DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  @@unique([ownerId, email])
+}
