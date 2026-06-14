@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import UpgradeButton from "./UpgradeButton";
 import DeleteReportButton from "./DeleteReportButton";
+import { getWorkspaceOwner } from "@/lib/workspace";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -41,12 +42,13 @@ export default async function ReportPage({ params, searchParams }: Props) {
     redirect("/login");
   }
 
+  const workspace = await getWorkspaceOwner(user);
   const reportId = params.id;
 
   let report = await prisma.upload.findFirst({
     where: {
       id: reportId,
-      userId: user.id,
+      userId: workspace.owner.id,
     },
   });
 
@@ -83,7 +85,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
         report = await prisma.upload.findFirst({
           where: {
             id: reportId,
-            userId: user.id,
+            userId: workspace.owner.id,
           },
         });
       }
