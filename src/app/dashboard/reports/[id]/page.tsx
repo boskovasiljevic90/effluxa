@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import UpgradeButton from "./UpgradeButton";
 import DeleteReportButton from "./DeleteReportButton";
+import ShareReportButton from "./ShareReportButton";
 import { getWorkspaceOwner } from "@/lib/workspace";
 
 async function getUser() {
@@ -182,6 +183,8 @@ export default async function ReportPage({ params, searchParams }: Props) {
                   Download Full Audit PDF
                 </button>
               </a>
+
+              <ShareReportButton reportId={report.id} />
             </div>
           </>
         ) : (
