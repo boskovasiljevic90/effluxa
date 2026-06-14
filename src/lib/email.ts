@@ -82,3 +82,38 @@ export async function sendContactNotificationEmail({
     `,
   });
 }
+
+
+export async function sendTeamInviteEmail({
+  to,
+  ownerEmail,
+}: {
+  to: string;
+  ownerEmail: string;
+}) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const fromEmail =
+    process.env.RESEND_FROM_EMAIL ||
+    "Effluxa <noreply@effluxa.com>";
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
+
+  await resend.emails.send({
+    from: fromEmail,
+    to,
+    subject: "You have been invited to an Effluxa Business workspace",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>You're invited to Effluxa</h2>
+        <p>${ownerEmail} invited you to join their Effluxa Business workspace.</p>
+        <p>Use this same email address to create your account or log in.</p>
+        <p>
+          <a href="${appUrl}/signup" style="display:inline-block;background:#0f172a;color:white;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">
+            Join Workspace
+          </a>
+        </p>
+      </div>
+    `,
+  });
+}

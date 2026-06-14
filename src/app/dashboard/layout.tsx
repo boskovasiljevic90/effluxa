@@ -65,7 +65,7 @@ export default async function DashboardLayout({
               Settings
             </Link>
 
-            {workspace?.hasBusinessAccess && (
+            {workspace?.hasBusinessAccess && workspace?.isOwner && (
               <Link href="/dashboard/team" className="sidebar-item">
                 Team
               </Link>

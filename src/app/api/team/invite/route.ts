@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
+import { sendTeamInviteEmail } from "@/lib/email";
 
 async function getUser(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
@@ -77,6 +78,11 @@ export async function POST(req: NextRequest) {
       email: normalizedEmail,
       status: "INVITED",
     },
+  });
+
+  await sendTeamInviteEmail({
+    to: normalizedEmail,
+    ownerEmail: user.email,
   });
 
   return NextResponse.json({ success: true });
