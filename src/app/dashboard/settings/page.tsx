@@ -47,6 +47,12 @@ export default async function SettingsPage() {
         <div className="card">
           <div className="card-title">Current Plan</div>
           <div className="metric-value">{user.role}</div>
+
+          {user.role === "BUSINESS" && user.subscriptionEndDate && (
+            <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
+              Active until {new Date(user.subscriptionEndDate).toLocaleDateString()}.
+            </p>
+          )}
         </div>
 
         <div className="card">
