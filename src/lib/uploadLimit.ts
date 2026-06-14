@@ -27,7 +27,7 @@ export async function checkAndUpdateUploadLimit(userId: string) {
     return { allowed: true };
   }
 
-  if (user.weeklyUploadCount >= 4) {
+  if (user.role !== "BUSINESS" && user.weeklyUploadCount >= 4) {
     return { allowed: false };
   }
 

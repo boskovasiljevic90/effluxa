@@ -109,7 +109,7 @@ export default async function DashboardPage() {
           </p>
         ) : (
           <p className="gray" style={{ marginTop: "12px" }}>
-            You used {user.weeklyUploadCount}/3 free AI audits.
+            You used {user.role === "BUSINESS" ? "Unlimited" : `${user.weeklyUploadCount}/3`} free AI audits.
           </p>
         )}
       </div>
