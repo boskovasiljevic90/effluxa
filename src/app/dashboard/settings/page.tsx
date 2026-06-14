@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ChangePasswordForm from "./ChangePasswordForm";
+import BillingPortalButton from "./BillingPortalButton";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -65,6 +66,16 @@ export default async function SettingsPage() {
             </button>
           </Link>
         </div>
+
+        {user.role === "BUSINESS" && (
+          <div className="card full-width">
+            <div className="card-title">Manage Subscription</div>
+            <p className="gray" style={{ lineHeight: 1.7 }}>
+              Update payment method, view invoices, or manage your Business subscription.
+            </p>
+            <BillingPortalButton />
+          </div>
+        )}
 
         <div className="card full-width">
           <div className="card-title">Change Password</div>
