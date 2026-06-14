@@ -74,6 +74,7 @@ export default async function DashboardPage({
               typeof session.subscription === "string"
                 ? session.subscription
                 : null,
+            subscriptionStatus: "active",
             subscriptionEndDate: new Date(
               Date.now() + 30 * 24 * 60 * 60 * 1000
             ),

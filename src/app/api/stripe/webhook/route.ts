@@ -60,6 +60,7 @@ export async function POST(req: NextRequest) {
                 typeof session.subscription === "string"
                   ? session.subscription
                   : null,
+              subscriptionStatus: "active",
               subscriptionEndDate: new Date(
                 Date.now() + 30 * 24 * 60 * 60 * 1000
               ),
@@ -130,6 +131,7 @@ export async function POST(req: NextRequest) {
           where: { id: user.id },
           data: {
             role: isActive ? "BUSINESS" : "FREE",
+            subscriptionStatus: isActive ? "active" : subscription.status,
             subscriptionEndDate: subscription.current_period_end
               ? new Date(subscription.current_period_end * 1000)
               : user.subscriptionEndDate,
@@ -163,6 +165,7 @@ export async function POST(req: NextRequest) {
           where: { id: user.id },
           data: {
             role: "FREE",
+            subscriptionStatus: "cancelled",
             subscriptionEndDate: new Date(),
           },
         });
@@ -199,6 +202,7 @@ export async function POST(req: NextRequest) {
             where: { id: user.id },
             data: {
               role: "FREE",
+              subscriptionStatus: "past_due",
             },
           });
 

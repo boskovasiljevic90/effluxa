@@ -23,6 +23,7 @@ model User {
   stripeCustomerId      String?
   subscriptionId        String?
   subscriptionEndDate   DateTime?
+  subscriptionStatus    String   @default("inactive")
   preferredLanguage     String   @default("en")
   uploads               Upload[]
   createdAt             DateTime @default(now())

@@ -5,7 +5,13 @@ export async function getWorkspaceOwner(user: {
   email: string;
   role: string;
 }) {
-  if (user.role === "BUSINESS") {
+  const now = new Date();
+  const subscriptionActive =
+    user.role === "BUSINESS" &&
+    (user as any).subscriptionStatus === "active" &&
+    (!(user as any).subscriptionEndDate || new Date((user as any).subscriptionEndDate) > now);
+
+  if (subscriptionActive) {
     return {
       owner: user,
       isOwner: true,
@@ -38,7 +44,13 @@ export async function getWorkspaceOwner(user: {
     },
   });
 
-  if (!owner || owner.role !== "BUSINESS") {
+  const ownerSubscriptionActive =
+    owner &&
+    owner.role === "BUSINESS" &&
+    (owner as any).subscriptionStatus === "active" &&
+    (!(owner as any).subscriptionEndDate || new Date((owner as any).subscriptionEndDate) > now);
+
+  if (!owner || !ownerSubscriptionActive) {
     return {
       owner: user,
       isOwner: true,
