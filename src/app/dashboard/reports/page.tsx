@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
+import { getWorkspaceOwner } from "@/lib/workspace";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -35,12 +36,14 @@ export default async function ReportsPage({
 
   if (!user) redirect("/login");
 
+  const workspace = await getWorkspaceOwner(user);
+
   const q = searchParams?.q?.trim() || "";
   const status = searchParams?.status || "all";
 
   const reports = await prisma.upload.findMany({
     where: {
-      userId: user.id,
+      userId: workspace.owner.id,
       ...(status === "unlocked" ? { unlocked: true } : {}),
       ...(status === "preview" ? { unlocked: false } : {}),
       ...(q

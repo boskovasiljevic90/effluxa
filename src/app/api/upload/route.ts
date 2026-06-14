@@ -7,6 +7,7 @@ import OpenAI from "openai";
 import * as XLSX from "xlsx";
 import { trackEvent } from "@/lib/events";
 import { trackError } from "@/lib/errorTracking";
+import { getWorkspaceOwner } from "@/lib/workspace";
 
 export const runtime = "nodejs";
 
@@ -121,7 +122,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.role !== "BUSINESS" && user.weeklyUploadCount >= 3) {
+    const workspace = await getWorkspaceOwner(user);
+
+    if (!workspace.hasBusinessAccess && user.weeklyUploadCount >= 3) {
       return NextResponse.json(
         {
           error: "You have reached your free audit limit. You can still unlock existing reports for €29, or contact support for more access.",
@@ -183,7 +186,7 @@ export async function POST(req: NextRequest) {
 
     const upload = await prisma.upload.create({
       data: {
-        userId: user.id,
+        userId: workspace.owner.id,
         fileUrl: file.name,
         parsedData,
         summary: "AI financial leak audit generated",
@@ -208,6 +211,8 @@ export async function POST(req: NextRequest) {
       metadata: {
         fileName: file.name,
         fileSize: file.size,
+        workspaceOwnerId: workspace.owner.id,
+        uploadedBy: user.email,
       },
     });
 

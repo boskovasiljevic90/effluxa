@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import BusinessUpgradeButton from "./BusinessUpgradeButton";
+import { getWorkspaceOwner } from "@/lib/workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -86,8 +87,10 @@ export default async function DashboardPage({
     }
   }
 
+  const workspace = await getWorkspaceOwner(user);
+
   const reports = await prisma.upload.findMany({
-    where: { userId: user.id },
+    where: { userId: workspace.owner.id },
     orderBy: { createdAt: "desc" },
   });
 
@@ -125,7 +128,7 @@ export default async function DashboardPage({
           </p>
         </div>
 
-        <div className="plan-badge plan-free">{user.role}</div>
+        <div className="plan-badge plan-free">{workspace.hasBusinessAccess ? "BUSINESS" : user.role}</div>
       </div>
 
 
@@ -155,14 +158,14 @@ export default async function DashboardPage({
 
       <div className="card" style={{ marginBottom: "28px" }}>
         <div className="card-title">
-          {user.role === "BUSINESS"
+          {workspace.hasBusinessAccess
             ? "Business Plan"
             : "Free Plan Usage"}
         </div>
 
-        {user.role === "BUSINESS" ? (
+        {workspace.hasBusinessAccess ? (
           <p className="gray" style={{ marginTop: "12px" }}>
-            Unlimited AI audits enabled.
+            Unlimited AI audits enabled{workspace.isTeamMember ? " through your team workspace." : "."}
           </p>
         ) : (
           <p className="gray" style={{ marginTop: "12px" }}>
