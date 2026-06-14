@@ -171,26 +171,28 @@ export default async function DashboardPage({
         )}
       </div>
 
-      <div className="card" style={{ marginBottom: "28px" }}>
-        <div className="card-title">Business Plan</div>
+      {user.role !== "BUSINESS" && (
+        <div className="card" style={{ marginBottom: "28px" }}>
+          <div className="card-title">Business Plan</div>
 
-        <p className="gray" style={{ marginTop: "12px" }}>
-          Unlimited AI audits, unlimited reports,
-          5 team seats and priority processing.
-        </p>
+          <p className="gray" style={{ marginTop: "12px" }}>
+            Unlimited AI audits, unlimited reports,
+            5 team seats and priority processing.
+          </p>
 
-        <div
-          style={{
-            marginTop: "20px",
-            fontSize: "28px",
-            fontWeight: 900,
-          }}
-        >
-          €44.99/month
+          <div
+            style={{
+              marginTop: "20px",
+              fontSize: "28px",
+              fontWeight: 900,
+            }}
+          >
+            €44.99/month
+          </div>
+
+          <BusinessUpgradeButton />
         </div>
-
-        <BusinessUpgradeButton />
-      </div>
+      )}
 
       <div className="card" style={{ marginBottom: "28px" }}>
         <div className="card-title">Start New AI Audit</div>
