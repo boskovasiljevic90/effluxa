@@ -25,6 +25,8 @@ model User {
   subscriptionEndDate   DateTime?
   subscriptionStatus    String   @default("inactive")
   preferredLanguage     String   @default("en")
+  companyName          String?
+  reportFooter         String?
   uploads               Upload[]
   createdAt             DateTime @default(now())
 }

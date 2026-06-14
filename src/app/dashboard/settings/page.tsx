@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import ChangePasswordForm from "./ChangePasswordForm";
 import BillingPortalButton from "./BillingPortalButton";
+import BusinessBrandingForm from "./BusinessBrandingForm";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -72,6 +73,19 @@ export default async function SettingsPage() {
             </button>
           </Link>
         </div>
+
+        {user.role === "BUSINESS" && (
+          <div className="card full-width">
+            <div className="card-title">Business Branding</div>
+            <p className="gray" style={{ lineHeight: 1.7 }}>
+              Customize company name and footer text shown on downloadable audit PDFs.
+            </p>
+            <BusinessBrandingForm
+              defaultCompanyName={user.companyName}
+              defaultReportFooter={user.reportFooter}
+            />
+          </div>
+        )}
 
         {user.role === "BUSINESS" && (
           <div className="card full-width">
