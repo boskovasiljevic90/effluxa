@@ -178,6 +178,12 @@ export default async function ClientsPage() {
                   </div>
 
                   <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                    <Link href={`/dashboard/clients/${client.id}`}>
+                      <button className="primary-button" style={{ padding: "9px 14px" }}>
+                        Dashboard
+                      </button>
+                    </Link>
+
                     <Link href={`/dashboard/reports?clientId=${client.id}`}>
                       <button className="primary-button" style={{ padding: "9px 14px" }}>
                         View Audits

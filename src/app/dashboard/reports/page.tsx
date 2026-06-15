@@ -30,6 +30,7 @@ export default async function ReportsPage({
   searchParams?: {
     q?: string;
     status?: string;
+    clientId?: string;
   };
 }) {
   const user = await getUser();
@@ -40,12 +41,19 @@ export default async function ReportsPage({
 
   const q = searchParams?.q?.trim() || "";
   const status = searchParams?.status || "all";
+  const clientId = searchParams?.clientId || "";
+
+  const clients = await prisma.client.findMany({
+    where: { ownerId: workspace.owner.id },
+    orderBy: { name: "asc" },
+  });
 
   const reports = await prisma.upload.findMany({
     where: {
       userId: workspace.owner.id,
       ...(status === "unlocked" ? { unlocked: true } : {}),
       ...(status === "preview" ? { unlocked: false } : {}),
+      ...(clientId ? { clientId } : {}),
       ...(q
         ? {
             fileUrl: {
@@ -64,6 +72,7 @@ export default async function ReportsPage({
     const params = new URLSearchParams();
 
     if (q) params.set("q", q);
+    if (clientId) params.set("clientId", clientId);
     if (nextStatus !== "all") params.set("status", nextStatus);
 
     const query = params.toString();
@@ -108,10 +117,69 @@ export default async function ReportsPage({
             <input type="hidden" name="status" value={status} />
           )}
 
+          {clientId && <input type="hidden" name="clientId" value={clientId} />}
+
           <button className="primary-button" type="submit">
             Search
           </button>
         </form>
+
+        {clients.length > 0 && (
+          <div style={{ marginTop: "22px" }}>
+            <div className="gray" style={{ marginBottom: "10px", fontWeight: 700 }}>
+              Filter by Client
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+              <Link href={makeHref(status)}>
+                <button
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: "999px",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background: !clientId
+                      ? "linear-gradient(135deg, #2563eb, #7c3aed)"
+                      : "rgba(255,255,255,0.06)",
+                    color: "white",
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  All Clients
+                </button>
+              </Link>
+
+              {clients.map((client) => {
+                const params = new URLSearchParams();
+
+                if (q) params.set("q", q);
+                if (status !== "all") params.set("status", status);
+                params.set("clientId", client.id);
+
+                return (
+                  <Link key={client.id} href={`/dashboard/reports?${params.toString()}`}>
+                    <button
+                      style={{
+                        padding: "10px 16px",
+                        borderRadius: "999px",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        background:
+                          clientId === client.id
+                            ? "linear-gradient(135deg, #2563eb, #7c3aed)"
+                            : "rgba(255,255,255,0.06)",
+                        color: "white",
+                        fontWeight: 800,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {client.name}
+                    </button>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div
           style={{
@@ -192,6 +260,12 @@ export default async function ReportsPage({
                         <div className="gray" style={{ marginTop: "8px" }}>
                           Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
                         </div>
+
+                        {report.clientId && (
+                          <div className="gray" style={{ marginTop: "8px" }}>
+                            Client: {clients.find((client) => client.id === report.clientId)?.name || "Assigned client"}
+                          </div>
+                        )}
                       </div>
 
                       <div
