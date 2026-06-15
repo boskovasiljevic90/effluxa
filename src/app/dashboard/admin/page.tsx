@@ -50,11 +50,57 @@ export default async function AdminDashboardPage() {
     take: 50,
   });
 
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
   const usersCount = await prisma.user.count();
+
+  const businessUsersCount = await prisma.user.count({
+    where: { role: "BUSINESS" },
+  });
+
+  const activeBusinessUsersCount = await prisma.user.count({
+    where: {
+      role: "BUSINESS",
+      subscriptionStatus: "active",
+      OR: [
+        { subscriptionEndDate: null },
+        { subscriptionEndDate: { gt: new Date() } },
+      ],
+    },
+  });
+
+  const newUsersLast30Days = await prisma.user.count({
+    where: {
+      createdAt: {
+        gte: thirtyDaysAgo,
+      },
+    },
+  });
+
   const reportsCount = await prisma.upload.count();
+
+  const reportsLast30Days = await prisma.upload.count({
+    where: {
+      createdAt: {
+        gte: thirtyDaysAgo,
+      },
+    },
+  });
+
   const unlockedReportsCount = await prisma.upload.count({
     where: { unlocked: true },
   });
+
+  const allReports = await prisma.upload.findMany({
+    select: {
+      parsedData: true,
+    },
+  });
+
+  const totalSavingsFound = allReports.reduce((sum, report) => {
+    const data = report.parsedData as any;
+    return sum + (Number(data?.estimated_savings) || 0);
+  }, 0);
 
   const events = await prisma.event.findMany({
     orderBy: { createdAt: "desc" },
@@ -113,8 +159,28 @@ export default async function AdminDashboardPage() {
           </div>
 
           <div className="card">
+            <div className="card-title">Business Users</div>
+            <div className="metric-value green">{businessUsersCount}</div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">Active Business</div>
+            <div className="metric-value green">{activeBusinessUsersCount}</div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">New Users 30d</div>
+            <div className="metric-value">{newUsersLast30Days}</div>
+          </div>
+
+          <div className="card">
             <div className="card-title">Total Audits</div>
             <div className="metric-value">{reportsCount}</div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">Audits 30d</div>
+            <div className="metric-value">{reportsLast30Days}</div>
           </div>
 
           <div className="card">
@@ -135,6 +201,11 @@ export default async function AdminDashboardPage() {
           <div className="card">
             <div className="card-title">Estimated Revenue</div>
             <div className="metric-value green">€{estimatedRevenue}</div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">Total Savings Found</div>
+            <div className="metric-value green">€{totalSavingsFound.toLocaleString()}</div>
           </div>
         </div>
 
