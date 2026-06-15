@@ -117,3 +117,61 @@ export async function sendTeamInviteEmail({
     `,
   });
 }
+
+
+export async function sendMonthlyExecutiveSummaryEmail({
+  to,
+  companyName,
+  auditsCount,
+  totalSavings,
+  highestRiskScore,
+  averageLeakageScore,
+}: {
+  to: string;
+  companyName?: string | null;
+  auditsCount: number;
+  totalSavings: number;
+  highestRiskScore: number;
+  averageLeakageScore: number;
+}) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const fromEmail =
+    process.env.RESEND_FROM_EMAIL ||
+    "Effluxa <noreply@effluxa.com>";
+
+  await resend.emails.send({
+    from: fromEmail,
+    to,
+    subject: "Effluxa Monthly Executive Summary",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>${companyName || "Effluxa"} Monthly Executive Summary</h2>
+
+        <p>Your latest financial intelligence summary is ready.</p>
+
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-top:20px;">
+          <p><strong>Audits generated:</strong> ${auditsCount}</p>
+          <p><strong>Potential savings found:</strong> €${totalSavings.toLocaleString()}</p>
+          <p><strong>Highest risk score:</strong> ${highestRiskScore}/100</p>
+          <p><strong>Average leakage score:</strong> ${averageLeakageScore}/100</p>
+        </div>
+
+        <p style="margin-top:24px;">
+          Log in to Effluxa to review your audit history, reports, team activity, and recommendations.
+        </p>
+
+        <p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com"}/dashboard"
+             style="display:inline-block;background:#0f172a;color:white;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">
+            Open Dashboard
+          </a>
+        </p>
+
+        <p style="font-size:12px;color:#64748b;margin-top:30px;">
+          Effluxa reports are AI-generated and provided for informational purposes only.
+        </p>
+      </div>
+    `,
+  });
+}
