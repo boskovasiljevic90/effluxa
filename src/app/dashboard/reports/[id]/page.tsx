@@ -62,9 +62,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
   if (!report.unlocked && searchParams?.session_id && process.env.STRIPE_SECRET_KEY) {
     try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2026-01-28.clover",
-      });
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
       const session = await stripe.checkout.sessions.retrieve(searchParams.session_id);
 
