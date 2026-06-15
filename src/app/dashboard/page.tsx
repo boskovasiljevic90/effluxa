@@ -181,6 +181,35 @@ export default async function DashboardPage({
         )
       : 0;
 
+  const vendorTotals = new Map<string, number>();
+  const categoryTotals = new Map<string, number>();
+
+  for (const report of reports) {
+    const data = report.parsedData as any;
+
+    for (const vendor of data?.top_vendors || []) {
+      const name = vendor?.vendor || "Unknown vendor";
+      const amount = Number(vendor?.amount || 0);
+      vendorTotals.set(name, (vendorTotals.get(name) || 0) + amount);
+    }
+
+    for (const category of data?.high_cost_categories || []) {
+      const name = category?.category || "Unknown category";
+      const amount = Number(category?.amount || 0);
+      categoryTotals.set(name, (categoryTotals.get(name) || 0) + amount);
+    }
+  }
+
+  const topVendorsAcrossAudits = Array.from(vendorTotals.entries())
+    .map(([name, amount]) => ({ name, amount }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+
+  const topCostCategoriesAcrossAudits = Array.from(categoryTotals.entries())
+    .map(([name, amount]) => ({ name, amount }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 5);
+
 
   return (
     <>
@@ -303,6 +332,87 @@ export default async function DashboardPage({
           </button>
         </Link>
       </div>
+
+      {workspace.hasBusinessAccess && (
+        <div className="card" style={{ marginBottom: "28px" }}>
+          <div className="card-title">Executive Insights</div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
+              gap: "18px",
+              marginTop: "18px",
+            }}
+          >
+            <div
+              style={{
+                padding: "18px",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div style={{ fontWeight: "bold", marginBottom: "14px" }}>
+                Top Vendors Across Audits
+              </div>
+
+              {topVendorsAcrossAudits.length === 0 ? (
+                <p className="gray">No vendor data yet.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {topVendorsAcrossAudits.map((vendor) => (
+                    <div
+                      key={vendor.name}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "14px",
+                      }}
+                    >
+                      <span className="gray">{vendor.name}</span>
+                      <strong>€{vendor.amount.toLocaleString()}</strong>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div
+              style={{
+                padding: "18px",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div style={{ fontWeight: "bold", marginBottom: "14px" }}>
+                Top Cost Categories
+              </div>
+
+              {topCostCategoriesAcrossAudits.length === 0 ? (
+                <p className="gray">No category data yet.</p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {topCostCategoriesAcrossAudits.map((category) => (
+                    <div
+                      key={category.name}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: "14px",
+                      }}
+                    >
+                      <span className="gray">{category.name}</span>
+                      <strong>€{category.amount.toLocaleString()}</strong>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
