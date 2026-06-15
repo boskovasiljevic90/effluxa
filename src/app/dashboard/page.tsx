@@ -119,6 +119,53 @@ export default async function DashboardPage({
       : 0;
 
 
+  const latestAuditScore =
+    reports.length > 0
+      ? Number((reports[0].parsedData as any)?.leakage_score || 0)
+      : 0;
+
+  const bestSavingsOpportunity =
+    reports.length > 0
+      ? Math.max(
+          0,
+          ...reports.map((report) =>
+            Number((report.parsedData as any)?.estimated_savings || 0)
+          )
+        )
+      : 0;
+
+  const highestRiskAudit =
+    reports.length > 0
+      ? Math.max(
+          0,
+          ...reports.map((report) =>
+            Number((report.parsedData as any)?.leakage_score || 0)
+          )
+        )
+      : 0;
+
+  const previousAudits = reports.slice(1);
+
+  const previousAverageLeakage =
+    previousAudits.length > 0
+      ? Math.round(
+          previousAudits.reduce((sum, report) => {
+            const data = report.parsedData as any;
+            return sum + (Number(data?.leakage_score) || 0);
+          }, 0) / previousAudits.length
+        )
+      : latestAuditScore;
+
+  const improvementTrend =
+    previousAverageLeakage > 0
+      ? Math.round(
+          ((previousAverageLeakage - latestAuditScore) /
+            previousAverageLeakage) *
+            100
+        )
+      : 0;
+
+
   return (
     <>
       <div className="topbar">
@@ -154,6 +201,36 @@ export default async function DashboardPage({
         <div className="card">
           <div className="card-title">Unlocked Reports</div>
           <div className="metric-value green">{unlockedAudits}</div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">Latest Audit Score</div>
+          <div className="metric-value">{latestAuditScore}/100</div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">Improvement Trend</div>
+          <div
+            className="metric-value"
+            style={{
+              color: improvementTrend >= 0 ? "#4ade80" : "#f87171",
+            }}
+          >
+            {improvementTrend > 0 ? "+" : ""}
+            {improvementTrend}%
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">Best Savings Opportunity</div>
+          <div className="metric-value green">
+            €{bestSavingsOpportunity.toLocaleString()}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">Highest Risk Audit</div>
+          <div className="metric-value">{highestRiskAudit}/100</div>
         </div>
       </div>
 
