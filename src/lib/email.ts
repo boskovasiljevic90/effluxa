@@ -1,6 +1,9 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) return null;
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 export async function sendPasswordResetEmail({
   to,
@@ -9,7 +12,9 @@ export async function sendPasswordResetEmail({
   to: string;
   resetUrl: string;
 }) {
-  if (!process.env.RESEND_API_KEY) {
+  const resend = getResendClient();
+
+  if (!resend) {
     console.log("RESEND_API_KEY missing. Reset URL:", resetUrl);
     return;
   }
@@ -48,7 +53,8 @@ export async function sendContactNotificationEmail({
   subject?: string;
   message: string;
 }) {
-  if (!process.env.RESEND_API_KEY) return;
+  const resend = getResendClient();
+  if (!resend) return;
 
   const recipients = Array.from(
     new Set(
@@ -91,7 +97,8 @@ export async function sendTeamInviteEmail({
   to: string;
   ownerEmail: string;
 }) {
-  if (!process.env.RESEND_API_KEY) return;
+  const resend = getResendClient();
+  if (!resend) return;
 
   const fromEmail =
     process.env.RESEND_FROM_EMAIL ||
@@ -134,7 +141,8 @@ export async function sendMonthlyExecutiveSummaryEmail({
   highestRiskScore: number;
   averageLeakageScore: number;
 }) {
-  if (!process.env.RESEND_API_KEY) return;
+  const resend = getResendClient();
+  if (!resend) return;
 
   const fromEmail =
     process.env.RESEND_FROM_EMAIL ||

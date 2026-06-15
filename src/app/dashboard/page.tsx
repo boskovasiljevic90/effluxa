@@ -45,7 +45,7 @@ export default async function DashboardPage({
   ) {
     try {
       const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2026-02-25.clover",
+        apiVersion: "2026-01-28.clover",
       });
 
       const session = await stripe.checkout.sessions.retrieve(
