@@ -167,9 +167,27 @@ export async function POST(req: NextRequest) {
 
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const rawClientId = formData.get("clientId") as string | null;
+    const clientId = rawClientId?.trim() || null;
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    const client = clientId
+      ? await prisma.client.findFirst({
+          where: {
+            id: clientId,
+            ownerId: workspace.owner.id,
+          },
+        })
+      : null;
+
+    if (clientId && !client) {
+      return NextResponse.json(
+        { error: "Selected client was not found in this workspace." },
+        { status: 400 }
+      );
     }
 
     const allowedExtensions = [".pdf", ".csv", ".xlsx", ".xls"];
@@ -222,6 +240,7 @@ export async function POST(req: NextRequest) {
         fileUrl: file.name,
         parsedData,
         summary: "AI financial leak audit generated",
+        clientId: client?.id || null,
       },
     });
 
@@ -245,6 +264,8 @@ export async function POST(req: NextRequest) {
         fileSize: file.size,
         workspaceOwnerId: workspace.owner.id,
         uploadedBy: user.email,
+        clientId: client?.id || null,
+        clientName: client?.name || null,
       },
     });
 

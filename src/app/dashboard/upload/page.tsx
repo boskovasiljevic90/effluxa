@@ -1,12 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+type Client = {
+  id: string;
+  name: string;
+};
 
 export default function UploadPage() {
   const router = useRouter();
+
   const [file, setFile] = useState<File | null>(null);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [clientId, setClientId] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadClients() {
+      try {
+        const res = await fetch("/api/clients/list");
+        const data = await res.json();
+
+        if (res.ok) {
+          setClients(data.clients || []);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    loadClients();
+  }, []);
 
   async function handleUpload() {
     if (!file) {
@@ -31,6 +56,10 @@ export default function UploadPage() {
 
     const formData = new FormData();
     formData.append("file", file);
+
+    if (clientId) {
+      formData.append("clientId", clientId);
+    }
 
     const res = await fetch("/api/upload", {
       method: "POST",
@@ -72,6 +101,42 @@ export default function UploadPage() {
           <p className="gray" style={{ marginTop: "10px" }}>
             Maximum file size: 10MB.
           </p>
+
+          {clients.length > 0 && (
+            <div style={{ marginTop: "28px" }}>
+              <label
+                className="gray"
+                style={{
+                  display: "block",
+                  marginBottom: "10px",
+                  fontWeight: 700,
+                }}
+              >
+                Attach audit to client
+              </label>
+
+              <select
+                value={clientId}
+                onChange={(e) => setClientId(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "14px 16px",
+                  borderRadius: "14px",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "rgba(255,255,255,0.06)",
+                  color: "white",
+                  fontSize: "15px",
+                }}
+              >
+                <option value="">No client</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <input
             type="file"

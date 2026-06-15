@@ -42,6 +42,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing clientId." }, { status: 400 });
     }
 
+    await prisma.upload.updateMany({
+      where: {
+        clientId,
+        userId: workspace.owner.id,
+      },
+      data: {
+        clientId: null,
+      },
+    });
+
     await prisma.client.deleteMany({
       where: {
         id: clientId,
