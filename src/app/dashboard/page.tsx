@@ -95,6 +95,22 @@ export default async function DashboardPage({
     orderBy: { createdAt: "desc" },
   });
 
+  const rawActivityEvents = await prisma.event.findMany({
+    orderBy: { createdAt: "desc" },
+    take: 80,
+  });
+
+  const activityEvents = rawActivityEvents
+    .filter((event) => {
+      const metadata = event.metadata as any;
+
+      return (
+        event.userId === workspace.owner.id ||
+        metadata?.workspaceOwnerId === workspace.owner.id
+      );
+    })
+    .slice(0, 8);
+
   const totalAudits = reports.length;
   const unlockedAudits = reports.filter((report) => report.unlocked).length;
 
@@ -287,6 +303,64 @@ export default async function DashboardPage({
           </button>
         </Link>
       </div>
+
+      {workspace.hasBusinessAccess && (
+        <div className="card" style={{ marginBottom: "28px" }}>
+          <div className="card-title">Workspace Activity</div>
+
+          {activityEvents.length === 0 ? (
+            <p className="gray" style={{ marginTop: "12px" }}>
+              No workspace activity yet.
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
+              {activityEvents.map((event) => {
+                const metadata = event.metadata as any;
+
+                const actor =
+                  metadata?.uploadedBy ||
+                  metadata?.email ||
+                  "Workspace user";
+
+                const label =
+                  event.type === "upload_created"
+                    ? `${actor} uploaded ${metadata?.fileName || "a financial document"}`
+                    : event.type === "business_subscription_activated"
+                      ? "Business subscription activated"
+                      : event.type === "business_subscription_cancelled"
+                        ? "Business subscription cancelled"
+                        : event.type === "business_subscription_payment_failed"
+                          ? "Business subscription payment failed"
+                          : event.type === "report_unlocked"
+                            ? "Audit report unlocked"
+                            : event.type === "checkout_created"
+                              ? "Checkout started"
+                              : event.type.replaceAll("_", " ");
+
+                return (
+                  <div
+                    key={event.id}
+                    style={{
+                      padding: "16px",
+                      borderRadius: "14px",
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    <div style={{ fontWeight: "bold" }}>
+                      {label}
+                    </div>
+
+                    <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
+                      {new Date(event.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
