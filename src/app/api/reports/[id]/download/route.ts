@@ -57,6 +57,9 @@ export async function GET(req: NextRequest, { params }: Props) {
         id: params.id,
         userId: workspace.owner.id,
       },
+      include: {
+        client: true,
+      },
     });
 
     if (!report) {
@@ -128,6 +131,10 @@ export async function GET(req: NextRequest, { params }: Props) {
 
     text(`File: ${report.fileUrl}`, 10, false, rgb(0.4, 0.4, 0.4));
     text(`Date: ${new Date(report.createdAt).toLocaleString()}`, 10, false, rgb(0.4, 0.4, 0.4));
+
+    if (report.client) {
+      text(`Client: ${report.client.name}`, 10, false, rgb(0.4, 0.4, 0.4));
+    }
 
     section("Executive Summary");
     paragraph(

@@ -51,6 +51,9 @@ export default async function ReportPage({ params, searchParams }: Props) {
       id: reportId,
       userId: workspace.owner.id,
     },
+    include: {
+      client: true,
+    },
   });
 
   if (!report) {
@@ -116,6 +119,12 @@ export default async function ReportPage({ params, searchParams }: Props) {
         <p>
           <strong>Date:</strong> {new Date(report.createdAt).toLocaleString()}
         </p>
+
+        {report.client && (
+          <p>
+            <strong>Client:</strong> {report.client.name}
+          </p>
+        )}
 
         <DeleteReportButton reportId={report.id} />
 

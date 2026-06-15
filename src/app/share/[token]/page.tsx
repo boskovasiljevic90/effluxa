@@ -12,6 +12,9 @@ export default async function SharedReportPage({
     where: {
       shareToken: params.token,
     },
+    include: {
+      client: true,
+    },
   });
 
   if (!report) {
@@ -61,6 +64,12 @@ export default async function SharedReportPage({
           <p style={{ marginTop: "6px", color: "#64748b" }}>
             Date: {new Date(report.createdAt).toLocaleString()}
           </p>
+
+          {report.client && (
+            <p style={{ marginTop: "6px", color: "#64748b" }}>
+              Client: {report.client.name}
+            </p>
+          )}
 
           <section style={{ marginTop: "34px" }}>
             <h2>Executive Summary</h2>
