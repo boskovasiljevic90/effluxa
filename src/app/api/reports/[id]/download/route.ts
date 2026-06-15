@@ -70,14 +70,23 @@ export async function GET(req: NextRequest, { params }: Props) {
     const data = report.parsedData as any;
 
     const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([595, 842]);
+    let page = pdfDoc.addPage([595, 842]);
 
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const bold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
     let y = 790;
 
+    function ensureSpace(required = 60) {
+      if (y < required) {
+        page = pdfDoc.addPage([595, 842]);
+        y = 790;
+      }
+    }
+
     function text(value: string, size = 11, isBold = false, color = rgb(0.1, 0.1, 0.1)) {
+      ensureSpace(size + 30);
+
       page.drawText(String(value || ""), {
         x: 50,
         y,
@@ -85,10 +94,12 @@ export async function GET(req: NextRequest, { params }: Props) {
         font: isBold ? bold : font,
         color,
       });
+
       y -= size + 8;
     }
 
     function section(title: string) {
+      ensureSpace(90);
       y -= 8;
       text(title, 16, true, rgb(0.05, 0.1, 0.2));
       y -= 4;
