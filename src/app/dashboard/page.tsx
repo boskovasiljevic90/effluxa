@@ -241,6 +241,27 @@ export default async function DashboardPage({
           ? "#fb923c"
           : "#f87171";
 
+  const actionCounts = new Map<string, number>();
+
+  for (const report of reports) {
+    const data = report.parsedData as any;
+    const actions = [
+      ...(data?.quick_wins || []),
+      ...(data?.recommendations || []),
+    ];
+
+    for (const action of actions) {
+      const text = String(action || "").trim();
+      if (!text) continue;
+      actionCounts.set(text, (actionCounts.get(text) || 0) + 1);
+    }
+  }
+
+  const priorityActions = Array.from(actionCounts.entries())
+    .map(([text, count]) => ({ text, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6);
+
 
   return (
     <>
@@ -447,6 +468,40 @@ export default async function DashboardPage({
           </button>
         </Link>
       </div>
+
+      {workspace.hasBusinessAccess && (
+        <div className="card" style={{ marginBottom: "28px" }}>
+          <div className="card-title">Priority Action Plan</div>
+
+          {priorityActions.length === 0 ? (
+            <p className="gray" style={{ marginTop: "12px" }}>
+              No recommended actions yet.
+            </p>
+          ) : (
+            <div style={{ display: "grid", gap: "12px", marginTop: "18px" }}>
+              {priorityActions.map((action, index) => (
+                <div
+                  key={action.text}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "14px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <div style={{ fontWeight: 900 }}>
+                    {index + 1}. {action.text}
+                  </div>
+
+                  <div className="gray" style={{ marginTop: "8px", fontSize: "13px" }}>
+                    Seen across {action.count} audit{action.count === 1 ? "" : "s"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
