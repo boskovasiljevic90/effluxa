@@ -208,6 +208,39 @@ export default async function DashboardPage({
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 5);
 
+  const auditActivityScore = totalAudits >= 10 ? 10 : totalAudits >= 5 ? 7 : totalAudits >= 2 ? 4 : 1;
+  const savingsScore = totalEstimatedSavings > 0 ? 10 : 3;
+  const leakagePenalty = Math.round(averageLeakageScore * 0.45);
+  const riskPenalty = Math.round(highestRiskAudit * 0.25);
+  const trendBonus = improvementTrend > 0 ? Math.min(10, Math.round(improvementTrend / 2)) : 0;
+  const trendPenalty = improvementTrend < 0 ? Math.min(10, Math.abs(Math.round(improvementTrend / 2))) : 0;
+
+  const workspaceHealthScore = Math.max(
+    0,
+    Math.min(
+      100,
+      75 + auditActivityScore + savingsScore + trendBonus - leakagePenalty - riskPenalty - trendPenalty
+    )
+  );
+
+  const workspaceHealthStatus =
+    workspaceHealthScore >= 80
+      ? "Healthy"
+      : workspaceHealthScore >= 60
+        ? "Stable"
+        : workspaceHealthScore >= 40
+          ? "At Risk"
+          : "Critical";
+
+  const workspaceHealthColor =
+    workspaceHealthScore >= 80
+      ? "#4ade80"
+      : workspaceHealthScore >= 60
+        ? "#facc15"
+        : workspaceHealthScore >= 40
+          ? "#fb923c"
+          : "#f87171";
+
 
   return (
     <>
@@ -222,6 +255,90 @@ export default async function DashboardPage({
         <div className="plan-badge plan-free">{workspace.hasBusinessAccess ? "BUSINESS" : user.role}</div>
       </div>
 
+
+      {workspace.hasBusinessAccess && (
+        <div
+          className="card"
+          style={{
+            marginBottom: "28px",
+            border: "1px solid rgba(34,197,94,0.18)",
+            background:
+              "linear-gradient(135deg, rgba(34,197,94,0.10), rgba(37,99,235,0.08))",
+          }}
+        >
+          <div className="card-title">Workspace Health Score</div>
+
+          <div
+            style={{
+              marginTop: "18px",
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "24px",
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: "64px",
+                  fontWeight: 950,
+                  color: workspaceHealthColor,
+                  lineHeight: 1,
+                }}
+              >
+                {workspaceHealthScore}/100
+              </div>
+
+              <div
+                style={{
+                  marginTop: "12px",
+                  fontSize: "22px",
+                  fontWeight: 900,
+                }}
+              >
+                {workspaceHealthStatus}
+              </div>
+
+              <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
+                Based on average leakage, highest risk, identified savings,
+                audit activity, and trend improvement across this workspace.
+              </p>
+            </div>
+
+            <div
+              style={{
+                minWidth: "240px",
+                padding: "18px",
+                borderRadius: "18px",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <div className="gray">Trend</div>
+              <div
+                style={{
+                  marginTop: "8px",
+                  fontSize: "30px",
+                  fontWeight: 900,
+                  color: improvementTrend >= 0 ? "#4ade80" : "#f87171",
+                }}
+              >
+                {improvementTrend > 0 ? "+" : ""}
+                {improvementTrend}%
+              </div>
+
+              <div className="gray" style={{ marginTop: "12px" }}>
+                Avg Leakage: {averageLeakageScore}/100
+              </div>
+
+              <div className="gray" style={{ marginTop: "8px" }}>
+                Highest Risk: {highestRiskAudit}/100
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="report-grid" style={{ marginBottom: "28px" }}>
         <div className="card">
