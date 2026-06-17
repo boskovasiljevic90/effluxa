@@ -61,6 +61,15 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
   const improvement =
     previousAverage > 0 ? Math.round(((previousAverage - latestScore) / previousAverage) * 100) : 0;
 
+  const healthStatus =
+    averageLeakage >= 70
+      ? "Critical"
+      : averageLeakage >= 45
+        ? "Needs Attention"
+        : averageLeakage >= 20
+          ? "Moderate"
+          : "Healthy";
+
   const vendorTotals = new Map<string, number>();
   const categoryTotals = new Map<string, number>();
 
@@ -90,6 +99,20 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 5);
 
+  const monthlySavings = new Map<string, number>();
+
+  for (const upload of client.uploads) {
+    const date = new Date(upload.createdAt);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const data = upload.parsedData as any;
+    monthlySavings.set(key, (monthlySavings.get(key) || 0) + (Number(data?.estimated_savings) || 0));
+  }
+
+  const savingsTrend = Array.from(monthlySavings.entries())
+    .map(([month, amount]) => ({ month, amount }))
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-6);
+
   return (
     <>
       <Link href="/dashboard/clients" style={{ color: "#60a5fa" }}>
@@ -101,12 +124,38 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
       {client.notes && <p className="gray" style={{ marginTop: "10px" }}>{client.notes}</p>}
 
       <div className="report-grid" style={{ marginTop: "34px" }}>
+        <div className="card"><div className="card-title">Client Health</div><div className="metric-value">{healthStatus}</div></div>
         <div className="card"><div className="card-title">Client Audits</div><div className="metric-value">{totalAudits}</div></div>
         <div className="card"><div className="card-title">Potential Savings</div><div className="metric-value green">€{totalSavings.toLocaleString()}</div></div>
         <div className="card"><div className="card-title">Average Leakage</div><div className="metric-value">{averageLeakage}/100</div></div>
         <div className="card"><div className="card-title">Highest Risk</div><div className="metric-value">{highestRisk}/100</div></div>
-        <div className="card"><div className="card-title">Latest Score</div><div className="metric-value">{latestScore}/100</div></div>
         <div className="card"><div className="card-title">Improvement</div><div className="metric-value" style={{ color: improvement >= 0 ? "#4ade80" : "#f87171" }}>{improvement > 0 ? "+" : ""}{improvement}%</div></div>
+      </div>
+
+      <div className="card" style={{ marginTop: "28px" }}>
+        <div className="card-title">Client Executive Summary</div>
+        <p className="gray" style={{ marginTop: "14px", lineHeight: 1.8 }}>
+          {client.name} has {totalAudits} audit{totalAudits === 1 ? "" : "s"} in this workspace,
+          with €{totalSavings.toLocaleString()} in potential savings identified and an average leakage score of {averageLeakage}/100.
+          Current client health is classified as {healthStatus}.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginTop: "28px" }}>
+        <div className="card-title">Savings Trend</div>
+
+        {savingsTrend.length === 0 ? (
+          <p className="gray" style={{ marginTop: "12px" }}>No savings trend data yet.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginTop: "18px" }}>
+            {savingsTrend.map((item) => (
+              <div key={item.month} style={{ display: "flex", justifyContent: "space-between", gap: "18px" }}>
+                <span className="gray">{item.month}</span>
+                <strong>€{item.amount.toLocaleString()}</strong>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ marginTop: "28px" }}>
@@ -150,7 +199,6 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
                     <div style={{ fontWeight: "bold" }}>{upload.fileUrl}</div>
                     <div className="gray" style={{ marginTop: "8px" }}>Leakage Score: {data?.leakage_score ?? "N/A"}/100</div>
                     <div className="gray" style={{ marginTop: "8px" }}>Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}</div>
-
                     {upload.internalNote && (
                       <div className="gray" style={{ marginTop: "8px", color: "#4ade80" }}>
                         Internal note saved
