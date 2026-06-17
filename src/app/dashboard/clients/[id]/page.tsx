@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import ShareClientButton from "./ShareClientButton";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -181,6 +182,8 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
       <div className="card" style={{ marginTop: "28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
           <div className="card-title">Client Audit History</div>
+          <ShareClientButton clientId={client.id} />
+
           <a href={`/api/clients/${client.id}/pdf`}>
             <button className="primary-button" style={{ padding: "10px 16px" }}>Export PDF</button>
           </a>

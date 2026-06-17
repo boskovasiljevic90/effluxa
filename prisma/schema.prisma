@@ -97,6 +97,7 @@ model Client {
   ownerId   String
   name      String
   notes     String?
+  shareToken String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
