@@ -88,6 +88,12 @@ export default async function ReportsPage({
       </p>
 
       <div style={{ marginTop: "28px", marginBottom: "18px" }}>
+        <a href="/api/reports/pdf" style={{ marginRight: "12px" }}>
+          <button className="primary-button">
+            Export Workspace PDF
+          </button>
+        </a>
+
         <a href="/api/reports/export">
           <button className="primary-button">
             Export Workspace CSV
