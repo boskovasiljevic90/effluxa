@@ -181,6 +181,10 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
       <div className="card" style={{ marginTop: "28px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", alignItems: "center", flexWrap: "wrap" }}>
           <div className="card-title">Client Audit History</div>
+          <a href={`/api/clients/${client.id}/export`}>
+            <button className="primary-button" style={{ padding: "10px 16px" }}>Export CSV</button>
+          </a>
+
           <Link href={`/dashboard/reports?clientId=${client.id}`}>
             <button className="primary-button" style={{ padding: "10px 16px" }}>View In Reports</button>
           </Link>
