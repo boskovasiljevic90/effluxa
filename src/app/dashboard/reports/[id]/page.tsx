@@ -8,6 +8,7 @@ import Stripe from "stripe";
 import UpgradeButton from "./UpgradeButton";
 import DeleteReportButton from "./DeleteReportButton";
 import ShareReportButton from "./ShareReportButton";
+import ChangeReportClientForm from "./ChangeReportClientForm";
 import { getWorkspaceOwner } from "@/lib/workspace";
 
 async function getUser() {
@@ -106,6 +107,21 @@ export default async function ReportPage({ params, searchParams }: Props) {
   const data = report.parsedData as any;
   const isUnlocked = report.unlocked || workspace.hasBusinessAccess;
 
+  const clients = workspace.hasBusinessAccess
+    ? await prisma.client.findMany({
+        where: {
+          ownerId: workspace.owner.id,
+        },
+        orderBy: {
+          name: "asc",
+        },
+        select: {
+          id: true,
+          name: true,
+        },
+      })
+    : [];
+
   return (
     <>
       <div style={{ maxWidth: "1100px" }}>
@@ -128,6 +144,14 @@ export default async function ReportPage({ params, searchParams }: Props) {
         )}
 
         <DeleteReportButton reportId={report.id} />
+
+        {workspace.hasBusinessAccess && (
+          <ChangeReportClientForm
+            reportId={report.id}
+            currentClientId={report.clientId}
+            clients={clients}
+          />
+        )}
 
         <div className="audit-card" style={{ marginTop: "36px" }}>
           <h2>Preview Summary</h2>
