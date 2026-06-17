@@ -208,6 +208,31 @@ export default async function DashboardPage({
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 5);
 
+  const onboardingSteps = [
+    {
+      label: "Upload first financial document",
+      done: totalAudits > 0,
+      href: "/dashboard/upload",
+    },
+    {
+      label: "Create your first client",
+      done: reports.some((report) => report.clientId),
+      href: "/dashboard/clients",
+    },
+    {
+      label: "Review your first AI audit",
+      done: totalAudits > 0,
+      href: "/dashboard/reports",
+    },
+    {
+      label: "Export an executive report",
+      done: workspace.hasBusinessAccess,
+      href: "/dashboard/reports",
+    },
+  ];
+
+  const onboardingCompleted = onboardingSteps.filter((step) => step.done).length;
+
   const auditActivityScore = totalAudits >= 10 ? 10 : totalAudits >= 5 ? 7 : totalAudits >= 2 ? 4 : 1;
   const savingsScore = totalEstimatedSavings > 0 ? 10 : 3;
   const leakagePenalty = Math.round(averageLeakageScore * 0.45);
@@ -500,6 +525,46 @@ export default async function DashboardPage({
           <BusinessUpgradeButton />
         </div>
       )}
+
+      <div className="card" style={{ marginBottom: "28px" }}>
+        <div className="card-title">Getting Started</div>
+
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          Complete these steps to unlock the full value of Effluxa.
+        </p>
+
+        <div style={{ marginTop: "18px", display: "grid", gap: "12px" }}>
+          {onboardingSteps.map((step) => (
+            <Link key={step.label} href={step.href}>
+              <div
+                style={{
+                  padding: "15px",
+                  borderRadius: "14px",
+                  background: step.done
+                    ? "rgba(34,197,94,0.10)"
+                    : "rgba(255,255,255,0.04)",
+                  border: step.done
+                    ? "1px solid rgba(34,197,94,0.20)"
+                    : "1px solid rgba(255,255,255,0.06)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "14px",
+                  alignItems: "center",
+                }}
+              >
+                <strong>{step.label}</strong>
+                <span style={{ color: step.done ? "#4ade80" : "#cbd5e1", fontWeight: 900 }}>
+                  {step.done ? "Done" : "Start"}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <p className="gray" style={{ marginTop: "14px" }}>
+          Progress: {onboardingCompleted}/{onboardingSteps.length}
+        </p>
+      </div>
 
       <div className="card" style={{ marginBottom: "28px" }}>
         <div className="card-title">Start New AI Audit</div>
