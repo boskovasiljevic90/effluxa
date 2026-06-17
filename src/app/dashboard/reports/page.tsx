@@ -87,6 +87,14 @@ export default async function ReportsPage({
         Search, filter, and open previous Effluxa financial leak audits.
       </p>
 
+      <div style={{ marginTop: "28px", marginBottom: "18px" }}>
+        <a href="/api/reports/export">
+          <button className="primary-button">
+            Export Workspace CSV
+          </button>
+        </a>
+      </div>
+
       <div className="card" style={{ marginTop: "34px", marginBottom: "28px" }}>
         <form
           action="/dashboard/reports"
