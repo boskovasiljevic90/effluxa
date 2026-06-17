@@ -63,6 +63,12 @@ export default async function DashboardLayout({
               </Link>
             )}
 
+            {workspace?.hasBusinessAccess && (
+              <Link href="/dashboard/portfolio" className="sidebar-item">
+                Portfolio
+              </Link>
+            )}
+
             <Link href="/dashboard/upload" className="sidebar-item">
               Upload Audit
             </Link>
