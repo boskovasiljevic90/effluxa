@@ -108,6 +108,36 @@ export default async function ReportPage({ params, searchParams }: Props) {
   const data = report.parsedData as any;
   const isUnlocked = report.unlocked || workspace.hasBusinessAccess;
 
+  const previousClientAudit = report.clientId
+    ? await prisma.upload.findFirst({
+        where: {
+          userId: workspace.owner.id,
+          clientId: report.clientId,
+          createdAt: {
+            lt: report.createdAt,
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      })
+    : null;
+
+  const previousData = previousClientAudit?.parsedData as any;
+  const currentLeakage = Number(data?.leakage_score || 0);
+  const previousLeakage = Number(previousData?.leakage_score || 0);
+  const leakagePointChange = previousClientAudit
+    ? currentLeakage - previousLeakage
+    : 0;
+  const leakageImprovement = previousClientAudit
+    ? previousLeakage - currentLeakage
+    : 0;
+  const currentSavings = Number(data?.estimated_savings || 0);
+  const previousSavings = Number(previousData?.estimated_savings || 0);
+  const savingsChange = previousClientAudit
+    ? currentSavings - previousSavings
+    : 0;
+
   const clients = workspace.hasBusinessAccess
     ? await prisma.client.findMany({
         where: {
@@ -196,6 +226,98 @@ export default async function ReportPage({ params, searchParams }: Props) {
             {data?.leakage_score ?? 0}/100
           </p>
         </div>
+
+        {workspace.hasBusinessAccess && previousClientAudit && (
+          <div className="audit-card" style={{ marginTop: "28px" }}>
+            <h2>Audit Comparison</h2>
+
+            <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
+              Compared with previous audit for this client:
+              {" "}
+              <strong>{previousClientAudit.fileUrl}</strong>
+            </p>
+
+            <div
+              style={{
+                marginTop: "18px",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+                gap: "16px",
+              }}
+            >
+              <div
+                style={{
+                  padding: "16px",
+                  borderRadius: "14px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="gray">Previous Leakage</div>
+                <div style={{ fontSize: "28px", fontWeight: 900, marginTop: "8px" }}>
+                  {previousLeakage}/100
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "16px",
+                  borderRadius: "14px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="gray">Current Leakage</div>
+                <div style={{ fontSize: "28px", fontWeight: 900, marginTop: "8px" }}>
+                  {currentLeakage}/100
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "16px",
+                  borderRadius: "14px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="gray">Leakage Change</div>
+                <div
+                  style={{
+                    fontSize: "28px",
+                    fontWeight: 900,
+                    marginTop: "8px",
+                    color: leakageImprovement >= 0 ? "#4ade80" : "#f87171",
+                  }}
+                >
+                  {leakageImprovement >= 0 ? "-" : "+"}
+                  {Math.abs(leakagePointChange)} pts
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "16px",
+                  borderRadius: "14px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="gray">Savings Change</div>
+                <div
+                  style={{
+                    fontSize: "28px",
+                    fontWeight: 900,
+                    marginTop: "8px",
+                    color: savingsChange >= 0 ? "#4ade80" : "#f87171",
+                  }}
+                >
+                  {savingsChange >= 0 ? "+" : "-"}€{Math.abs(savingsChange).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {isUnlocked ? (
           <>
