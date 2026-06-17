@@ -132,6 +132,48 @@ export default async function AdminDashboardPage() {
 
   const estimatedRevenue = revenueEvents * 29;
 
+  const signupEventsCount = await prisma.event.count({
+    where: { type: "signup" },
+  });
+
+  const uploadEventsCount = await prisma.event.count({
+    where: { type: "upload_created" },
+  });
+
+  const businessActivatedEventsCount = await prisma.event.count({
+    where: { type: "business_subscription_activated" },
+  });
+
+  const teamInviteEventsCount = await prisma.event.count({
+    where: { type: "team_invite_sent" },
+  });
+
+  const monthlySummaryEventsCount = await prisma.event.count({
+    where: { type: "monthly_executive_summary_sent" },
+  });
+
+  const eventGroups = await prisma.event.groupBy({
+    by: ["type"],
+    _count: { type: true },
+    orderBy: { _count: { type: "desc" } },
+    take: 10,
+  });
+
+  const signupToUploadRate =
+    signupEventsCount > 0
+      ? Math.round((uploadEventsCount / signupEventsCount) * 100)
+      : 0;
+
+  const uploadToUnlockRate =
+    uploadEventsCount > 0
+      ? Math.round((revenueEvents / uploadEventsCount) * 100)
+      : 0;
+
+  const businessConversionRate =
+    usersCount > 0
+      ? Math.round((activeBusinessUsersCount / usersCount) * 100)
+      : 0;
+
   const conversionRate =
     reportsCount > 0
       ? Math.round((unlockedReportsCount / reportsCount) * 100)
@@ -206,6 +248,77 @@ export default async function AdminDashboardPage() {
           <div className="card">
             <div className="card-title">Total Savings Found</div>
             <div className="metric-value green">€{totalSavingsFound.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginTop: "40px" }}>
+          <div className="card-title">Funnel Analytics</div>
+
+          <div className="report-grid" style={{ marginTop: "22px" }}>
+            <div className="card">
+              <div className="card-title">Signup Events</div>
+              <div className="metric-value">{signupEventsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Upload Events</div>
+              <div className="metric-value">{uploadEventsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Business Activations</div>
+              <div className="metric-value green">{businessActivatedEventsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Team Invites</div>
+              <div className="metric-value">{teamInviteEventsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Monthly Emails Sent</div>
+              <div className="metric-value">{monthlySummaryEventsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Signup → Upload</div>
+              <div className="metric-value">{signupToUploadRate}%</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Upload → Unlock</div>
+              <div className="metric-value">{uploadToUnlockRate}%</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Business Conversion</div>
+              <div className="metric-value green">{businessConversionRate}%</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginTop: "40px" }}>
+          <div className="card-title">Top Events</div>
+
+          <div style={{ display: "grid", gap: "12px", marginTop: "18px" }}>
+            {eventGroups.map((event) => (
+              <div
+                key={event.type}
+                style={{
+                  padding: "16px",
+                  borderRadius: "14px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "14px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <strong>{event.type}</strong>
+                <span className="gray">{event._count.type}</span>
+              </div>
+            ))}
           </div>
         </div>
 
