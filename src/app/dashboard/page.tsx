@@ -361,6 +361,51 @@ export default async function DashboardPage({
         </div>
       )}
 
+
+      {workspace.hasBusinessAccess && (
+        <div
+          className="card"
+          style={{
+            marginBottom: "28px",
+            border: "1px solid rgba(96,165,250,0.18)",
+          }}
+        >
+          <div className="card-title">Priority Action Plan</div>
+
+          <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+            The most repeated AI recommendations and quick wins across your workspace audits.
+          </p>
+
+          {priorityActions.length === 0 ? (
+            <p className="gray" style={{ marginTop: "18px" }}>
+              No priority actions yet. Upload more financial documents to generate repeated recommendations.
+            </p>
+          ) : (
+            <div style={{ display: "grid", gap: "12px", marginTop: "18px" }}>
+              {priorityActions.map((action, index) => (
+                <div
+                  key={action.text}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "14px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <div style={{ fontWeight: 900 }}>
+                    {index + 1}. {action.text}
+                  </div>
+
+                  <div className="gray" style={{ marginTop: "8px", fontSize: "13px" }}>
+                    Seen across {action.count} audit{action.count === 1 ? "" : "s"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="report-grid" style={{ marginBottom: "28px" }}>
         <div className="card">
           <div className="card-title">Total Audits</div>
@@ -468,40 +513,6 @@ export default async function DashboardPage({
           </button>
         </Link>
       </div>
-
-      {workspace.hasBusinessAccess && (
-        <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Priority Action Plan</div>
-
-          {priorityActions.length === 0 ? (
-            <p className="gray" style={{ marginTop: "12px" }}>
-              No recommended actions yet.
-            </p>
-          ) : (
-            <div style={{ display: "grid", gap: "12px", marginTop: "18px" }}>
-              {priorityActions.map((action, index) => (
-                <div
-                  key={action.text}
-                  style={{
-                    padding: "16px",
-                    borderRadius: "14px",
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
-                  <div style={{ fontWeight: 900 }}>
-                    {index + 1}. {action.text}
-                  </div>
-
-                  <div className="gray" style={{ marginTop: "8px", fontSize: "13px" }}>
-                    Seen across {action.count} audit{action.count === 1 ? "" : "s"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
