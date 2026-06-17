@@ -154,6 +154,26 @@ export default async function ReportPage({ params, searchParams }: Props) {
               clients={clients}
             />
 
+            {report.internalNote && (
+              <div
+                style={{
+                  marginTop: "18px",
+                  padding: "18px",
+                  borderRadius: "16px",
+                  background: "rgba(34,197,94,0.08)",
+                  border: "1px solid rgba(34,197,94,0.18)",
+                }}
+              >
+                <div style={{ fontWeight: 800, marginBottom: "10px" }}>
+                  Saved Internal Note
+                </div>
+
+                <p className="gray" style={{ lineHeight: 1.7 }}>
+                  {report.internalNote}
+                </p>
+              </div>
+            )}
+
             <InternalNoteForm
               reportId={report.id}
               defaultNote={report.internalNote}
