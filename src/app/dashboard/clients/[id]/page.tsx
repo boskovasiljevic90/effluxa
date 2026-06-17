@@ -114,6 +114,74 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
     .sort((a, b) => a.month.localeCompare(b.month))
     .slice(-6);
 
+  const monthlyStats = new Map<
+    string,
+    { audits: number; savings: number; leakageTotal: number; leakageCount: number; highestRisk: number }
+  >();
+
+  for (const upload of client.uploads) {
+    const date = new Date(upload.createdAt);
+    const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const data = upload.parsedData as any;
+    const savings = Number(data?.estimated_savings || 0);
+    const leakage = Number(data?.leakage_score || 0);
+
+    const current =
+      monthlyStats.get(month) || {
+        audits: 0,
+        savings: 0,
+        leakageTotal: 0,
+        leakageCount: 0,
+        highestRisk: 0,
+      };
+
+    current.audits += 1;
+    current.savings += savings;
+
+    if (!Number.isNaN(leakage)) {
+      current.leakageTotal += leakage;
+      current.leakageCount += 1;
+      current.highestRisk = Math.max(current.highestRisk, leakage);
+    }
+
+    monthlyStats.set(month, current);
+  }
+
+  const trendMonths = Array.from(monthlyStats.entries())
+    .map(([month, stats]) => ({
+      month,
+      audits: stats.audits,
+      savings: stats.savings,
+      averageLeakage:
+        stats.leakageCount > 0
+          ? Math.round(stats.leakageTotal / stats.leakageCount)
+          : 0,
+      highestRisk: stats.highestRisk,
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-6);
+
+  const firstTrendMonth = trendMonths[0];
+  const lastTrendMonth = trendMonths[trendMonths.length - 1];
+
+  const leakageTrendChange =
+    firstTrendMonth && lastTrendMonth && firstTrendMonth.averageLeakage > 0
+      ? Math.round(
+          ((lastTrendMonth.averageLeakage - firstTrendMonth.averageLeakage) /
+            firstTrendMonth.averageLeakage) *
+            100
+        )
+      : 0;
+
+  const savingsTrendChange =
+    firstTrendMonth && lastTrendMonth && firstTrendMonth.savings > 0
+      ? Math.round(
+          ((lastTrendMonth.savings - firstTrendMonth.savings) /
+            firstTrendMonth.savings) *
+            100
+        )
+      : 0;
+
   return (
     <>
       <Link href="/dashboard/clients" style={{ color: "#60a5fa" }}>
@@ -140,6 +208,109 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
           with €{totalSavings.toLocaleString()} in potential savings identified and an average leakage score of {averageLeakage}/100.
           Current client health is classified as {healthStatus}.
         </p>
+      </div>
+
+      <div className="card" style={{ marginTop: "28px" }}>
+        <div className="card-title">Client Trend Analytics</div>
+
+        {trendMonths.length === 0 ? (
+          <p className="gray" style={{ marginTop: "12px" }}>
+            No trend data yet.
+          </p>
+        ) : (
+          <>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+                gap: "16px",
+                marginTop: "18px",
+              }}
+            >
+              <div
+                style={{
+                  padding: "18px",
+                  borderRadius: "16px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="card-title">Leakage Trend</div>
+                <div
+                  className="metric-value"
+                  style={{
+                    color: leakageTrendChange <= 0 ? "#4ade80" : "#f87171",
+                  }}
+                >
+                  {leakageTrendChange > 0 ? "+" : ""}
+                  {leakageTrendChange}%
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "18px",
+                  borderRadius: "16px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="card-title">Savings Trend</div>
+                <div
+                  className="metric-value"
+                  style={{
+                    color: savingsTrendChange >= 0 ? "#4ade80" : "#f87171",
+                  }}
+                >
+                  {savingsTrendChange > 0 ? "+" : ""}
+                  {savingsTrendChange}%
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "22px", display: "grid", gap: "12px" }}>
+              {trendMonths.map((item) => (
+                <div
+                  key={item.month}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "14px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))",
+                    gap: "12px",
+                  }}
+                >
+                  <div>
+                    <div className="gray">Month</div>
+                    <strong>{item.month}</strong>
+                  </div>
+
+                  <div>
+                    <div className="gray">Audits</div>
+                    <strong>{item.audits}</strong>
+                  </div>
+
+                  <div>
+                    <div className="gray">Savings</div>
+                    <strong>€{item.savings.toLocaleString()}</strong>
+                  </div>
+
+                  <div>
+                    <div className="gray">Avg Leakage</div>
+                    <strong>{item.averageLeakage}/100</strong>
+                  </div>
+
+                  <div>
+                    <div className="gray">Highest Risk</div>
+                    <strong>{item.highestRisk}/100</strong>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       <div className="card" style={{ marginTop: "28px" }}>
