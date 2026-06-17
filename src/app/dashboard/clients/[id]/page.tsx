@@ -150,6 +150,12 @@ export default async function ClientDashboardPage({ params }: { params: { id: st
                     <div style={{ fontWeight: "bold" }}>{upload.fileUrl}</div>
                     <div className="gray" style={{ marginTop: "8px" }}>Leakage Score: {data?.leakage_score ?? "N/A"}/100</div>
                     <div className="gray" style={{ marginTop: "8px" }}>Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}</div>
+
+                    {upload.internalNote && (
+                      <div className="gray" style={{ marginTop: "8px", color: "#4ade80" }}>
+                        Internal note saved
+                      </div>
+                    )}
                     <div className="gray" style={{ marginTop: "8px", fontSize: "13px" }}>{new Date(upload.createdAt).toLocaleString()}</div>
                   </div>
                 </Link>

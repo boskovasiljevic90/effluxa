@@ -257,9 +257,21 @@ export default async function ReportsPage({
                           Leakage Score: {data?.leakage_score ?? "N/A"}/100
                         </div>
 
+                        {report.internalNote && (
+                          <div className="gray" style={{ marginTop: "8px", color: "#4ade80" }}>
+                            Internal note saved
+                          </div>
+                        )}
+
                         <div className="gray" style={{ marginTop: "8px" }}>
                           Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
                         </div>
+
+                        {report.internalNote && (
+                          <div className="gray" style={{ marginTop: "8px", color: "#4ade80" }}>
+                            Internal note saved
+                          </div>
+                        )}
 
                         {report.clientId && (
                           <div className="gray" style={{ marginTop: "8px" }}>
