@@ -38,6 +38,7 @@ model Upload {
   fileUrl           String
   parsedData        Json?
   summary           String?
+  internalNote      String?
   shareToken        String?   @unique
   unlocked          Boolean   @default(false)
   unlockedAt        DateTime?

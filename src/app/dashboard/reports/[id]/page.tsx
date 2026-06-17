@@ -9,6 +9,7 @@ import UpgradeButton from "./UpgradeButton";
 import DeleteReportButton from "./DeleteReportButton";
 import ShareReportButton from "./ShareReportButton";
 import ChangeReportClientForm from "./ChangeReportClientForm";
+import InternalNoteForm from "./InternalNoteForm";
 import { getWorkspaceOwner } from "@/lib/workspace";
 
 async function getUser() {
@@ -146,11 +147,18 @@ export default async function ReportPage({ params, searchParams }: Props) {
         <DeleteReportButton reportId={report.id} />
 
         {workspace.hasBusinessAccess && (
-          <ChangeReportClientForm
-            reportId={report.id}
-            currentClientId={report.clientId}
-            clients={clients}
-          />
+          <>
+            <ChangeReportClientForm
+              reportId={report.id}
+              currentClientId={report.clientId}
+              clients={clients}
+            />
+
+            <InternalNoteForm
+              reportId={report.id}
+              defaultNote={report.internalNote}
+            />
+          </>
         )}
 
         <div className="audit-card" style={{ marginTop: "36px" }}>
