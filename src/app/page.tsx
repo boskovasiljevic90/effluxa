@@ -59,6 +59,22 @@ export default function HomePage() {
               </button>
             </Link>
 
+            <Link href="/sample-audit">
+              <button style={{
+                height: "62px",
+                padding: "0 34px",
+                borderRadius: "18px",
+                border: "1px solid #cbd5e1",
+                background: "white",
+                color: "#0f172a",
+                fontSize: "18px",
+                fontWeight: 900,
+                cursor: "pointer",
+              }}>
+                View Sample Audit
+              </button>
+            </Link>
+
             <a href="#pricing">
               <button style={{
                 height: "62px",
