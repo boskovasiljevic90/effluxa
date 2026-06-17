@@ -133,6 +133,9 @@ export async function sendMonthlyExecutiveSummaryEmail({
   totalSavings,
   highestRiskScore,
   averageLeakageScore,
+  topRiskClient,
+  topSavingsClient,
+  priorityActions,
 }: {
   to: string;
   companyName?: string | null;
@@ -140,6 +143,9 @@ export async function sendMonthlyExecutiveSummaryEmail({
   totalSavings: number;
   highestRiskScore: number;
   averageLeakageScore: number;
+  topRiskClient?: string | null;
+  topSavingsClient?: string | null;
+  priorityActions?: string[];
 }) {
   const resend = getResendClient();
   if (!resend) return;
@@ -148,36 +154,48 @@ export async function sendMonthlyExecutiveSummaryEmail({
     process.env.RESEND_FROM_EMAIL ||
     "Effluxa <noreply@effluxa.com>";
 
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
+
   await resend.emails.send({
     from: fromEmail,
     to,
-    subject: "Effluxa Monthly Executive Summary",
+    subject: `${companyName || "Effluxa"} Monthly Executive Intelligence Report`,
     html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-        <h2>${companyName || "Effluxa"} Monthly Executive Summary</h2>
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#0f172a;">
+        <h2>${companyName || "Effluxa"} Monthly Executive Intelligence Report</h2>
 
-        <p>Your latest financial intelligence summary is ready.</p>
+        <p>Your latest Effluxa workspace intelligence summary is ready.</p>
 
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-top:20px;">
           <p><strong>Audits generated:</strong> ${auditsCount}</p>
           <p><strong>Potential savings found:</strong> €${totalSavings.toLocaleString()}</p>
-          <p><strong>Highest risk score:</strong> ${highestRiskScore}/100</p>
           <p><strong>Average leakage score:</strong> ${averageLeakageScore}/100</p>
+          <p><strong>Highest risk score:</strong> ${highestRiskScore}/100</p>
+          <p><strong>Top risk client:</strong> ${topRiskClient || "Insufficient data"}</p>
+          <p><strong>Top savings client:</strong> ${topSavingsClient || "Insufficient data"}</p>
         </div>
 
+        <h3 style="margin-top:28px;">Priority Action Plan</h3>
+
+        ${
+          priorityActions && priorityActions.length > 0
+            ? `<ol>${priorityActions.map((item) => `<li>${item}</li>`).join("")}</ol>`
+            : `<p>Upload more financial documents to generate recurring action insights.</p>`
+        }
+
         <p style="margin-top:24px;">
-          Log in to Effluxa to review your audit history, reports, team activity, and recommendations.
+          Open your dashboard to review client trends, portfolio health, risk concentration, and audit recommendations.
         </p>
 
         <p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com"}/dashboard"
+          <a href="${appUrl}/dashboard"
              style="display:inline-block;background:#0f172a;color:white;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">
-            Open Dashboard
+            Open Effluxa Dashboard
           </a>
         </p>
 
         <p style="font-size:12px;color:#64748b;margin-top:30px;">
-          Effluxa reports are AI-generated and provided for informational purposes only.
+          Effluxa reports are AI-generated and provided for informational purposes only. They are not financial, legal, tax, accounting, or investment advice.
         </p>
       </div>
     `,

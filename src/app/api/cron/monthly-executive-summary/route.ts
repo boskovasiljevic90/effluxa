@@ -33,9 +33,10 @@ export async function GET(req: NextRequest) {
       const reports = await prisma.upload.findMany({
         where: {
           userId: user.id,
-          createdAt: {
-            gte: since,
-          },
+          createdAt: { gte: since },
+        },
+        include: {
+          client: true,
         },
       });
 
@@ -61,6 +62,63 @@ export async function GET(req: NextRequest) {
             )
           : 0;
 
+      const clientMap = new Map<
+        string,
+        {
+          name: string;
+          savings: number;
+          highestRisk: number;
+        }
+      >();
+
+      const actionCounts = new Map<string, number>();
+
+      for (const report of reports) {
+        const data = report.parsedData as any;
+        const clientName = report.client?.name || "Unassigned";
+
+        const current =
+          clientMap.get(clientName) || {
+            name: clientName,
+            savings: 0,
+            highestRisk: 0,
+          };
+
+        current.savings += Number(data?.estimated_savings || 0);
+        current.highestRisk = Math.max(
+          current.highestRisk,
+          Number(data?.leakage_score || 0)
+        );
+
+        clientMap.set(clientName, current);
+
+        const actions = [
+          ...(data?.quick_wins || []),
+          ...(data?.recommendations || []),
+        ];
+
+        for (const action of actions) {
+          const text = String(action || "").trim();
+          if (!text) continue;
+          actionCounts.set(text, (actionCounts.get(text) || 0) + 1);
+        }
+      }
+
+      const clientStats = Array.from(clientMap.values());
+
+      const topRiskClient =
+        clientStats.sort((a, b) => b.highestRisk - a.highestRisk)[0]?.name ||
+        null;
+
+      const topSavingsClient =
+        clientStats.sort((a, b) => b.savings - a.savings)[0]?.name || null;
+
+      const priorityActions = Array.from(actionCounts.entries())
+        .map(([text, count]) => ({ text, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+        .map((item) => item.text);
+
       await sendMonthlyExecutiveSummaryEmail({
         to: user.email,
         companyName: user.companyName,
@@ -68,6 +126,9 @@ export async function GET(req: NextRequest) {
         totalSavings,
         highestRiskScore,
         averageLeakageScore,
+        topRiskClient,
+        topSavingsClient,
+        priorityActions,
       });
 
       await trackEvent({
@@ -78,6 +139,9 @@ export async function GET(req: NextRequest) {
           totalSavings,
           highestRiskScore,
           averageLeakageScore,
+          topRiskClient,
+          topSavingsClient,
+          priorityActions,
         },
       });
 
