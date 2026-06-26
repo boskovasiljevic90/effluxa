@@ -1,6 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+
+export const metadata: Metadata = {
+  title: "Effluxa | AI Financial Leak Detection for SMEs",
+  description:
+    "Effluxa helps SMEs, CFOs and consultants detect financial leakage, overspending, duplicate payment risks, vendor concentration and hidden savings opportunities using AI.",
+  alternates: {
+    canonical: "https://www.effluxa.com",
+  },
+  openGraph: {
+    title: "Effluxa | AI Financial Leak Detection",
+    description:
+      "Upload financial files and get AI-powered leakage scores, savings opportunities, client dashboards and executive reports.",
+    url: "https://www.effluxa.com",
+    siteName: "Effluxa",
+    type: "website",
+  },
+};
 
 export default function HomePage() {
   return (

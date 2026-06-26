@@ -1,6 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+
+export const metadata: Metadata = {
+  title: "Sample AI Financial Audit | Effluxa",
+  description:
+    "View a sample Effluxa AI financial audit showing leakage score, risk level, savings opportunities, key findings and recommendations.",
+  alternates: {
+    canonical: "https://www.effluxa.com/sample-audit",
+  },
+  openGraph: {
+    title: "Sample AI Financial Audit | Effluxa",
+    description:
+      "See what Effluxa detects from invoices, statements, CSV exports and Excel files before creating an account.",
+    url: "https://www.effluxa.com/sample-audit",
+    siteName: "Effluxa",
+    type: "article",
+  },
+};
 
 export default function SampleAuditPage() {
   return (
