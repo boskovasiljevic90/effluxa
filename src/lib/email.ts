@@ -243,3 +243,45 @@ export async function sendWelcomeEmail({
     `,
   });
 }
+
+
+export async function sendFirstAuditReminderEmail({
+  to,
+}: {
+  to: string;
+}) {
+  const resend = getResendClient();
+  if (!resend) return;
+
+  const fromEmail =
+    process.env.RESEND_FROM_EMAIL ||
+    "Effluxa <noreply@effluxa.com>";
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
+
+  await resend.emails.send({
+    from: fromEmail,
+    to,
+    subject: "Your first Effluxa audit is waiting",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#0f172a;">
+        <h2>Ready to find hidden financial leakage?</h2>
+
+        <p>You created your Effluxa account, but haven’t uploaded your first financial file yet.</p>
+
+        <p>Upload an invoice, statement, CSV export, or Excel report and Effluxa will generate your first AI financial leak audit.</p>
+
+        <p>
+          <a href="${appUrl}/dashboard/upload"
+             style="display:inline-block;background:#0f172a;color:white;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">
+            Upload First Audit
+          </a>
+        </p>
+
+        <p style="font-size:12px;color:#64748b;margin-top:30px;">
+          Effluxa reports are AI-generated and provided for informational purposes only.
+        </p>
+      </div>
+    `,
+  });
+}
