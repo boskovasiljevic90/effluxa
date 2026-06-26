@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { trackEvent } from "@/lib/events";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,6 +62,13 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       metadata: { email: user.email, termsAccepted: true },
     });
+
+    try {
+      await sendWelcomeEmail({ to: email });
+    } catch (error) {
+      console.error("WELCOME EMAIL ERROR:", error);
+    }
+
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },
