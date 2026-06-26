@@ -281,6 +281,42 @@ export default function HomePage() {
         </div>
       </section>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: [
+              {
+                "@type": "Question",
+                name: "Is Effluxa financial advice?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "No. Effluxa provides AI-generated informational analysis only. It is not financial, legal, tax, accounting or investment advice."
+                }
+              },
+              {
+                "@type": "Question",
+                name: "What files can I upload?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Effluxa supports PDF, CSV, XLSX and XLS files such as invoices, statements, accounting exports and expense reports."
+                }
+              },
+              {
+                "@type": "Question",
+                name: "Who is Effluxa for?",
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: "Effluxa is built for SMEs, CFOs, accountants, consultants and agencies that want to detect financial leakage and savings opportunities."
+                }
+              }
+            ]
+          }),
+        }}
+      />
+
       <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px 90px" }}>
         <h2 style={{ fontSize: "42px", fontWeight: 950, textAlign: "center", letterSpacing: "-1.5px" }}>
           Frequently Asked Questions
