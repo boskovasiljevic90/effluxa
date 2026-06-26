@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AnalyticsScripts from "@/components/analytics/AnalyticsScripts";
+import CookieConsent from "@/components/analytics/CookieConsent";
 
 export const metadata: Metadata = {
   title: "Effluxa — AI Financial Leak Audit",
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
     title: "Effluxa — AI Financial Leak Audit",
     description:
       "Find hidden financial leakage in minutes with AI-powered financial audits.",
-    url: "https://effluxa.vercel.app",
+    url: "https://www.effluxa.com",
     siteName: "Effluxa",
     type: "website",
   },
@@ -36,7 +38,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AnalyticsScripts />
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   );
 }
