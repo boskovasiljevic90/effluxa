@@ -178,6 +178,41 @@ export default function HomePage() {
         </div>
       </section>
 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: "Effluxa",
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            description:
+              "AI financial leak detection platform for SMEs, CFOs and consultants.",
+            offers: [
+              {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "EUR",
+                name: "Free Preview",
+              },
+              {
+                "@type": "Offer",
+                price: "29",
+                priceCurrency: "EUR",
+                name: "Full AI Audit",
+              },
+              {
+                "@type": "Offer",
+                price: "44.99",
+                priceCurrency: "EUR",
+                name: "Business Plan",
+              },
+            ],
+          }),
+        }}
+      />
+
       <section id="pricing" style={{ maxWidth: "1100px", margin: "0 auto", padding: "90px 24px" }}>
         <h2 style={{ fontSize: "48px", fontWeight: 950, letterSpacing: "-2px", textAlign: "center" }}>
           Simple pricing for audits and teams
@@ -243,6 +278,42 @@ export default function HomePage() {
               Start Your First Audit
             </button>
           </Link>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 24px 90px" }}>
+        <h2 style={{ fontSize: "42px", fontWeight: 950, textAlign: "center", letterSpacing: "-1.5px" }}>
+          Frequently Asked Questions
+        </h2>
+
+        <div style={{ display: "grid", gap: "18px", marginTop: "42px" }}>
+          {[
+            [
+              "Is Effluxa financial advice?",
+              "No. Effluxa provides AI-generated informational analysis only. It is not financial, legal, tax, accounting or investment advice."
+            ],
+            [
+              "What files can I upload?",
+              "Effluxa supports PDF, CSV, XLSX and XLS files such as invoices, statements, accounting exports and expense reports."
+            ],
+            [
+              "Who is Effluxa for?",
+              "Effluxa is built for SMEs, CFOs, accountants, consultants and agencies that want to detect financial leakage and savings opportunities."
+            ],
+            [
+              "Do I need accounting software integration?",
+              "No. Effluxa works with direct file uploads, so you can start without complex setup or integrations."
+            ],
+            [
+              "What is included in Business?",
+              "Business includes unlimited AI audits, client dashboards, team workspace, portfolio intelligence, executive exports and monthly summaries."
+            ],
+          ].map(([question, answer]) => (
+            <div key={question} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "22px", padding: "28px" }}>
+              <h3 style={{ fontSize: "22px", fontWeight: 900 }}>{question}</h3>
+              <p style={{ marginTop: "12px", color: "#475569", lineHeight: 1.7 }}>{answer}</p>
+            </div>
+          ))}
         </div>
       </section>
 
