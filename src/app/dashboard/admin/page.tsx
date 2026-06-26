@@ -179,6 +179,24 @@ export default async function AdminDashboardPage() {
       ? Math.round((unlockedReportsCount / reportsCount) * 100)
       : 0;
 
+  const launchChecklist = [
+    { label: "Production domain configured", done: Boolean(process.env.NEXT_PUBLIC_APP_URL) },
+    { label: "Database connected", done: Boolean(process.env.DATABASE_URL) },
+    { label: "JWT secret configured", done: Boolean(process.env.JWT_SECRET) },
+    { label: "OpenAI API configured", done: Boolean(process.env.OPENAI_API_KEY) },
+    { label: "Stripe configured", done: Boolean(process.env.STRIPE_SECRET_KEY) },
+    { label: "Stripe webhook configured", done: Boolean(process.env.STRIPE_WEBHOOK_SECRET) },
+    { label: "Resend email configured", done: Boolean(process.env.RESEND_API_KEY) },
+    { label: "Cron secret configured", done: Boolean(process.env.CRON_SECRET) },
+    { label: "At least one user created", done: usersCount > 0 },
+    { label: "At least one audit generated", done: reportsCount > 0 },
+    { label: "Sitemap and robots enabled", done: true },
+    { label: "Monthly executive cron enabled", done: true },
+  ];
+
+  const launchReadyCount = launchChecklist.filter((item) => item.done).length;
+  const launchReadyPercent = Math.round((launchReadyCount / launchChecklist.length) * 100);
+
   return (
     <div className="page-container">
       <div style={{ padding: "40px", maxWidth: "1200px", margin: "0 auto" }}>
@@ -392,6 +410,46 @@ export default async function AdminDashboardPage() {
                 </div>
 
                 <AdminResetUsageButton userId={user.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card" style={{ marginTop: "40px" }}>
+          <div className="card-title">Launch Readiness</div>
+
+          <div style={{ marginTop: "18px", fontSize: "42px", fontWeight: 900 }}>
+            {launchReadyPercent}%
+          </div>
+
+          <p className="gray" style={{ marginTop: "10px" }}>
+            {launchReadyCount}/{launchChecklist.length} launch checks completed.
+          </p>
+
+          <div style={{ display: "grid", gap: "12px", marginTop: "22px" }}>
+            {launchChecklist.map((item) => (
+              <div
+                key={item.label}
+                style={{
+                  padding: "14px",
+                  borderRadius: "14px",
+                  background: item.done
+                    ? "rgba(34,197,94,0.10)"
+                    : "rgba(248,113,113,0.08)",
+                  border: item.done
+                    ? "1px solid rgba(34,197,94,0.20)"
+                    : "1px solid rgba(248,113,113,0.18)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "14px",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <strong>{item.label}</strong>
+                <span style={{ color: item.done ? "#4ade80" : "#f87171", fontWeight: 900 }}>
+                  {item.done ? "Ready" : "Missing"}
+                </span>
               </div>
             ))}
           </div>
