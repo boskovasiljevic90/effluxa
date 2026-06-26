@@ -28,6 +28,9 @@ model User {
   companyName          String?
   reportFooter         String?
   notificationLastSeenAt DateTime?
+  emailMonthlySummary   Boolean  @default(true)
+  emailProductUpdates   Boolean  @default(true)
+  emailAuditReminders   Boolean  @default(true)
   uploads               Upload[]
   clients              Client[]
   createdAt             DateTime @default(now())

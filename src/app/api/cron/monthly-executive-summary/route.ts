@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
       where: {
         role: "BUSINESS",
         subscriptionStatus: "active",
+        emailMonthlySummary: true,
         OR: [
           { subscriptionEndDate: null },
           { subscriptionEndDate: { gt: new Date() } },

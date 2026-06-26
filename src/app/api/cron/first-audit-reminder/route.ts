@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
 
     const users = await prisma.user.findMany({
       where: {
+        emailAuditReminders: true,
         createdAt: {
           lte: oneDayAgo,
           gte: sevenDaysAgo,

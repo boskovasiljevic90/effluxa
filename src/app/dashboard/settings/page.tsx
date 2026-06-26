@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import ChangePasswordForm from "./ChangePasswordForm";
 import BillingPortalButton from "./BillingPortalButton";
 import BusinessBrandingForm from "./BusinessBrandingForm";
+import EmailPreferencesForm from "./EmailPreferencesForm";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -96,6 +97,19 @@ export default async function SettingsPage() {
             <BillingPortalButton />
           </div>
         )}
+
+        <div className="card full-width">
+          <div className="card-title">Email Preferences</div>
+          <p className="gray">
+            Choose which automated Effluxa emails you want to receive.
+          </p>
+
+          <EmailPreferencesForm
+            defaultMonthlySummary={user.emailMonthlySummary}
+            defaultProductUpdates={user.emailProductUpdates}
+            defaultAuditReminders={user.emailAuditReminders}
+          />
+        </div>
 
         <div className="card full-width">
           <div className="card-title">Change Password</div>
