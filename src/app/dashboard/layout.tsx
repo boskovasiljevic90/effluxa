@@ -34,6 +34,30 @@ export default async function DashboardLayout({
   const isAdmin = user?.email === process.env.ADMIN_EMAIL;
   const displayPlan = workspace?.hasBusinessAccess ? "BUSINESS" : user?.role || "FREE";
 
+  let unreadNotificationsCount = 0;
+
+  if (user && workspace) {
+    const rawEvents = await prisma.event.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 80,
+    });
+
+    unreadNotificationsCount = rawEvents.filter((event) => {
+      const metadata = event.metadata as any;
+
+      const belongsToWorkspace =
+        event.userId === user.id ||
+        event.userId === workspace.owner.id ||
+        metadata?.workspaceOwnerId === workspace.owner.id;
+
+      const unread =
+        !user.notificationLastSeenAt ||
+        event.createdAt > user.notificationLastSeenAt;
+
+      return belongsToWorkspace && unread;
+    }).length;
+  }
+
   return (
     <div className="page-container">
       <div className="dashboard-layout">
@@ -71,6 +95,10 @@ export default async function DashboardLayout({
 
             <Link href="/dashboard/upload" className="sidebar-item">
               Upload Audit
+            </Link>
+
+            <Link href="/dashboard/notifications" className="sidebar-item">
+              Notifications{unreadNotificationsCount > 0 ? ` (${unreadNotificationsCount})` : ""}
             </Link>
 
             <Link href="/dashboard/settings" className="sidebar-item">

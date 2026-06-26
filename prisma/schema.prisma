@@ -27,6 +27,7 @@ model User {
   preferredLanguage     String   @default("en")
   companyName          String?
   reportFooter         String?
+  notificationLastSeenAt DateTime?
   uploads               Upload[]
   clients              Client[]
   createdAt             DateTime @default(now())
