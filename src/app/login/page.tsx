@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+import { trackClientEvent } from "@/lib/clientAnalytics";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
+      trackClientEvent("login_started");
 
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -39,6 +41,7 @@ export default function LoginPage() {
         return;
       }
 
+      trackClientEvent("login_completed");
       window.location.href = "/dashboard";
     } catch (err) {
       console.error(err);

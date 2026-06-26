@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackClientEvent } from "@/lib/clientAnalytics";
 
 export default function BusinessUpgradeButton() {
   const [loading, setLoading] = useState(false);
@@ -8,6 +9,7 @@ export default function BusinessUpgradeButton() {
   async function handleUpgrade() {
     try {
       setLoading(true);
+      trackClientEvent("business_checkout_started");
 
       const res = await fetch("/api/stripe/create-business-subscription", {
         method: "POST",

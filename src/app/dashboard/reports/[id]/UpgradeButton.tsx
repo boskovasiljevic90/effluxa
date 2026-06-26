@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackClientEvent } from "@/lib/clientAnalytics";
 
 export default function UpgradeButton({ reportId }: { reportId: string }) {
   const [loading, setLoading] = useState(false);
@@ -8,6 +9,7 @@ export default function UpgradeButton({ reportId }: { reportId: string }) {
   async function handleUpgrade() {
     try {
       setLoading(true);
+      trackClientEvent("report_unlock_checkout_started", { report_id: reportId });
 
       const res = await fetch("/api/stripe/create-checkout-session", {
         method: "POST",

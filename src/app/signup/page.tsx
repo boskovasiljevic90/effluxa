@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+import { trackClientEvent } from "@/lib/clientAnalytics";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export default function SignupPage() {
 
     try {
       setLoading(true);
+      trackClientEvent("signup_started");
 
       const res = await fetch("/api/auth/signup", {
         method: "POST",
@@ -38,6 +40,7 @@ export default function SignupPage() {
         return;
       }
 
+      trackClientEvent("signup_completed");
       window.location.href = "/dashboard";
     } catch (err) {
       console.error(err);

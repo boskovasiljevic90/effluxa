@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { trackClientEvent } from "@/lib/clientAnalytics";
 
 type Client = {
   id: string;
@@ -53,6 +54,10 @@ export default function UploadPage() {
     }
 
     setLoading(true);
+    trackClientEvent("upload_started", {
+      file_type: lowerName.split(".").pop(),
+      has_client: Boolean(clientId),
+    });
 
     const formData = new FormData();
     formData.append("file", file);
@@ -73,6 +78,11 @@ export default function UploadPage() {
       setLoading(false);
       return;
     }
+
+    trackClientEvent("upload_completed", {
+      report_id: data.upload.id,
+      has_client: Boolean(clientId),
+    });
 
     router.push(`/dashboard/reports/${data.upload.id}`);
   }
