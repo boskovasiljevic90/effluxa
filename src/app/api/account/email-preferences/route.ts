@@ -11,10 +11,13 @@ export async function POST(req: NextRequest) {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string };
 
+    const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
     const body = await req.json();
 
     await prisma.user.update({
-      where: { id: decoded.userId },
+      where: { id: user.id },
       data: {
         emailMonthlySummary: Boolean(body.emailMonthlySummary),
         emailProductUpdates: Boolean(body.emailProductUpdates),
