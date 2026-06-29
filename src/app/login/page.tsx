@@ -70,10 +70,6 @@ export default function LoginPage() {
             justifyContent: "center",
           }}
         >
-          <div className="logo" style={{ marginBottom: "40px" }}>
-            Eff<span>luxa</span>
-          </div>
-
           <div
             className="auth-title"
             style={{
@@ -240,34 +236,6 @@ export default function LoginPage() {
                 {loading ? "Signing in..." : "Login to Effluxa"}
               </button>
             </form>
-
-            <div
-              style={{
-                marginTop: "30px",
-                paddingTop: "24px",
-                borderTop: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "14px",
-                  marginBottom: "12px",
-                  color: "#94a3b8",
-                }}
-              >
-                Demo accounts
-              </div>
-
-              <div style={{ lineHeight: 1.8 }}>
-                <div>
-                  FREE: free@effluxa.test
-                </div>
-
-                <div>
-                  Password: Free123456!
-                </div>
-              </div>
-            </div>
 
             <Link href="/forgot-password">
               <div
