@@ -4,9 +4,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendContactNotificationEmail } from "@/lib/email";
 import { trackError } from "@/lib/errorTracking";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit({
+      req,
+      key: "contact",
+      limit: 5,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
     const { name, email, subject, message } = await req.json();
 
     if (!email || !message) {

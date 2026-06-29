@@ -5,9 +5,19 @@ import { prisma } from "@/lib/prisma";
 import crypto from "crypto";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { trackError } from "@/lib/errorTracking";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit({
+      req,
+      key: "forgot_password",
+      limit: 5,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
     const { email } = await req.json();
 
     if (!email) {

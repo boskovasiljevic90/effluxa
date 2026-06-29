@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 import { trackEvent } from "@/lib/events";
 import { trackError } from "@/lib/errorTracking";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -134,6 +135,15 @@ ${financialText ? financialText.slice(0, 30000) : ""}
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit({
+      req,
+      key: "upload",
+      limit: 6,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
     const token = req.cookies.get("token")?.value;
 
     if (!token) {

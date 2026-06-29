@@ -6,9 +6,19 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { trackEvent } from "@/lib/events";
 import { sendWelcomeEmail } from "@/lib/email";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit({
+      req,
+      key: "auth_signup",
+      limit: 5,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
     const body = await req.json();
     const email = body?.email;
     const password = body?.password;

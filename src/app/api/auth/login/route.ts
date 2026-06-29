@@ -4,9 +4,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { rateLimit } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit({
+      req,
+      key: "auth_login",
+      limit: 10,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
     const { email, password } = await req.json();
 
     const user = await prisma.user.findUnique({
