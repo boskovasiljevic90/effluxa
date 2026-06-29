@@ -138,7 +138,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section style={{ background: "white", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0" }}>
+      <section id="how-it-works" style={{ background: "white", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "90px 24px" }}>
           <h2 style={{ fontSize: "48px", fontWeight: 950, letterSpacing: "-2px", textAlign: "center" }}>
             Built for recurring financial intelligence
