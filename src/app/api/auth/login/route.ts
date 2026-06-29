@@ -17,7 +17,9 @@ export async function POST(req: NextRequest) {
 
     if (limited) return limited;
 
-    const { email, password } = await req.json();
+    const body = await req.json();
+    const email = String(body?.email || "").trim().toLowerCase();
+    const password = body?.password;
 
     const user = await prisma.user.findUnique({
       where: { email },

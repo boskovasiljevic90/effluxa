@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     if (limited) return limited;
 
     const body = await req.json();
-    const email = body?.email;
+    const email = String(body?.email || "").trim().toLowerCase();
     const password = body?.password;
     const termsAccepted = body?.termsAccepted === true;
 

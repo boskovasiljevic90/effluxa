@@ -18,7 +18,8 @@ export async function POST(req: NextRequest) {
 
     if (limited) return limited;
 
-    const { email } = await req.json();
+    const body = await req.json();
+    const email = String(body?.email || "").trim().toLowerCase();
 
     if (!email) {
       return NextResponse.json(
