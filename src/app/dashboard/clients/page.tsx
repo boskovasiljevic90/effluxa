@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import CreateClientForm from "./CreateClientForm";
 import DeleteClientButton from "./DeleteClientButton";
+import EditClientButton from "./EditClientButton";
 import Link from "next/link";
 
 async function getUser() {
@@ -189,6 +190,12 @@ export default async function ClientsPage() {
                         View Audits
                       </button>
                     </Link>
+
+                    <EditClientButton
+                      clientId={client.id}
+                      defaultName={client.name}
+                      defaultNotes={client.notes}
+                    />
 
                     <DeleteClientButton clientId={client.id} />
                   </div>

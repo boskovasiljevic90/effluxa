@@ -47,6 +47,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const invitedUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (invitedUser) {
+      const invitedWorkspace = await getWorkspaceOwner(invitedUser);
+
+      if (
+        invitedWorkspace.hasBusinessAccess &&
+        invitedWorkspace.isOwner &&
+        invitedWorkspace.owner.id !== workspace.owner.id
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "This email already owns a Business workspace and cannot join another workspace. Please use a different account.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const existingMembers = await prisma.teamMember.count({
       where: { ownerId: workspace.owner.id },
     });
