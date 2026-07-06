@@ -26,17 +26,17 @@ export default function MobileDashboardNav({
   return (
     <>
       <div className="mobile-dashboard-bar">
+        <button onClick={() => setOpen(true)} className="mobile-menu-button" aria-label="Open dashboard menu">
+          ☰
+        </button>
+
         <Link href="/dashboard" className="mobile-dashboard-logo">
           Eff<span>luxa</span>
         </Link>
 
-        <button
-          onClick={() => setOpen(true)}
-          className="mobile-menu-button"
-          aria-label="Open dashboard menu"
-        >
-          ☰
-        </button>
+        <div className="mobile-profile-dot" aria-label="Account">
+          ●
+        </div>
       </div>
 
       {open && (
@@ -47,11 +47,7 @@ export default function MobileDashboardNav({
                 Eff<span>luxa</span>
               </Link>
 
-              <button
-                onClick={() => setOpen(false)}
-                className="mobile-menu-close"
-                aria-label="Close dashboard menu"
-              >
+              <button onClick={() => setOpen(false)} className="mobile-menu-close" aria-label="Close dashboard menu">
                 ×
               </button>
             </div>
@@ -59,63 +55,40 @@ export default function MobileDashboardNav({
             <div className="sidebar-subtitle">AI Financial Leak Audit</div>
 
             <div className="sidebar-menu">
-              <Link href="/dashboard" className="sidebar-item" onClick={() => setOpen(false)}>
-                Dashboard
-              </Link>
-
-              <Link href="/dashboard/reports" className="sidebar-item" onClick={() => setOpen(false)}>
-                Reports
-              </Link>
+              <Link href="/dashboard" className="sidebar-item" onClick={() => setOpen(false)}>Dashboard</Link>
+              <Link href="/dashboard/reports" className="sidebar-item" onClick={() => setOpen(false)}>Reports</Link>
 
               {hasBusinessAccess && (
-                <Link href="/dashboard/clients" className="sidebar-item" onClick={() => setOpen(false)}>
-                  Clients
-                </Link>
+                <Link href="/dashboard/clients" className="sidebar-item" onClick={() => setOpen(false)}>Clients</Link>
               )}
 
               {hasBusinessAccess && (
-                <Link href="/dashboard/portfolio" className="sidebar-item" onClick={() => setOpen(false)}>
-                  Portfolio
-                </Link>
+                <Link href="/dashboard/portfolio" className="sidebar-item" onClick={() => setOpen(false)}>Portfolio</Link>
               )}
 
-              <Link href="/dashboard/upload" className="sidebar-item" onClick={() => setOpen(false)}>
-                Upload Audit
-              </Link>
+              <Link href="/dashboard/upload" className="sidebar-item" onClick={() => setOpen(false)}>Upload Audit</Link>
 
               <Link href="/dashboard/notifications" className="sidebar-item" onClick={() => setOpen(false)}>
                 Notifications{unreadNotificationsCount > 0 ? ` (${unreadNotificationsCount})` : ""}
               </Link>
 
-              <Link href="/dashboard/settings" className="sidebar-item" onClick={() => setOpen(false)}>
-                Settings
-              </Link>
+              <Link href="/dashboard/settings" className="sidebar-item" onClick={() => setOpen(false)}>Settings</Link>
 
               {hasBusinessAccess && isOwner && (
-                <Link href="/dashboard/team" className="sidebar-item" onClick={() => setOpen(false)}>
-                  Team
-                </Link>
+                <Link href="/dashboard/team" className="sidebar-item" onClick={() => setOpen(false)}>Team</Link>
               )}
 
               {isAdmin && (
-                <Link href="/dashboard/admin" className="sidebar-item" onClick={() => setOpen(false)}>
-                  Admin
-                </Link>
+                <Link href="/dashboard/admin" className="sidebar-item" onClick={() => setOpen(false)}>Admin</Link>
               )}
 
               <div className="sidebar-plan-card">
                 <div className="sidebar-plan-title">Current Plan</div>
                 <div className="sidebar-plan-value">{displayPlan}</div>
-
-                {isTeamMember && (
-                  <div className="sidebar-plan-title" style={{ marginTop: "8px" }}>
-                    Team Workspace
-                  </div>
-                )}
+                {isTeamMember && <div className="sidebar-plan-title" style={{ marginTop: "8px" }}>Team Workspace</div>}
               </div>
 
               <div className="sidebar-user-email">{email}</div>
-
               <LogoutButton />
             </div>
           </div>
