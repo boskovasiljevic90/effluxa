@@ -285,3 +285,31 @@ export async function sendFirstAuditReminderEmail({
     `,
   });
 }
+
+
+export async function sendAdminNotificationEmail({
+  subject,
+  body,
+}: {
+  subject: string;
+  body: string;
+}) {
+  const resend = getResendClient();
+  if (!resend) return;
+
+  const fromEmail =
+    process.env.RESEND_FROM_EMAIL ||
+    "Effluxa <noreply@effluxa.com>";
+
+  const to =
+    process.env.ADMIN_EMAIL ||
+    process.env.SUPPORT_EMAIL ||
+    "support@effluxa.com";
+
+  await resend.emails.send({
+    from: fromEmail,
+    to,
+    subject,
+    text: body,
+  });
+}

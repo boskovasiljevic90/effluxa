@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 import { trackEvent } from "@/lib/events";
 import { trackError } from "@/lib/errorTracking";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { sendAdminNotificationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -285,10 +286,64 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("UPLOAD ERROR:", error);
-    await trackError({ type: "upload_error", error });
+
+    await trackError({
+      type: "ai_service_unavailable",
+      error,
+    });
+
+    const message = String(error?.message || "");
+
+    const isQuotaError =
+      message.includes("429") ||
+      message.toLowerCase().includes("quota") ||
+      message.toLowerCase().includes("billing") ||
+      message.toLowerCase().includes("insufficient_quota") ||
+      message.toLowerCase().includes("rate_limit");
+
+    if (isQuotaError) {
+      await trackEvent({
+        type: "ai_quota_exceeded",
+        userId: undefined,
+        metadata: {
+          provider: "OpenAI",
+          message,
+          time: new Date().toISOString(),
+        },
+      });
+
+      try {
+        await sendAdminNotificationEmail({
+          subject: "🚨 Effluxa AI processing unavailable",
+          body: `AI processing is currently unavailable.
+
+Reason:
+${message}
+
+Recommended action:
+Check AI provider billing/quota and recharge credits if needed.
+
+Time:
+${new Date().toISOString()}`,
+        });
+      } catch (emailError) {
+        console.error("ADMIN AI ALERT EMAIL ERROR:", emailError);
+      }
+
+      return NextResponse.json(
+        {
+          error:
+            "AI analysis is temporarily unavailable. Our team has already been notified. Please try again in a few minutes.",
+        },
+        { status: 503 }
+      );
+    }
 
     return NextResponse.json(
-      { error: error.message || "Upload failed" },
+      {
+        error:
+          "We couldn't complete your audit right now. Please try again in a few minutes.",
+      },
       { status: 500 }
     );
   }
