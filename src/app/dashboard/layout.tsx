@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import MobileDashboardNav from "./MobileDashboardNav";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,16 @@ export default async function DashboardLayout({
 
   return (
     <div className="page-container">
+      <MobileDashboardNav
+        email={user?.email}
+        displayPlan={displayPlan}
+        isAdmin={isAdmin}
+        hasBusinessAccess={Boolean(workspace?.hasBusinessAccess)}
+        isOwner={Boolean(workspace?.isOwner)}
+        isTeamMember={Boolean(workspace?.isTeamMember)}
+        unreadNotificationsCount={unreadNotificationsCount}
+      />
+
       <div className="dashboard-layout">
         <aside className="sidebar">
           <Link href="/dashboard">
