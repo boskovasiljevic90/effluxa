@@ -65,93 +65,117 @@ export default function EditClientButton({
             position: "fixed",
             inset: 0,
             zIndex: 9999,
-            background: "rgba(15,23,42,0.75)",
+            background: "rgba(15,23,42,.75)",
             display: "flex",
-            alignItems: "center",
             justifyContent: "center",
-            padding: "20px",
+            alignItems: "center",
+            padding: "24px",
+            overflowY: "auto",
           }}
         >
           <div
             className="card"
             style={{
               width: "100%",
-              maxWidth: "520px",
-              background: "#0f172a",
-              border: "1px solid rgba(255,255,255,0.10)",
+              maxWidth: "560px",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              borderRadius: "18px",
             }}
           >
-            <div className="card-title">Edit Client</div>
+            <div className="card-title">
+              Edit Client
+            </div>
 
-            <p className="gray" style={{ marginTop: "10px" }}>
+            <p
+              className="gray"
+              style={{
+                marginTop: "10px",
+                marginBottom: "24px",
+              }}
+            >
               Update the client name or internal notes.
             </p>
 
-            <div style={{ marginTop: "22px" }}>
-              <label className="gray" style={{ display: "block", marginBottom: "8px" }}>
-                Client name
-              </label>
+            <label
+              className="gray"
+              style={{
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              Client name
+            </label>
 
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "14px 16px",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "white",
-                  fontSize: "15px",
-                }}
-              />
-            </div>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "14px 16px",
+                borderRadius: "14px",
+                border: "1px solid rgba(255,255,255,.08)",
+                background: "rgba(255,255,255,.05)",
+                color: "white",
+                marginBottom: "18px",
+              }}
+            />
 
-            <div style={{ marginTop: "16px" }}>
-              <label className="gray" style={{ display: "block", marginBottom: "8px" }}>
-                Notes
-              </label>
+            <label
+              className="gray"
+              style={{
+                display: "block",
+                marginBottom: "8px",
+              }}
+            >
+              Notes
+            </label>
 
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-                style={{
-                  width: "100%",
-                  padding: "14px 16px",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "white",
-                  fontSize: "15px",
-                  resize: "vertical",
-                }}
-              />
-            </div>
+            <textarea
+              rows={6}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "14px 16px",
+                borderRadius: "14px",
+                border: "1px solid rgba(255,255,255,.08)",
+                background: "rgba(255,255,255,.05)",
+                color: "white",
+                resize: "vertical",
+              }}
+            />
 
-            <div style={{ display: "flex", gap: "12px", marginTop: "22px", flexWrap: "wrap" }}>
-              <button
-                onClick={updateClient}
-                disabled={loading}
-                className="primary-button"
-              >
-                {loading ? "Saving..." : "Save Changes"}
-              </button>
-
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "12px",
+                marginTop: "24px",
+              }}
+            >
               <button
                 onClick={() => setOpen(false)}
                 disabled={loading}
                 style={{
                   padding: "12px 18px",
                   borderRadius: "14px",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid rgba(255,255,255,.10)",
+                  background: "transparent",
                   color: "white",
-                  fontWeight: 800,
                   cursor: "pointer",
+                  fontWeight: 700,
                 }}
               >
                 Cancel
+              </button>
+
+              <button
+                onClick={updateClient}
+                disabled={loading}
+                className="primary-button"
+              >
+                {loading ? "Saving..." : "Save Changes"}
               </button>
             </div>
           </div>
