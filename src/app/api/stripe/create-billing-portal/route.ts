@@ -27,9 +27,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (user.role !== "BUSINESS" || !user.stripeCustomerId) {
+    if (!["PRO","BUSINESS"].includes(user.role) || !user.stripeCustomerId) {
       return NextResponse.json(
-        { error: "Billing portal is available only to Business account owners." },
+        { error: "Billing portal is available only to active paid accounts." },
         { status: 403 }
       );
     }

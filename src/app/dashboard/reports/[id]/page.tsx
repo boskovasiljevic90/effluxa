@@ -106,7 +106,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
   }
 
   const data = report.parsedData as any;
-  const isUnlocked = report.unlocked || workspace.hasBusinessAccess;
+  const isUnlocked = report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess;
 
   const previousClientAudit = report.clientId
     ? await prisma.upload.findFirst({
@@ -457,7 +457,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
               }}
             >
               <h3 style={{ fontSize: "20px", marginBottom: "14px" }}>
-                What You Unlock For €29
+                What You Unlock With Full Audit
               </h3>
 
               <div
@@ -487,7 +487,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
                   lineHeight: 1.7,
                 }}
               >
-                One-time payment. No subscription. Effluxa provides AI-generated informational analysis and not financial, tax, legal, or investment advice.
+                One-time payment or included with Effluxa Pro and Agency. Effluxa provides AI-generated informational analysis and not financial, tax, legal, or investment advice.
               </div>
             </div>
 

@@ -604,7 +604,7 @@ function addManualChecks() {
 
   const manual = [
     ["Emails", "Welcome and reminder email delivery"],
-    ["Stripe", "LIVE €29 payment"],
+    ["Stripe", "LIVE €99 payment"],
     ["Stripe", "LIVE Business subscription"],
     ["Stripe", "LIVE webhook HTTP 200"],
     ["Stripe", "Billing Portal and subscription cancellation"],

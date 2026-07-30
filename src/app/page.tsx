@@ -185,7 +185,7 @@ export default function HomePage() {
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
             name: "Effluxa",
-            applicationCategory: "BusinessApplication",
+            applicationCategory: "AgencyApplication",
             operatingSystem: "Web",
             description:
               "AI financial leak detection platform for SMEs, CFOs and consultants.",
@@ -198,15 +198,15 @@ export default function HomePage() {
               },
               {
                 "@type": "Offer",
-                price: "29",
+                price: "99",
                 priceCurrency: "EUR",
                 name: "Full AI Audit",
               },
               {
                 "@type": "Offer",
-                price: "44.99",
+                price: "79",
                 priceCurrency: "EUR",
-                name: "Business Plan",
+                name: "Pro Plan",
               },
             ],
           }),
@@ -238,7 +238,7 @@ export default function HomePage() {
 
           <div style={{ background: "#0f172a", color: "white", borderRadius: "28px", padding: "36px", boxShadow: "0 20px 55px rgba(15,23,42,0.25)" }}>
             <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Full AI Audit</h3>
-            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>€29</div>
+            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>€99</div>
             <p style={{ color: "#cbd5e1", lineHeight: 1.7 }}>One-time unlock for a complete report.</p>
             <ul style={{ marginTop: "24px", lineHeight: 2, color: "#e2e8f0" }}>
               <li>✓ Full recommendations</li>
@@ -249,8 +249,8 @@ export default function HomePage() {
           </div>
 
           <div style={{ background: "white", border: "2px solid #0f172a", borderRadius: "28px", padding: "36px" }}>
-            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Business</h3>
-            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>€44.99</div>
+            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Agency</h3>
+            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>€79</div>
             <p style={{ color: "#64748b", lineHeight: 1.7 }}>For teams, consultants and client portfolios.</p>
             <ul style={{ marginTop: "24px", lineHeight: 2, color: "#334155" }}>
               <li>✓ Unlimited AI audits</li>
@@ -341,8 +341,8 @@ export default function HomePage() {
               "No. Effluxa works with direct file uploads, so you can start without complex setup or integrations."
             ],
             [
-              "What is included in Business?",
-              "Business includes unlimited AI audits, client dashboards, team workspace, portfolio intelligence, executive exports and monthly summaries."
+              "What is included in Agency?",
+              "Agency includes unlimited AI audits, client dashboards, team workspace, portfolio intelligence, executive exports and monthly summaries."
             ],
           ].map(([question, answer]) => (
             <div key={question} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "22px", padding: "28px" }}>

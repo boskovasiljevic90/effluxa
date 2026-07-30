@@ -110,7 +110,7 @@ export default async function DashboardPage({
     .slice(0, 8);
 
   const totalAudits = reports.length;
-  const unlockedAudits = reports.filter((report) => report.unlocked).length;
+  const unlockedAudits = reports.filter((report) => report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess).length;
 
   const totalEstimatedSavings = reports.reduce((sum, report) => {
     const data = report.parsedData as any;
@@ -331,7 +331,7 @@ return (
       
       {workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Business Health</div>
+          <div className="card-title">Agency Health</div>
 
           <div
             style={{
@@ -557,7 +557,7 @@ return (
       <div className="card" style={{ marginBottom: "28px" }}>
         <div className="card-title">
           {workspace.hasBusinessAccess
-            ? "Business Plan"
+            ? "Agency Plan"
             : "Free Plan Usage"}
         </div>
 
@@ -574,7 +574,7 @@ return (
 
       {!workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Business Plan</div>
+          <div className="card-title">Agency Plan</div>
 
           <p className="gray" style={{ marginTop: "12px" }}>
             Unlimited AI audits, unlimited reports,
@@ -588,7 +588,7 @@ return (
               fontWeight: 900,
             }}
           >
-            €44.99/month
+            €79/month
           </div>
 
           <BusinessUpgradeButton />
@@ -751,11 +751,11 @@ return (
                   event.type === "upload_created"
                     ? `${actor} uploaded ${metadata?.fileName || "a financial document"}`
                     : event.type === "business_subscription_activated"
-                      ? "Business subscription activated"
+                      ? "Agency subscription activated"
                       : event.type === "business_subscription_cancelled"
-                        ? "Business subscription cancelled"
+                        ? "Agency subscription cancelled"
                         : event.type === "business_subscription_payment_failed"
-                          ? "Business subscription payment failed"
+                          ? "Agency subscription payment failed"
                           : event.type === "report_unlocked"
                             ? "Audit report unlocked"
                             : event.type === "checkout_created"
@@ -839,14 +839,14 @@ return (
                           padding: "8px 14px",
                           borderRadius: "999px",
                           height: "fit-content",
-                          background: report.unlocked
+                          background: report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess
                             ? "rgba(34,197,94,0.15)"
                             : "rgba(255,255,255,0.08)",
-                          color: report.unlocked ? "#4ade80" : "#cbd5e1",
+                          color: report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess ? "#4ade80" : "#cbd5e1",
                           fontWeight: "bold",
                         }}
                       >
-                        {report.unlocked ? "UNLOCKED" : "PREVIEW"}
+                        {report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess ? "UNLOCKED" : "PREVIEW"}
                       </div>
                     </div>
                   </div>

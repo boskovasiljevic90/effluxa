@@ -66,7 +66,7 @@ export async function GET(req: NextRequest, { params }: Props) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    if (!report.unlocked && !workspace.hasBusinessAccess) {
+    if (!report.unlocked && user.role !== "PRO" && !workspace.hasBusinessAccess) {
       return NextResponse.json({ error: "Report is locked" }, { status: 403 });
     }
 

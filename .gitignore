@@ -42,3 +42,8 @@ next-env.d.ts
 
 /src/generated/prisma
 effluxa/
+backups/
+lighthouse-reports/
+lighthouse-auth-reports/
+production-qa-reports/
+.pricing-v2-next.log

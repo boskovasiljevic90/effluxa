@@ -167,10 +167,10 @@ export async function POST(req: NextRequest) {
 
     const workspace = await getWorkspaceOwner(user);
 
-    if (!workspace.hasBusinessAccess && user.weeklyUploadCount >= 3) {
+    if (!workspace.hasBusinessAccess && user.role !== "PRO" && user.weeklyUploadCount >= 3) {
       return NextResponse.json(
         {
-          error: "You have reached your free audit limit. You can still unlock existing reports for €29, or contact support for more access.",
+          error: "You have reached your free audit limit. Upgrade to Effluxa Pro for unlimited personal audits.",
         },
         { status: 403 }
       );

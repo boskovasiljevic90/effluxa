@@ -44,7 +44,7 @@ export default function UpgradeButton({ reportId }: { reportId: string }) {
         marginTop: "15px",
       }}
     >
-      {loading ? "Redirecting..." : "Unlock Full Audit — €29"}
+      {loading ? "Redirecting..." : "Unlock Full AI Financial Audit — €99"}
     </button>
   );
 }
