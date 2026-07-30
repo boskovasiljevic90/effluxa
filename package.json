@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "qa:production": "bash scripts/production-qa.sh"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -43,6 +44,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "prisma": "^5.22.0",
+    "puppeteer-core": "^24.43.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
