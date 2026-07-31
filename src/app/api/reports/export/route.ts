@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { canAccessFullReport } from "@/lib/access";
 
 function csvEscape(value: any) {
   const text = String(value ?? "");
@@ -28,9 +29,13 @@ export async function GET(req: NextRequest) {
       orderBy: { createdAt: "desc" },
     });
 
+    const accessibleReports = reports.filter((report) =>
+      canAccessFullReport({ report, user, workspace })
+    );
+
     const rows = [
       ["Client", "File", "Date", "Leakage Score", "Risk Level", "Estimated Savings", "Confidence", "Unlocked", "Internal Note"],
-      ...reports.map((report) => {
+      ...accessibleReports.map((report) => {
         const data = report.parsedData as any;
 
         return [

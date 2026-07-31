@@ -41,7 +41,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     const workspace = await getWorkspaceOwner(user);
 
     if (!workspace.hasBusinessAccess) {
-      return NextResponse.json({ error: "Business access required." }, { status: 403 });
+      return NextResponse.json({ error: "Agency access required." }, { status: 403 });
     }
 
     const client = await prisma.client.findFirst({

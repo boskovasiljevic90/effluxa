@@ -10,6 +10,7 @@ import { trackError } from "@/lib/errorTracking";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { sendAdminNotificationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
+import { canUseUnlimitedUploads } from "@/lib/access";
 
 export const runtime = "nodejs";
 
@@ -166,11 +167,12 @@ export async function POST(req: NextRequest) {
     }
 
     const workspace = await getWorkspaceOwner(user);
+    const hasUnlimitedUploads = canUseUnlimitedUploads({ user, workspace });
 
-    if (!workspace.hasBusinessAccess && user.role !== "PRO" && user.weeklyUploadCount >= 3) {
+    if (!hasUnlimitedUploads && user.weeklyUploadCount >= 3) {
       return NextResponse.json(
         {
-          error: "You have reached your free audit limit. Upgrade to Effluxa Pro for unlimited personal audits.",
+          error: "You have reached your free audit limit. Upgrade to Effluxa Pro or Agency for unlimited audits.",
         },
         { status: 403 }
       );

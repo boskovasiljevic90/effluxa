@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { canAccessFullReport } from "@/lib/access";
 
 export async function POST(
   req: NextRequest,
@@ -42,7 +43,7 @@ export async function POST(
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    if (!report.unlocked && user.role !== "PRO" && !workspace.hasBusinessAccess) {
+    if (!canAccessFullReport({ report, user, workspace })) {
       return NextResponse.json(
         { error: "Only unlocked, Pro, or Agency reports can be shared." },
         { status: 403 }

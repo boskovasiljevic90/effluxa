@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     const workspace = await getWorkspaceOwner(user);
 
     if (!workspace.hasBusinessAccess) {
-      return NextResponse.json({ error: "Business access required." }, { status: 403 });
+      return NextResponse.json({ error: "Agency access required." }, { status: 403 });
     }
 
     const reports = await prisma.upload.findMany({

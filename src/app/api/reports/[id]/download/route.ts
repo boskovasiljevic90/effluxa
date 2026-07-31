@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { canAccessFullReport } from "@/lib/access";
 
 export const runtime = "nodejs";
 
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest, { params }: Props) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
-    if (!report.unlocked && user.role !== "PRO" && !workspace.hasBusinessAccess) {
+    if (!canAccessFullReport({ report, user, workspace })) {
       return NextResponse.json({ error: "Report is locked" }, { status: 403 });
     }
 

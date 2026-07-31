@@ -11,6 +11,7 @@ import ShareReportButton from "./ShareReportButton";
 import ChangeReportClientForm from "./ChangeReportClientForm";
 import InternalNoteForm from "./InternalNoteForm";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { canAccessFullReport } from "@/lib/access";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -106,7 +107,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
   }
 
   const data = report.parsedData as any;
-  const isUnlocked = report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess;
+  const isUnlocked = canAccessFullReport({ report, user, workspace });
 
   const previousClientAudit = report.clientId
     ? await prisma.upload.findFirst({
