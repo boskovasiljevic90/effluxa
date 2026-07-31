@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import Stripe from "stripe";
 import BusinessUpgradeButton from "./BusinessUpgradeButton";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { displayPlanLabel } from "@/lib/planDisplay";
 
 export const dynamic = "force-dynamic";
 
@@ -324,7 +325,7 @@ return (
           </p>
         </div>
 
-        <div className="plan-badge plan-free">{workspace.hasBusinessAccess ? "BUSINESS" : user.role}</div>
+        <div className="plan-badge plan-free">{workspace.hasBusinessAccess ? "AGENCY" : displayPlanLabel(user.role)}</div>
       </div>
 
 

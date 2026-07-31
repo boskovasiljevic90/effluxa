@@ -9,6 +9,7 @@ import ChangePasswordForm from "./ChangePasswordForm";
 import BillingPortalButton from "./BillingPortalButton";
 import BusinessBrandingForm from "./BusinessBrandingForm";
 import EmailPreferencesForm from "./EmailPreferencesForm";
+import { displayPlanLabel } from "@/lib/planDisplay";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -48,7 +49,7 @@ export default async function SettingsPage() {
 
         <div className="card">
           <div className="card-title">Current Plan</div>
-          <div className="metric-value">{user.role}</div>
+          <div className="metric-value">{displayPlanLabel(user.role)}</div>
 
           {user.role === "BUSINESS" && user.subscriptionEndDate && (
             <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>

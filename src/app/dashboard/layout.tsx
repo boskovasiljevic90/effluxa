@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import MobileDashboardNav from "./MobileDashboardNav";
+import { displayPlanLabel } from "@/lib/planDisplay";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +34,7 @@ export default async function DashboardLayout({
   const user = await getUser();
   const workspace = user ? await getWorkspaceOwner(user) : null;
   const isAdmin = user?.email === process.env.ADMIN_EMAIL;
-  const displayPlan = workspace?.hasBusinessAccess ? "BUSINESS" : user?.role || "FREE";
+  const displayPlan = workspace?.hasBusinessAccess ? "AGENCY" : displayPlanLabel(user?.role);
 
   let unreadNotificationsCount = 0;
 
