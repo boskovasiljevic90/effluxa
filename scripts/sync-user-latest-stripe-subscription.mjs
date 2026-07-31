@@ -41,6 +41,36 @@ if (!email) {
 const prisma = new PrismaClient();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+
+function inferredSubscriptionEndDate(subscription, plan) {
+  const explicitPeriodEnd =
+    subscription?.current_period_end ||
+    subscription?.items?.data?.[0]?.current_period_end;
+
+  if (explicitPeriodEnd) {
+    return new Date(explicitPeriodEnd * 1000);
+  }
+
+  const priceInterval =
+    subscription?.items?.data?.[0]?.price?.recurring?.interval;
+
+  const normalizedPlan = String(plan || "");
+
+  const inferredInterval =
+    priceInterval ||
+    (normalizedPlan.includes("annual") ? "year" : "month");
+
+  const date = new Date();
+
+  if (inferredInterval === "year") {
+    date.setFullYear(date.getFullYear() + 1);
+  } else {
+    date.setMonth(date.getMonth() + 1);
+  }
+
+  return date;
+}
+
 function roleFromProduct(product) {
   if (product === "pro_subscription") return Role.PRO;
 
@@ -154,9 +184,7 @@ try {
     "active";
 
   const subscriptionEndDate =
-    subscription?.current_period_end
-      ? new Date(subscription.current_period_end * 1000)
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    inferredSubscriptionEndDate(subscription, plan);
 
   const updated = await prisma.user.update({
     where: {

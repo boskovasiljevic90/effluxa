@@ -24,10 +24,36 @@ function subscriptionRole(product?: string | null) {
   return null;
 }
 
-function subscriptionEndDate(subscription: any) {
-  return subscription?.current_period_end
-    ? new Date(subscription.current_period_end * 1000)
-    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+function subscriptionEndDate(
+  subscription: any,
+  plan?: string | null
+) {
+  const explicitPeriodEnd =
+    subscription?.current_period_end ||
+    subscription?.items?.data?.[0]?.current_period_end;
+
+  if (explicitPeriodEnd) {
+    return new Date(explicitPeriodEnd * 1000);
+  }
+
+  const priceInterval =
+    subscription?.items?.data?.[0]?.price?.recurring?.interval;
+
+  const normalizedPlan = String(plan || "");
+
+  const inferredInterval =
+    priceInterval ||
+    (normalizedPlan.includes("annual") ? "year" : "month");
+
+  const date = new Date();
+
+  if (inferredInterval === "year") {
+    date.setFullYear(date.getFullYear() + 1);
+  } else {
+    date.setMonth(date.getMonth() + 1);
+  }
+
+  return date;
 }
 
 async function cancelPreviousSubscription(
@@ -168,7 +194,7 @@ export async function POST(req: NextRequest) {
             subscriptionStatus:
               subscription?.status || "active",
             subscriptionEndDate:
-              subscriptionEndDate(subscription),
+              subscriptionEndDate(subscription, metadata.plan),
           },
         });
 
@@ -218,7 +244,7 @@ export async function POST(req: NextRequest) {
             role,
             subscriptionStatus: subscription.status,
             subscriptionEndDate:
-              subscriptionEndDate(subscription),
+              subscriptionEndDate(subscription, subscription.metadata?.plan),
           },
         });
       }
