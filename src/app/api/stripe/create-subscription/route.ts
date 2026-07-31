@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
 
 
         success_url:
-        `${appUrl}/dashboard?subscription=success`,
+        `${appUrl}/dashboard/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
 
 
         cancel_url:

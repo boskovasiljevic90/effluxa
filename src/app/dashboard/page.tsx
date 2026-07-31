@@ -557,7 +557,7 @@ return (
       <div className="card" style={{ marginBottom: "28px" }}>
         <div className="card-title">
           {workspace.hasBusinessAccess
-            ? "Agency Plan"
+            ? "Upgrade Effluxa"
             : "Free Plan Usage"}
         </div>
 
@@ -574,7 +574,7 @@ return (
 
       {!workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Agency Plan</div>
+          <div className="card-title">Upgrade Effluxa</div>
 
           <p className="gray" style={{ marginTop: "12px" }}>
             Unlimited AI audits, unlimited reports,
@@ -588,7 +588,7 @@ return (
               fontWeight: 900,
             }}
           >
-            €79/month
+            Pro starts at €79/month
           </div>
 
           <BusinessUpgradeButton />
