@@ -59,8 +59,16 @@ export default async function SettingsPage() {
         </div>
 
         <div className="card">
-          <div className="card-title">Free Audit Usage</div>
-          <div className="metric-value">{`${user.weeklyUploadCount}/3`}</div>
+          <div className="card-title">
+            {user.role === "FREE"
+              ? "Free Audit Usage"
+              : `${displayPlanLabel(user.role)} Usage`}
+          </div>
+          <div className="metric-value">
+            {user.role === "FREE"
+              ? `${user.weeklyUploadCount}/3`
+              : "Unlimited"}
+          </div>
         </div>
 
         <div className="card">
@@ -78,7 +86,7 @@ export default async function SettingsPage() {
 
         {user.role === "BUSINESS" && (
           <div className="card full-width">
-            <div className="card-title">Business Branding</div>
+            <div className="card-title">Report Branding</div>
             <p className="gray" style={{ lineHeight: 1.7 }}>
               Customize company name and footer text shown on downloadable audit PDFs.
             </p>
@@ -93,7 +101,7 @@ export default async function SettingsPage() {
           <div className="card full-width">
             <div className="card-title">Manage Subscription</div>
             <p className="gray" style={{ lineHeight: 1.7 }}>
-              Update payment method, view invoices, or manage your Business subscription.
+              Update payment method, view invoices, or manage your subscription.
             </p>
             <BillingPortalButton />
           </div>
