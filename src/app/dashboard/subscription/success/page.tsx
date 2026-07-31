@@ -30,7 +30,46 @@ function roleFromProduct(product?: string | null) {
   return null;
 }
 
-async function syncCheckoutSession(sessionId: string, authenticatedUserId: string) {
+async function cancelPreviousSubscription(
+  previousSubscriptionId?: string | null,
+  nextSubscriptionId?: string | null
+) {
+  if (!previousSubscriptionId || !nextSubscriptionId) {
+    return;
+  }
+
+  if (previousSubscriptionId === nextSubscriptionId) {
+    return;
+  }
+
+  try {
+    await stripe.subscriptions.cancel(previousSubscriptionId);
+
+    console.log(
+      "Cancelled previous subscription after successful checkout:",
+      previousSubscriptionId
+    );
+  } catch (error) {
+    console.error(
+      "Previous subscription cancellation failed, continuing sync:",
+      error
+    );
+  }
+}
+
+async function syncCheckoutSession(
+  sessionId: string,
+  authenticatedUserId: string
+) {
+  const currentUser = await prisma.user.findUnique({
+    where: {
+      id: authenticatedUserId,
+    },
+    select: {
+      subscriptionId: true,
+    },
+  });
+
   const session = await stripe.checkout.sessions.retrieve(
     sessionId,
     {
@@ -102,6 +141,11 @@ async function syncCheckoutSession(sessionId: string, authenticatedUserId: strin
       subscriptionEndDate,
     },
   });
+
+  await cancelPreviousSubscription(
+    currentUser?.subscriptionId,
+    subscriptionId
+  );
 }
 
 export default async function SubscriptionSuccessPage({

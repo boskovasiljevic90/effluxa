@@ -12,61 +12,116 @@ export async function POST(req: NextRequest) {
     const token = req.cookies.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET!
+    ) as {
       userId: string;
     };
 
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: {
+        id: decoded.userId,
+      },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "User not found" },
+        { status: 404 }
+      );
     }
 
-    if (!process.env.STRIPE_BUSINESS_PRICE_ID) {
+    if (user.role === "BUSINESS") {
       return NextResponse.json(
-        { error: "Business price ID is not configured." },
+        {
+          error:
+            "Agency access is already active. Use Billing in Settings to manage your subscription.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const priceId =
+      process.env.STRIPE_AGENCY_MONTHLY_PRICE_ID;
+
+    if (!priceId) {
+      return NextResponse.json(
+        { error: "Stripe price not configured" },
         { status: 500 }
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
+    const appUrl =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      "https://www.effluxa.com";
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
-      customer_email: user.email,
-      line_items: [
-        {
-          price: process.env.STRIPE_BUSINESS_PRICE_ID,
-          quantity: 1,
+    const metadata = {
+      userId: user.id,
+      product: "agency_subscription",
+      plan: "agency_monthly",
+      legacyRoute: "create-business-subscription",
+    };
+
+    const customerParams:
+      | {
+          customer: string;
+        }
+      | {
+          customer_email: string;
+        } = user.stripeCustomerId
+      ? {
+          customer: user.stripeCustomerId,
+        }
+      : {
+          customer_email: user.email,
+        };
+
+    const session =
+      await stripe.checkout.sessions.create({
+        mode: "subscription",
+
+        ...customerParams,
+
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+
+        metadata,
+
+        subscription_data: {
+          metadata,
         },
-      ],
-      metadata: {
-        userId: user.id,
-        product: "business_subscription",
-      },
-      subscription_data: {
-        metadata: {
-          userId: user.id,
-          product: "business_subscription",
-        },
-      },
-      success_url: `${appUrl}/dashboard?business=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/dashboard?business=cancelled`,
+
+        success_url:
+          `${appUrl}/dashboard/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+
+        cancel_url:
+          `${appUrl}/dashboard?subscription=cancelled`,
+      });
+
+    return NextResponse.json({
+      url: session.url,
     });
-
-    return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("BUSINESS SUBSCRIPTION ERROR:", error);
+    console.error("LEGACY BUSINESS SUBSCRIPTION SHIM ERROR:", error);
 
     return NextResponse.json(
-      { error: "Failed to create business subscription." },
-      { status: 500 }
+      {
+        error: "Subscription checkout failed",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
