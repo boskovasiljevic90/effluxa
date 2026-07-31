@@ -563,7 +563,11 @@ return (
 
         {workspace.hasBusinessAccess ? (
           <p className="gray" style={{ marginTop: "12px" }}>
-            Unlimited AI audits enabled{workspace.isTeamMember ? " through your team workspace." : "."}
+            Agency workspace enabled{workspace.isTeamMember ? " through your team workspace." : "."}
+          </p>
+        ) : user.role === "PRO" ? (
+          <p className="gray" style={{ marginTop: "12px" }}>
+            Pro is active. Unlimited personal AI audits are enabled.
           </p>
         ) : (
           <p className="gray" style={{ marginTop: "12px" }}>
@@ -574,7 +578,7 @@ return (
 
       {!workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Upgrade Effluxa</div>
+          <div className="card-title">{user.role === "PRO" ? "Upgrade To Agency" : "Upgrade Effluxa"}</div>
 
           <p className="gray" style={{ marginTop: "12px" }}>
             Unlimited AI audits, unlimited reports,
@@ -588,10 +592,10 @@ return (
               fontWeight: 900,
             }}
           >
-            Pro starts at €79/month
+            {user.role === "PRO" ? "Agency starts at €299/month" : "Pro starts at €79/month"}
           </div>
 
-          <BusinessUpgradeButton />
+          <BusinessUpgradeButton currentRole={user.role} />
         </div>
       )}
 
