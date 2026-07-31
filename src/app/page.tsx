@@ -214,70 +214,130 @@ export default function HomePage() {
       />
 
       <section id="pricing" style={{ maxWidth: "1100px", margin: "0 auto", padding: "90px 24px" }}>
-        <h2 style={{ fontSize: "48px", fontWeight: 950, letterSpacing: "-2px", textAlign: "center" }}>
-          Simple pricing for audits and teams
-        </h2>
+        <div style={{ textAlign: "center" }}>
+          <div className="eyebrow">Pricing</div>
 
-        <div style={{
-          marginTop: "50px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))",
-          gap: "26px",
-        }}>
-          <div style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "28px", padding: "36px" }}>
-            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Free Preview</h3>
-            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>€0</div>
-            <p style={{ color: "#64748b", lineHeight: 1.7 }}>Upload and preview AI audit insights.</p>
-            <ul style={{ marginTop: "24px", lineHeight: 2, color: "#334155" }}>
-              <li>✓ 3 free audit previews</li>
-              <li>✓ Leakage score</li>
-              <li>✓ Executive summary</li>
-              <li>✓ PDF / CSV / XLSX support</li>
-            </ul>
-          </div>
+          <h2 style={{ fontSize: "42px", lineHeight: 1.1, marginTop: "14px" }}>
+            Simple pricing for audits, professionals and agencies
+          </h2>
 
-          <div style={{ background: "#0f172a", color: "white", borderRadius: "28px", padding: "36px", boxShadow: "0 20px 55px rgba(15,23,42,0.25)" }}>
-            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Full AI Audit</h3>
-            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>€99</div>
-            <p style={{ color: "#cbd5e1", lineHeight: 1.7 }}>One-time unlock for a complete report.</p>
-            <ul style={{ marginTop: "24px", lineHeight: 2, color: "#e2e8f0" }}>
-              <li>✓ Full recommendations</li>
-              <li>✓ Vendor analysis</li>
-              <li>✓ Savings estimate</li>
-              <li>✓ Downloadable PDF</li>
-            </ul>
-          </div>
-
-          <div style={{ background: "white", border: "2px solid #0f172a", borderRadius: "28px", padding: "36px" }}>
-            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Agency</h3>
-            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>€79</div>
-            <p style={{ color: "#64748b", lineHeight: 1.7 }}>For teams, consultants and client portfolios.</p>
-            <ul style={{ marginTop: "24px", lineHeight: 2, color: "#334155" }}>
-              <li>✓ Unlimited AI audits</li>
-              <li>✓ Client dashboards</li>
-              <li>✓ Portfolio intelligence</li>
-              <li>✓ Team workspace</li>
-              <li>✓ Executive PDF / CSV exports</li>
-            </ul>
-          </div>
+          <p className="gray" style={{ marginTop: "16px", fontSize: "18px" }}>
+            Start with a free preview, unlock one full audit, or upgrade to Pro or Agency.
+          </p>
         </div>
 
-        <div style={{ textAlign: "center", marginTop: "54px" }}>
-          <Link href="/signup">
-            <button style={{
-              height: "64px",
-              padding: "0 40px",
-              borderRadius: "20px",
-              border: "none",
-              background: "#0f172a",
-              color: "white",
-              fontSize: "19px",
-              fontWeight: 950,
-              cursor: "pointer",
-            }}>
-              Start Your First Audit
-            </button>
-          </Link>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(250px,1fr))",
+            gap: "22px",
+            marginTop: "44px",
+          }}
+        >
+          <div
+            style={{
+              background: "white",
+              border: "1px solid #e2e8f0",
+              borderRadius: "24px",
+              padding: "30px",
+            }}
+          >
+            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Full AI Audit</h3>
+
+            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>
+              €99
+            </div>
+
+            <p className="gray" style={{ marginTop: "12px" }}>
+              One-time complete AI financial leakage analysis.
+            </p>
+
+            <ul style={{ marginTop: "22px", lineHeight: 1.9 }}>
+              <li>✓ Full AI audit report</li>
+              <li>✓ Savings opportunities</li>
+              <li>✓ Executive recommendations</li>
+              <li>✓ No subscription required</li>
+            </ul>
+
+            <a href="/signup">
+              <button className="primary-button" style={{ marginTop: "24px", width: "100%" }}>
+                Start Free Preview
+              </button>
+            </a>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              border: "2px solid #111827",
+              borderRadius: "24px",
+              padding: "30px",
+              boxShadow: "0 24px 60px rgba(15,23,42,0.12)",
+            }}
+          >
+            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Pro</h3>
+
+            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>
+              €79
+            </div>
+
+            <p className="gray" style={{ marginTop: "4px" }}>
+              per month · €790/year
+            </p>
+
+            <p className="gray" style={{ marginTop: "12px" }}>
+              For professionals managing their own business finances.
+            </p>
+
+            <ul style={{ marginTop: "22px", lineHeight: 1.9 }}>
+              <li>✓ Unlimited personal audits</li>
+              <li>✓ Full report access</li>
+              <li>✓ Download and share reports</li>
+              <li>✓ Priority processing</li>
+            </ul>
+
+            <a href="/signup">
+              <button className="primary-button" style={{ marginTop: "24px", width: "100%" }}>
+                Start Pro
+              </button>
+            </a>
+          </div>
+
+          <div
+            style={{
+              background: "white",
+              border: "1px solid #e2e8f0",
+              borderRadius: "24px",
+              padding: "30px",
+            }}
+          >
+            <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Agency</h3>
+
+            <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>
+              €299
+            </div>
+
+            <p className="gray" style={{ marginTop: "4px" }}>
+              per month · €2,990/year
+            </p>
+
+            <p className="gray" style={{ marginTop: "12px" }}>
+              For consultants, accountants, agencies and finance teams.
+            </p>
+
+            <ul style={{ marginTop: "22px", lineHeight: 1.9 }}>
+              <li>✓ Everything in Pro</li>
+              <li>✓ Client workspaces</li>
+              <li>✓ Team seats</li>
+              <li>✓ Portfolio intelligence</li>
+            </ul>
+
+            <a href="/signup">
+              <button className="primary-button" style={{ marginTop: "24px", width: "100%" }}>
+                Start Agency
+              </button>
+            </a>
+          </div>
         </div>
       </section>
 
