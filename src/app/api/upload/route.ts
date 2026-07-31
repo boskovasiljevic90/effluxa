@@ -11,6 +11,7 @@ import { getWorkspaceOwner } from "@/lib/workspace";
 import { sendAdminNotificationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 import { canUseUnlimitedUploads } from "@/lib/access";
+import { buildFallbackAuditReport, normalizeAuditReport, shouldUseFallbackReport } from "@/lib/reportQuality";
 
 export const runtime = "nodejs";
 
@@ -245,7 +246,32 @@ export async function POST(req: NextRequest) {
       }).join("\n\n");
     }
 
-    const parsedData = await analyzeWithAI(file, financialText);
+    let parsedData;
+
+    try {
+      parsedData = normalizeAuditReport(
+        await analyzeWithAI(file, financialText),
+        {
+          fileName: file.name,
+          financialText,
+        }
+      );
+    } catch (analysisError) {
+      if (!shouldUseFallbackReport(analysisError)) {
+        throw analysisError;
+      }
+
+      console.warn("UPLOAD FALLBACK REPORT USED:", analysisError);
+
+      parsedData = buildFallbackAuditReport({
+        fileName: file.name,
+        financialText,
+        reason:
+          analysisError instanceof Error
+            ? analysisError.message
+            : "AI output could not be converted into the required audit schema.",
+      });
+    }
 
     const upload = await prisma.upload.create({
       data: {

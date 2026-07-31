@@ -16,6 +16,8 @@ export default function UploadClient() {
   const [clients, setClients] = useState<Client[]>([]);
   const [clientId, setClientId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     async function loadClients() {
@@ -35,8 +37,12 @@ export default function UploadClient() {
   }, []);
 
   async function handleUpload() {
+    setError("");
+    setStatusMessage("Validating file...");
+
     if (!file) {
-      alert("Please select a financial file.");
+      setError("Please select a financial file.");
+      setStatusMessage("");
       return;
     }
 
@@ -44,47 +50,75 @@ export default function UploadClient() {
     const lowerName = file.name.toLowerCase();
 
     if (!allowedExtensions.some((ext) => lowerName.endsWith(ext))) {
-      alert("Only PDF, CSV, XLSX, and XLS files are supported.");
+      setError("Only PDF, CSV, XLSX, and XLS files are supported.");
+      setStatusMessage("");
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      alert("File is too large. Maximum size is 10MB.");
+      setError("File is too large. Maximum size is 10MB.");
+      setStatusMessage("");
       return;
     }
 
-    setLoading(true);
-    trackClientEvent("upload_started", {
-      file_type: lowerName.split(".").pop(),
-      has_client: Boolean(clientId),
-    });
+    let keepLoadingAfterFinally = false;
 
-    const formData = new FormData();
-    formData.append("file", file);
+    try {
+      setLoading(true);
+      setStatusMessage("Uploading your financial document securely...");
 
-    if (clientId) {
-      formData.append("clientId", clientId);
+      trackClientEvent("upload_started", {
+        file_type: lowerName.split(".").pop(),
+        has_client: Boolean(clientId),
+      });
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      if (clientId) {
+        formData.append("clientId", clientId);
+      }
+
+      setStatusMessage("Analyzing document with Effluxa AI...");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.error || "Upload failed. Please try again.");
+        setStatusMessage("");
+        return;
+      }
+
+      const uploadId = data?.upload?.id;
+
+      if (!uploadId) {
+        setError("Audit was created, but the report link was missing. Please open Reports from the dashboard.");
+        setStatusMessage("");
+        return;
+      }
+
+      trackClientEvent("upload_completed", {
+        report_id: uploadId,
+        has_client: Boolean(clientId),
+      });
+
+      setStatusMessage("Audit ready. Opening your report...");
+      keepLoadingAfterFinally = true;
+      router.push(`/dashboard/reports/${uploadId}`);
+    } catch (uploadError) {
+      console.error(uploadError);
+      setError("Network error while uploading. Please check your connection and try again.");
+      setStatusMessage("");
+    } finally {
+      if (!keepLoadingAfterFinally) {
+        setLoading(false);
+      }
     }
-
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      alert(data.error || "Upload failed");
-      setLoading(false);
-      return;
-    }
-
-    trackClientEvent("upload_completed", {
-      report_id: data.upload.id,
-      has_client: Boolean(clientId),
-    });
-
-    router.push(`/dashboard/reports/${data.upload.id}`);
   }
 
   return (
@@ -173,12 +207,31 @@ export default function UploadClient() {
             </div>
           )}
 
+
+          {(error || statusMessage) && (
+            <div
+              role={error ? "alert" : "status"}
+              style={{
+                marginTop: "18px",
+                padding: "14px 16px",
+                borderRadius: "14px",
+                border: error ? "1px solid #fecaca" : "1px solid #bae6fd",
+                background: error ? "#fef2f2" : "#f0f9ff",
+                color: error ? "#991b1b" : "#075985",
+                lineHeight: 1.6,
+                fontWeight: 600,
+              }}
+            >
+              {error || statusMessage}
+            </div>
+          )}
+
           <button
             onClick={handleUpload}
             disabled={loading}
             className="primary-button"
           >
-            {loading ? "Analyzing..." : "Analyze with Effluxa AI"}
+            {loading ? statusMessage || "Analyzing..." : "Analyze with Effluxa AI"}
           </button>
         </div>
       </div>
