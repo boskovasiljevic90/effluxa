@@ -20,6 +20,49 @@ export const metadata: Metadata = {
   },
 };
 
+const faqItems: Array<[string, string]> = [
+  [
+    "Is Effluxa financial advice?",
+    "No. Effluxa provides AI-generated informational analysis only. It is not financial, legal, tax, accounting or investment advice.",
+  ],
+  [
+    "What files can I upload?",
+    "Effluxa supports PDF, CSV, XLSX and XLS files such as invoices, statements, accounting exports and expense reports.",
+  ],
+  [
+    "Who is Effluxa for?",
+    "Effluxa is built for SMEs, CFOs, accountants, consultants and agencies that want to detect financial leakage and savings opportunities.",
+  ],
+  [
+    "Do I need accounting software integration?",
+    "No. Effluxa works with direct file uploads, so you can start without complex setup or integrations.",
+  ],
+  [
+    "What is included in Agency?",
+    "Agency includes unlimited AI audits, client dashboards, team workspace, portfolio intelligence, executive exports and monthly summaries.",
+  ],
+  [
+    "How long are uploaded files kept?",
+    "Uploaded documents and generated report data are retained while needed to provide your account and reports. To request deletion, contact support@effluxa.com.",
+  ],
+  [
+    "How quickly do I get a report?",
+    "Most supported uploads are analyzed within minutes. Processing time can vary with file size, format and AI service availability.",
+  ],
+  [
+    "How accurate is the AI analysis?",
+    "The analysis is a screening and decision-support tool. Results depend on the quality and completeness of the uploaded data, so important findings should be verified before action.",
+  ],
+  [
+    "How is Effluxa different from bookkeeping software?",
+    "Effluxa identifies leakage patterns, anomalies and savings opportunities. It does not replace bookkeeping, account reconciliation, tax filing or payment approval workflows.",
+  ],
+  [
+    "Can I request a refund?",
+    "If a paid audit was not generated or the service was materially unavailable, contact support@effluxa.com with your account and report details. Subscription cancellations stop future renewals; refund requests are reviewed based on the situation and applicable consumer rules.",
+  ],
+];
+
 export default function HomePage() {
   return (
     <main style={{ minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
@@ -109,6 +152,8 @@ export default function HomePage() {
               </button>
             </a>
           </div>
+
+          <TrustStrip />
         </div>
 
         <div style={{
@@ -224,6 +269,8 @@ export default function HomePage() {
           <p className="gray" style={{ marginTop: "16px", fontSize: "18px" }}>
             Start with a free preview, unlock one full audit, or upgrade to Pro or Agency.
           </p>
+
+          <TrustStrip compact />
         </div>
 
         <div
@@ -347,32 +394,14 @@ export default function HomePage() {
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            mainEntity: [
-              {
-                "@type": "Question",
-                name: "Is Effluxa financial advice?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "No. Effluxa provides AI-generated informational analysis only. It is not financial, legal, tax, accounting or investment advice."
-                }
+            mainEntity: faqItems.map(([name, text]) => ({
+              "@type": "Question",
+              name,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text,
               },
-              {
-                "@type": "Question",
-                name: "What files can I upload?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "Effluxa supports PDF, CSV, XLSX and XLS files such as invoices, statements, accounting exports and expense reports."
-                }
-              },
-              {
-                "@type": "Question",
-                name: "Who is Effluxa for?",
-                acceptedAnswer: {
-                  "@type": "Answer",
-                  text: "Effluxa is built for SMEs, CFOs, accountants, consultants and agencies that want to detect financial leakage and savings opportunities."
-                }
-              }
-            ]
+            })),
           }),
         }}
       />
@@ -383,28 +412,7 @@ export default function HomePage() {
         </h2>
 
         <div style={{ display: "grid", gap: "18px", marginTop: "42px" }}>
-          {[
-            [
-              "Is Effluxa financial advice?",
-              "No. Effluxa provides AI-generated informational analysis only. It is not financial, legal, tax, accounting or investment advice."
-            ],
-            [
-              "What files can I upload?",
-              "Effluxa supports PDF, CSV, XLSX and XLS files such as invoices, statements, accounting exports and expense reports."
-            ],
-            [
-              "Who is Effluxa for?",
-              "Effluxa is built for SMEs, CFOs, accountants, consultants and agencies that want to detect financial leakage and savings opportunities."
-            ],
-            [
-              "Do I need accounting software integration?",
-              "No. Effluxa works with direct file uploads, so you can start without complex setup or integrations."
-            ],
-            [
-              "What is included in Agency?",
-              "Agency includes unlimited AI audits, client dashboards, team workspace, portfolio intelligence, executive exports and monthly summaries."
-            ],
-          ].map(([question, answer]) => (
+          {faqItems.map(([question, answer]) => (
             <div key={question} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "22px", padding: "28px" }}>
               <h3 style={{ fontSize: "22px", fontWeight: 900 }}>{question}</h3>
               <p style={{ marginTop: "12px", color: "#475569", lineHeight: 1.7 }}>{answer}</p>
@@ -415,5 +423,43 @@ export default function HomePage() {
 
       <PublicFooter />
     </main>
+  );
+}
+
+function TrustStrip({ compact = false }: { compact?: boolean }) {
+  return (
+    <div
+      style={{
+        marginTop: compact ? "28px" : "34px",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))",
+        gap: "12px",
+        padding: compact ? "14px" : "16px",
+        border: "1px solid #cbd5e1",
+        borderRadius: "18px",
+        background: compact ? "#f8fafc" : "rgba(255,255,255,0.82)",
+      }}
+    >
+      <div>
+        <div style={{ fontWeight: 900 }}>HTTPS-protected access</div>
+        <div style={{ marginTop: "4px", color: "#64748b", fontSize: "14px" }}>
+          Secure browser connection to Effluxa.
+        </div>
+      </div>
+      <div>
+        <div style={{ fontWeight: 900 }}>Stripe handles card payments</div>
+        <div style={{ marginTop: "4px", color: "#64748b", fontSize: "14px" }}>
+          Effluxa does not store card numbers.
+        </div>
+      </div>
+      <div>
+        <Link href="/privacy" style={{ fontWeight: 900, color: "#1d4ed8" }}>
+          Read our privacy policy →
+        </Link>
+        <div style={{ marginTop: "4px", color: "#64748b", fontSize: "14px" }}>
+          See how uploaded content is used.
+        </div>
+      </div>
+    </div>
   );
 }

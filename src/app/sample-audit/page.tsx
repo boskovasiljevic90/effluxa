@@ -36,7 +36,7 @@ export default function SampleAuditPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "18px", marginTop: "36px" }}>
           {[
-            ["Leakage Score", "72/100"],
+            ["Leakage Score", "78/100"],
             ["Risk Level", "High"],
             ["Potential Savings", "€18,420"],
             ["Confidence", "Medium"],

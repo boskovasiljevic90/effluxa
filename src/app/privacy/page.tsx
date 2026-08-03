@@ -30,6 +30,13 @@ export default function PrivacyPage() {
             Users should avoid uploading unnecessary sensitive personal information.
           </p>
 
+          <h2 style={{ marginTop: "30px" }}>Retention and Deletion</h2>
+          <p>
+            Uploaded documents and generated report data are retained while needed to provide your
+            account and reports. To request deletion of a document or account data, contact
+            support@effluxa.com.
+          </p>
+
           <h2 style={{ marginTop: "30px" }}>Payments</h2>
           <p>
             Payments are processed securely by Stripe. Effluxa does not store card numbers.
