@@ -1,24 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 
 export default function PublicHeader() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
   return (
-    <header
-      style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "28px 24px",
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "20px",
-        flexWrap: "wrap",
-      }}
-    >
-      <Link href="/" style={{ fontSize: "30px", fontWeight: 900 }}>
+    <header className="public-header">
+      <Link href="/" className="public-brand" onClick={closeMenu}>
         Eff<span style={{ color: "#2563eb" }}>luxa</span>
       </Link>
 
-      <nav style={{ display: "flex", gap: "20px", alignItems: "center", flexWrap: "wrap" }}>
+      <nav className="public-desktop-nav">
         <Link href="/#how-it-works">How it works</Link>
         <Link href="/#pricing">Pricing</Link>
         <Link href="/contact">Contact</Link>
@@ -39,6 +37,30 @@ export default function PublicHeader() {
           </button>
         </Link>
       </nav>
+
+      <button
+        type="button"
+        className="public-menu-toggle"
+        aria-expanded={menuOpen}
+        aria-controls="public-mobile-menu"
+        aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
+        onClick={() => setMenuOpen((open) => !open)}
+      >
+        <span aria-hidden="true">{menuOpen ? "×" : "☰"}</span>
+        <span>{menuOpen ? "Close" : "Menu"}</span>
+      </button>
+
+      {menuOpen && (
+        <nav id="public-mobile-menu" className="public-mobile-menu" aria-label="Mobile navigation">
+          <Link href="/#how-it-works" onClick={closeMenu}>How it works</Link>
+          <Link href="/#pricing" onClick={closeMenu}>Pricing</Link>
+          <Link href="/contact" onClick={closeMenu}>Contact</Link>
+          <Link href="/login" onClick={closeMenu}>Login</Link>
+          <Link href="/signup" className="public-mobile-cta" onClick={closeMenu}>
+            Start Free
+          </Link>
+        </nav>
+      )}
     </header>
   );
 }

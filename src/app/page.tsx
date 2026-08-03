@@ -88,7 +88,7 @@ export default function HomePage() {
             lineHeight: 0.95,
             letterSpacing: "-4px",
             fontWeight: 950,
-          }}>
+          }} className="landing-hero-title">
             Find financial leakage before it becomes profit loss.
           </h1>
 
@@ -153,7 +153,6 @@ export default function HomePage() {
             </a>
           </div>
 
-          <TrustStrip />
         </div>
 
         <div style={{
@@ -270,7 +269,6 @@ export default function HomePage() {
             Start with a free preview, unlock one full audit, or upgrade to Pro or Agency.
           </p>
 
-          <TrustStrip compact />
         </div>
 
         <div
@@ -423,43 +421,5 @@ export default function HomePage() {
 
       <PublicFooter />
     </main>
-  );
-}
-
-function TrustStrip({ compact = false }: { compact?: boolean }) {
-  return (
-    <div
-      style={{
-        marginTop: compact ? "28px" : "34px",
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))",
-        gap: "12px",
-        padding: compact ? "14px" : "16px",
-        border: "1px solid #cbd5e1",
-        borderRadius: "18px",
-        background: compact ? "#f8fafc" : "rgba(255,255,255,0.82)",
-      }}
-    >
-      <div>
-        <div style={{ fontWeight: 900 }}>HTTPS-protected access</div>
-        <div style={{ marginTop: "4px", color: "#64748b", fontSize: "14px" }}>
-          Secure browser connection to Effluxa.
-        </div>
-      </div>
-      <div>
-        <div style={{ fontWeight: 900 }}>Stripe handles card payments</div>
-        <div style={{ marginTop: "4px", color: "#64748b", fontSize: "14px" }}>
-          Effluxa does not store card numbers.
-        </div>
-      </div>
-      <div>
-        <Link href="/privacy" style={{ fontWeight: 900, color: "#1d4ed8" }}>
-          Read our privacy policy →
-        </Link>
-        <div style={{ marginTop: "4px", color: "#64748b", fontSize: "14px" }}>
-          See how uploaded content is used.
-        </div>
-      </div>
-    </div>
   );
 }

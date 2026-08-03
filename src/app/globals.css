@@ -16,6 +16,45 @@ a {
   text-decoration: none;
 }
 
+.public-header {
+  position: relative;
+  z-index: 20;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+.public-brand {
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+}
+
+.public-desktop-nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.public-desktop-nav a,
+.public-mobile-menu a {
+  font-size: 18px;
+}
+
+.public-menu-toggle,
+.public-mobile-menu {
+  display: none;
+}
+
+.landing-hero-title {
+  max-width: 980px;
+}
+
 button {
   border: none;
 }
@@ -224,6 +263,80 @@ input {
 }
 
 @media (max-width: 768px) {
+  .public-header {
+    padding: 22px 18px;
+    flex-wrap: wrap;
+  }
+
+  .public-brand {
+    font-size: 29px;
+  }
+
+  .public-desktop-nav {
+    display: none;
+  }
+
+  .public-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+
+  .public-menu-toggle span:first-child {
+    font-size: 20px;
+    line-height: 1;
+  }
+
+  .public-mobile-menu {
+    width: 100%;
+    display: grid;
+    gap: 4px;
+    margin-top: 2px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  }
+
+  .public-mobile-menu a {
+    padding: 13px 14px;
+    border-radius: 12px;
+  }
+
+  .public-mobile-menu a:hover,
+  .public-mobile-menu a:focus-visible {
+    background: #f1f5f9;
+  }
+
+  .public-mobile-menu .public-mobile-cta {
+    margin-top: 6px;
+    background: #0f172a;
+    color: #ffffff;
+    text-align: center;
+    font-weight: 900;
+  }
+
+  .landing-hero-title {
+    font-size: clamp(44px, 12vw, 64px) !important;
+    line-height: 1.03 !important;
+    letter-spacing: -2px !important;
+  }
+
+  .contact-grid > form {
+    order: -1;
+  }
+
   .auth-grid {
     grid-template-columns: 1fr !important;
   }

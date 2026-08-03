@@ -69,6 +69,7 @@ export default function ContactPage() {
         </div>
 
         <div
+          className="contact-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1.2fr",
