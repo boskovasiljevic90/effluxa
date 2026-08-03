@@ -1,7 +1,49 @@
 export const dynamic = "force-dynamic";
 
 import { prisma } from "@/lib/prisma";
+import {
+  asCategoryItems,
+  asRiskItems,
+  asTextArray,
+  asVendorItems,
+  getReportQualityReason,
+  isFallbackReport,
+} from "@/lib/reportDisplay";
 import Link from "next/link";
+
+type ReportData = Record<string, unknown>;
+
+function getReportData(value: unknown): ReportData {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as ReportData;
+  }
+
+  return {};
+}
+
+function getText(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function getNumber(value: unknown, fallback = 0) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value.replace(/[^\d.-]/g, ""));
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return fallback;
+}
+
+function formatAmount(value: unknown) {
+  return getNumber(value).toLocaleString();
+}
 
 export default async function SharedReportPage({
   params,
@@ -26,7 +68,45 @@ export default async function SharedReportPage({
     );
   }
 
-  const data = report.parsedData as any;
+  const data = getReportData(report.parsedData);
+  const isLimitedDataReport = isFallbackReport(data);
+  const reportQualityReason = getReportQualityReason(data);
+
+  const quickWins = asTextArray(data.quick_wins, [
+    "No quick wins were detected in the uploaded data.",
+  ]);
+  const highCostCategories = asCategoryItems(data.high_cost_categories, [
+    {
+      category: "No high-cost category detected",
+      amount: 0,
+      reason: "The uploaded data did not contain enough category detail.",
+    },
+  ]);
+  const duplicatePaymentRisks = asRiskItems(data.duplicate_payment_risks, [
+    {
+      item: "No duplicate payment risk confirmed",
+      reason: "The uploaded data did not contain enough detail to confirm duplicate payments.",
+    },
+  ]);
+  const cashflowObservations = asTextArray(data.cashflow_observations, [
+    "Cash flow patterns could not be reliably assessed from the uploaded data.",
+  ]);
+  const keyFindings = asTextArray(
+    data.key_findings,
+    asTextArray(data.recommendations, [
+      "No key findings were generated from the uploaded data.",
+    ])
+  );
+  const topVendors = asVendorItems(data.top_vendors, [
+    {
+      vendor: "No vendor data available",
+      amount: 0,
+      reason: "The uploaded data did not contain reliable vendor-level detail.",
+    },
+  ]);
+  const recommendations = asTextArray(data.recommendations, [
+    "No AI recommendations were generated from the uploaded data.",
+  ]);
 
   return (
     <main
@@ -71,18 +151,43 @@ export default async function SharedReportPage({
             </p>
           )}
 
+          {isLimitedDataReport && (
+            <section
+              style={{
+                marginTop: "28px",
+                padding: "18px 20px",
+                border: "1px solid #facc15",
+                borderRadius: "16px",
+                background: "#fefce8",
+              }}
+            >
+              <h2 style={{ color: "#713f12" }}>Limited-data report</h2>
+              <p style={{ marginTop: "10px", color: "#713f12", lineHeight: 1.7 }}>
+                Effluxa generated a conservative fallback report because the uploaded document
+                or AI response could not support a complete structured audit.
+              </p>
+              {reportQualityReason && (
+                <p style={{ marginTop: "8px", color: "#713f12", lineHeight: 1.7 }}>
+                  Quality note: {reportQualityReason}
+                </p>
+              )}
+            </section>
+          )}
+
           <section style={{ marginTop: "34px" }}>
             <h2>Executive Summary</h2>
             <p style={{ marginTop: "12px", lineHeight: 1.8 }}>
-              {data?.executive_summary ||
-                "Effluxa detected financial optimization opportunities in this document."}
+              {getText(
+                data.executive_summary,
+                "Effluxa detected financial optimization opportunities in this document."
+              )}
             </p>
           </section>
 
           <section style={{ marginTop: "34px" }}>
             <h2>Leakage Score</h2>
             <div style={{ fontSize: "44px", fontWeight: 900, marginTop: "12px" }}>
-              {data?.leakage_score ?? 0}/100
+              {getNumber(data.leakage_score)}/100
             </div>
           </section>
 
@@ -96,43 +201,53 @@ export default async function SharedReportPage({
                 color: "#16a34a",
               }}
             >
-              €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
+              €{formatAmount(data.estimated_savings)}
             </div>
           </section>
 
           <section style={{ marginTop: "34px" }}>
             <h2>Risk Level</h2>
             <p style={{ marginTop: "12px", lineHeight: 1.8 }}>
-              {data?.risk_level || "Insufficient data"} — Confidence: {data?.confidence_level || "Insufficient data"}
+              {getText(data.risk_level, "Insufficient data")} — Confidence: {getText(
+                data.confidence_level,
+                "Insufficient data"
+              )}
             </p>
           </section>
 
-          <section style={{ marginTop: "34px" }}>
-            <h2>Quick Wins</h2>
-            <ul style={{ marginTop: "12px", lineHeight: 1.9 }}>
-              {(data?.quick_wins || []).map((item: string, index: number) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </section>
+          <ReportListSection title="Quick Wins" items={quickWins} />
+
+          <ReportListSection
+            title="High Cost Categories"
+            items={highCostCategories.map(
+              (item) => `${item.category} — €${formatAmount(item.amount)} — ${item.reason}`
+            )}
+          />
+
+          <ReportListSection
+            title="Duplicate Payment Risks"
+            items={duplicatePaymentRisks.map((item) => `${item.item} — ${item.reason}`)}
+          />
+
+          <ReportListSection title="Cash Flow Observations" items={cashflowObservations} />
 
           <section style={{ marginTop: "34px" }}>
-            <h2>Key Findings</h2>
-            <ul style={{ marginTop: "12px", lineHeight: 1.9 }}>
-              {(data?.key_findings || []).map((item: string, index: number) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
+            <h2>CFO Summary</h2>
+            <p style={{ marginTop: "12px", lineHeight: 1.8 }}>
+              {getText(data.cfo_summary, "Insufficient data")}
+            </p>
           </section>
 
-          <section style={{ marginTop: "34px" }}>
-            <h2>AI Recommendations</h2>
-            <ul style={{ marginTop: "12px", lineHeight: 1.9 }}>
-              {(data?.recommendations || []).map((item: string, index: number) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </section>
+          <ReportListSection title="Key Findings" items={keyFindings} />
+
+          <ReportListSection
+            title="Top Vendors"
+            items={topVendors.map(
+              (item) => `${item.vendor} — €${formatAmount(item.amount)} — ${item.reason}`
+            )}
+          />
+
+          <ReportListSection title="AI Recommendations" items={recommendations} />
 
           <div
             style={{
@@ -150,5 +265,18 @@ export default async function SharedReportPage({
         </div>
       </div>
     </main>
+  );
+}
+
+function ReportListSection({ title, items }: { title: string; items: string[] }) {
+  return (
+    <section style={{ marginTop: "34px" }}>
+      <h2>{title}</h2>
+      <ul style={{ marginTop: "12px", lineHeight: 1.9 }}>
+        {items.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+    </section>
   );
 }
