@@ -46,6 +46,10 @@ a {
   font-size: 18px;
 }
 
+.public-mobile-menu a {
+  color: #0f172a;
+}
+
 .public-menu-toggle,
 .public-mobile-menu {
   display: none;
