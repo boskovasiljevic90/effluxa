@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
+import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
 
 export const runtime = "nodejs";
 
@@ -72,6 +73,41 @@ export async function GET(req: NextRequest, { params }: Props) {
     }
 
     const data = report.parsedData as any;
+    const isLimitedDataReport = isFallbackReport(data);
+    const reportQualityReason = getReportQualityReason(data);
+
+    const quickWins = asTextArray(data?.quick_wins, [
+      "No quick wins were detected in the uploaded data.",
+    ]);
+    const highCostCategories = asCategoryItems(data?.high_cost_categories, [
+      {
+        category: "No high-cost category detected",
+        amount: 0,
+        reason: "The uploaded data did not contain enough category detail.",
+      },
+    ]);
+    const duplicatePaymentRisks = asRiskItems(data?.duplicate_payment_risks, [
+      {
+        item: "No duplicate payment risk confirmed",
+        reason: "The uploaded data did not contain enough detail to confirm duplicate payments.",
+      },
+    ]);
+    const cashflowObservations = asTextArray(data?.cashflow_observations, [
+      "Cash flow patterns could not be reliably assessed from the uploaded data.",
+    ]);
+    const keyFindings = asTextArray(data?.key_findings, asTextArray(data?.recommendations, [
+      "No key findings were generated from the uploaded data.",
+    ]));
+    const topVendors = asVendorItems(data?.top_vendors, [
+      {
+        vendor: "No vendor data available",
+        amount: 0,
+        reason: "The uploaded data did not contain reliable vendor-level detail.",
+      },
+    ]);
+    const recommendations = asTextArray(data?.recommendations, [
+      "No AI recommendations were generated from the uploaded data.",
+    ]);
 
     const pdfDoc = await PDFDocument.create();
     let page = pdfDoc.addPage([595, 842]);
@@ -133,6 +169,16 @@ export async function GET(req: NextRequest, { params }: Props) {
     text(`File: ${report.fileUrl}`, 10, false, rgb(0.4, 0.4, 0.4));
     text(`Date: ${new Date(report.createdAt).toLocaleString()}`, 10, false, rgb(0.4, 0.4, 0.4));
 
+    if (isLimitedDataReport) {
+      y -= 8;
+      text("Limited-data report", 12, true, rgb(0.75, 0.45, 0));
+      paragraph(
+        `This is a conservative fallback report. ${
+          reportQualityReason || "The uploaded document did not support a complete structured audit."
+        }`
+      );
+    }
+
     if (report.client) {
       text(`Client: ${report.client.name}`, 10, false, rgb(0.4, 0.4, 0.4));
     }
@@ -153,33 +199,33 @@ export async function GET(req: NextRequest, { params }: Props) {
     paragraph(`${data?.risk_level || "Insufficient data"} | Confidence: ${data?.confidence_level || "Insufficient data"}`);
 
     section("Quick Wins");
-    (data?.quick_wins || []).forEach((item: string) => paragraph(`- ${item}`));
+    quickWins.forEach((item: string) => paragraph(`- ${item}`));
 
     section("High Cost Categories");
-    (data?.high_cost_categories || []).forEach((item: any) => {
-      paragraph(`- ${item.category || "Unknown"} - EUR ${item.amount || 0} - ${item.observation || ""}`);
+    highCostCategories.forEach((item) => {
+      paragraph(`- ${item.category} - EUR ${item.amount || 0} - ${item.reason}`);
     });
 
     section("Anomalies & Duplicate Payment Risks");
     (data?.anomalies || []).forEach((item: any) => paragraph(`- ${item.item || "Anomaly"} - ${item.reason || ""}`));
-    (data?.duplicate_payment_risks || []).forEach((item: any) => paragraph(`- ${item.item || "Duplicate risk"} - ${item.reason || ""}`));
+    duplicatePaymentRisks.forEach((item) => paragraph(`- ${item.item}${item.reason ? ` - ${item.reason}` : ""}`));
 
     section("Cash Flow Observations");
-    (data?.cashflow_observations || []).forEach((item: string) => paragraph(`- ${item}`));
+    cashflowObservations.forEach((item: string) => paragraph(`- ${item}`));
 
     section("CFO Summary");
     paragraph(data?.cfo_summary || "Insufficient data");
 
     section("Key Findings");
-    (data?.key_findings || []).forEach((item: string) => paragraph(`- ${item}`));
+    keyFindings.forEach((item: string) => paragraph(`- ${item}`));
 
     section("Top Vendors");
-    (data?.top_vendors || []).forEach((vendor: any) => {
-      paragraph(`- ${vendor.vendor || "Unknown vendor"} - EUR ${vendor.amount || 0}`);
+    topVendors.forEach((vendor) => {
+      paragraph(`- ${vendor.vendor} - EUR ${vendor.amount || 0}${vendor.reason ? ` - ${vendor.reason}` : ""}`);
     });
 
     section("AI Recommendations");
-    (data?.recommendations || []).forEach((item: string) => paragraph(`- ${item}`));
+    recommendations.forEach((item: string) => paragraph(`- ${item}`));
 
     y -= 20;
     if (workspaceOwner.reportFooter) {

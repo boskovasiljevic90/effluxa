@@ -12,6 +12,7 @@ import ChangeReportClientForm from "./ChangeReportClientForm";
 import InternalNoteForm from "./InternalNoteForm";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
+import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -108,6 +109,41 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
   const data = report.parsedData as any;
   const isUnlocked = canAccessFullReport({ report, user, workspace });
+  const isLimitedDataReport = isFallbackReport(data);
+  const reportQualityReason = getReportQualityReason(data);
+
+  const quickWins = asTextArray(data?.quick_wins, [
+    "No quick wins were detected in the uploaded data.",
+  ]);
+  const highCostCategories = asCategoryItems(data?.high_cost_categories, [
+    {
+      category: "No high-cost category detected",
+      amount: 0,
+      reason: "The uploaded data did not contain enough category detail.",
+    },
+  ]);
+  const duplicatePaymentRisks = asRiskItems(data?.duplicate_payment_risks, [
+    {
+      item: "No duplicate payment risk confirmed",
+      reason: "The uploaded data did not contain enough detail to confirm duplicate payments.",
+    },
+  ]);
+  const cashflowObservations = asTextArray(data?.cashflow_observations, [
+    "Cash flow patterns could not be reliably assessed from the uploaded data.",
+  ]);
+  const keyFindings = asTextArray(data?.key_findings, asTextArray(data?.recommendations, [
+    "No key findings were generated from the uploaded data.",
+  ]));
+  const topVendors = asVendorItems(data?.top_vendors, [
+    {
+      vendor: "No vendor data available",
+      amount: 0,
+      reason: "The uploaded data did not contain reliable vendor-level detail.",
+    },
+  ]);
+  const recommendations = asTextArray(data?.recommendations, [
+    "No AI recommendations were generated from the uploaded data.",
+  ]);
 
   const previousClientAudit = report.clientId
     ? await prisma.upload.findFirst({
@@ -322,6 +358,28 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
         {isUnlocked ? (
           <>
+            {isLimitedDataReport && (
+              <div
+                className="audit-card"
+                style={{
+                  marginTop: "28px",
+                  border: "1px solid #facc15",
+                  background: "#fefce8",
+                }}
+              >
+                <h2>Limited-data report</h2>
+                <p style={{ marginTop: "12px", color: "#713f12", lineHeight: 1.7 }}>
+                  Effluxa generated a conservative fallback report because the uploaded document
+                  or AI response could not support a complete structured audit.
+                </p>
+                {reportQualityReason && (
+                  <p style={{ marginTop: "10px", color: "#713f12", lineHeight: 1.7 }}>
+                    Reason: {reportQualityReason}
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="savings-card" style={{ marginTop: "28px" }}>
               <h2>Estimated Savings Opportunity</h2>
               <p className="savings-value">
@@ -343,7 +401,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>Quick Wins</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {(data?.quick_wins || []).map((item: string, index: number) => (
+                {quickWins.map((item: string, index: number) => (
                   <li key={index}>{item}</li>
                 ))}
               </ul>
@@ -352,9 +410,9 @@ export default async function ReportPage({ params, searchParams }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>High Cost Categories</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {(data?.high_cost_categories || []).map((item: any, index: number) => (
+                {highCostCategories.map((item: any, index: number) => (
                   <li key={index}>
-                    {item.category} — €{item.amount || 0} — {item.observation}
+                    {item.category} — €{item.amount || 0} — {item.reason}
                   </li>
                 ))}
               </ul>
@@ -366,7 +424,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
                 {(data?.anomalies || []).map((item: any, index: number) => (
                   <li key={`a-${index}`}>{item.item} — {item.reason}</li>
                 ))}
-                {(data?.duplicate_payment_risks || []).map((item: any, index: number) => (
+                {duplicatePaymentRisks.map((item: any, index: number) => (
                   <li key={`d-${index}`}>{item.item} — {item.reason}</li>
                 ))}
               </ul>
@@ -375,7 +433,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>Cash Flow Observations</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {(data?.cashflow_observations || []).map((item: string, index: number) => (
+                {cashflowObservations.map((item: string, index: number) => (
                   <li key={index}>{item}</li>
                 ))}
               </ul>
@@ -391,7 +449,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>Key Findings</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {(data?.key_findings || data?.recommendations || []).map(
+                {keyFindings.map(
                   (item: string, index: number) => (
                     <li key={index}>{item}</li>
                   )
@@ -402,7 +460,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>Top Vendors</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {(data?.top_vendors || []).map((vendor: any, index: number) => (
+                {topVendors.map((vendor: any, index: number) => (
                   <li key={index}>
                     {vendor.vendor} — €{vendor.amount}
                   </li>
@@ -413,7 +471,7 @@ export default async function ReportPage({ params, searchParams }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>AI Recommendations</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {(data?.recommendations || []).map(
+                {recommendations.map(
                   (item: string, index: number) => (
                     <li key={index}>{item}</li>
                   )
