@@ -14,7 +14,7 @@ Commercially live means:
 
 ---
 
-## CURRENT STATUS (DAY 0)
+## CURRENT STATUS (PADDLE CUTOVER)
 
 Working:
 - Auth (login)
@@ -24,10 +24,14 @@ Working:
 - JSON parsing
 - DB storage (Prisma)
 - Report detail page
+- Paddle production billing integration
+- Paddle catalog and EUR prices for Full Audit, Pro, and Agency
+- Paddle production API key, client token, and webhook destination configured
+- Paddle production variables configured in Vercel
+- Production deployment and smoke test passed
 
 Not ready:
-- Paddle sandbox credentials and end-to-end payment validation
-- Production deployment
+- Controlled end-to-end paid transaction/webhook validation (not run to avoid charging a live card)
 - Background processing
 - Rate limiting
 - Error handling hardening
@@ -94,5 +98,15 @@ DAY 10
 ---
 
 ## CURRENT PHASE
-Phase: LAUNCH PREPARATION
-Next milestone: Configure Paddle sandbox, run a real test payment/webhook cycle, then cut over to production.
+Phase: PRODUCTION BILLING CUTOVER COMPLETE
+
+Completed:
+- Paddle live credentials created
+- Paddle catalog created with five EUR price IDs
+- Production webhook created at `https://www.effluxa.com/api/paddle/webhook`
+- Paddle environment variables added to Vercel Production
+- Production build passed
+- Production deploy passed
+- Production smoke test passed, including webhook signature rejection without a signature
+
+Next milestone: Run a controlled Paddle sandbox payment/webhook cycle or a deliberately approved first live transaction, then remove the legacy Stripe rollback variables and continue the remaining launch hardening.
