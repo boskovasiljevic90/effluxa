@@ -29,9 +29,15 @@ Working:
 - Paddle production API key, client token, and webhook destination configured
 - Paddle production variables configured in Vercel
 - Production deployment and smoke test passed
+- Paddle sandbox API key and client token created for validation
+- Sandbox catalog configured with five active EUR prices
+- Sandbox default payment link configured
+- Sandbox pricing validator passed against all five prices
+- Sandbox draft transaction created successfully without payment
 
 Not ready:
-- Controlled end-to-end paid transaction/webhook validation (not run to avoid charging a live card)
+- Full sandbox checkout payment and webhook cycle (no test card submitted)
+- Live Checkout Settings verification (requires an authenticated live Paddle session)
 - Background processing
 - Rate limiting
 - Error handling hardening
@@ -109,4 +115,4 @@ Completed:
 - Production deploy passed
 - Production smoke test passed, including webhook signature rejection without a signature
 
-Next milestone: Run a controlled Paddle sandbox payment/webhook cycle or a deliberately approved first live transaction, then remove the legacy Stripe rollback variables and continue the remaining launch hardening.
+Next milestone: Complete a controlled Paddle sandbox checkout/webhook cycle with a Paddle test card, verify the live default payment link, then remove the legacy Stripe rollback variables and continue the remaining launch hardening.
