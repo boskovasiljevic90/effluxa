@@ -1,13 +1,14 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { trackEvent } from "@/lib/events";
 import { trackError } from "@/lib/errorTracking";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+import {
+  createPaddleCheckoutTransaction,
+  getPaddlePriceId,
+} from "@/lib/paddle";
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,6 +52,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { paddleCustomerId: true },
+    });
+
     if (report.unlocked) {
       const appUrl =
         process.env.NEXT_PUBLIC_APP_URL ||
@@ -61,15 +67,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const priceId =
-      process.env.STRIPE_FULL_AUDIT_PRICE_ID ||
-      process.env.STRIPE_PRICE_ID;
+    const priceId = getPaddlePriceId("full_audit");
 
     if (!priceId) {
       return NextResponse.json(
         {
           error:
-            "Full audit Stripe price is not configured.",
+            "Full audit Paddle price is not configured.",
         },
         {
           status: 500,
@@ -77,48 +81,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      "https://www.effluxa.com";
-
-    const metadata = {
+    const customData = {
       userId: decoded.userId,
       reportId: report.id,
       product: "full_audit_unlock",
       plan: "full_audit",
-    };
+    } as const;
 
-    const session =
-      await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "payment",
-
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
-
-        metadata,
-
-        payment_intent_data: {
-          metadata,
-        },
-
-        success_url:
-          `${appUrl}/dashboard/reports/${report.id}?session_id={CHECKOUT_SESSION_ID}`,
-
-        cancel_url:
-          `${appUrl}/dashboard/reports/${report.id}`,
-      });
+    const transaction = await createPaddleCheckoutTransaction({
+      priceId,
+      customerId: user?.paddleCustomerId,
+      customData,
+    });
 
     await trackEvent({
       type: "checkout_created",
       userId: decoded.userId,
       reportId: report.id,
       metadata: {
-        sessionId: session.id,
+        transactionId: transaction.id,
         amount: 9900,
         currency: "eur",
         priceId,
@@ -127,19 +108,20 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({
-      url: session.url,
+      url: transaction.checkout?.url,
+      transactionId: transaction.id,
     });
   } catch (error) {
-    console.error("STRIPE SESSION ERROR:", error);
+    console.error("PADDLE TRANSACTION ERROR:", error);
 
     await trackError({
-      type: "stripe_session_error",
+      type: "paddle_transaction_error",
       error,
     });
 
     return NextResponse.json(
       {
-        error: "Stripe session failed",
+        error: "Paddle checkout failed",
       },
       {
         status: 500,

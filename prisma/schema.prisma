@@ -20,8 +20,10 @@ model User {
   role                  Role     @default(FREE)
   weeklyUploadCount     Int      @default(0)
   weeklyResetDate       DateTime @default(now())
-  stripeCustomerId      String?
-  subscriptionId        String?
+  legacyPaymentCustomerId      String?
+  legacyPaymentSubscriptionId  String?
+  paddleCustomerId              String?
+  paddleSubscriptionId          String?
   subscriptionEndDate   DateTime?
   subscriptionStatus    String   @default("inactive")
   preferredLanguage     String   @default("en")
@@ -46,7 +48,8 @@ model Upload {
   shareToken        String?   @unique
   unlocked          Boolean   @default(false)
   unlockedAt        DateTime?
-  checkoutSessionId String?
+  legacyPaymentReference String?
+  checkoutTransactionId   String?
   clientId          String?
   createdAt         DateTime  @default(now())
   user              User      @relation(fields: [userId], references: [id])

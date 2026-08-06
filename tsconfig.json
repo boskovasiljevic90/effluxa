@@ -37,6 +37,11 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "backups",
+    "production-qa-reports",
+    "lighthouse-reports",
+    "lighthouse-auth-reports",
+    "effluxa"
   ]
 }

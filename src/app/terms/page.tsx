@@ -32,7 +32,7 @@ export default function TermsPage() {
 
           <h2 style={{ marginTop: "30px" }}>Payments</h2>
           <p>
-            Full AI audit unlocks are one-time digital purchases. Payment processing is handled by Stripe.
+            Full AI audit unlocks are one-time digital purchases. Payment processing is handled by Paddle.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>Limitations</h2>

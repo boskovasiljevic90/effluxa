@@ -1,27 +1,26 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+import {
+  createPaddleCheckoutTransaction,
+  getPaddlePriceId,
+  type PaddlePlan,
+  type PaddleProduct,
+} from "@/lib/paddle";
 
 const allowedPlans = {
   pro_monthly: {
-    priceEnv: "STRIPE_PRO_MONTHLY_PRICE_ID",
     product: "pro_subscription",
   },
   pro_annual: {
-    priceEnv: "STRIPE_PRO_ANNUAL_PRICE_ID",
     product: "pro_subscription",
   },
   agency_monthly: {
-    priceEnv: "STRIPE_AGENCY_MONTHLY_PRICE_ID",
     product: "agency_subscription",
   },
   agency_annual: {
-    priceEnv: "STRIPE_AGENCY_ANNUAL_PRICE_ID",
     product: "agency_subscription",
   },
 } as const;
@@ -97,69 +96,34 @@ export async function POST(req: NextRequest) {
     }
 
     const selectedPlan = allowedPlans[plan];
-    const priceId = process.env[selectedPlan.priceEnv];
+    const priceId = getPaddlePriceId(plan as PaddlePlan);
 
     if (!priceId) {
-      return NextResponse.json(
-        { error: "Stripe price not configured" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Paddle price not configured" }, { status: 500 });
     }
 
-    const appUrl =
-      process.env.NEXT_PUBLIC_APP_URL ||
-      "https://www.effluxa.com";
-
-    const metadata = {
+    const customData = {
       userId: user.id,
       product: selectedPlan.product,
       plan,
+    } as {
+      userId: string;
+      product: PaddleProduct;
+      plan: PaddlePlan;
     };
 
-    const customerParams:
-      | {
-          customer: string;
-        }
-      | {
-          customer_email: string;
-        } = user.stripeCustomerId
-      ? {
-          customer: user.stripeCustomerId,
-        }
-      : {
-          customer_email: user.email,
-        };
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-
-      ...customerParams,
-
-      line_items: [
-        {
-          price: priceId,
-          quantity: 1,
-        },
-      ],
-
-      metadata,
-
-      subscription_data: {
-        metadata,
-      },
-
-      success_url:
-        `${appUrl}/dashboard/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-
-      cancel_url:
-        `${appUrl}/dashboard?subscription=cancelled`,
+    const transaction = await createPaddleCheckoutTransaction({
+      priceId,
+      customerId: user.paddleCustomerId,
+      customData,
     });
 
     return NextResponse.json({
-      url: session.url,
+      url: transaction.checkout?.url,
+      transactionId: transaction.id,
     });
   } catch (error) {
-    console.error("SUBSCRIPTION CHECKOUT ERROR:", error);
+    console.error("PADDLE SUBSCRIPTION CHECKOUT ERROR:", error);
 
     return NextResponse.json(
       {

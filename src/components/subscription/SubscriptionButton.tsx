@@ -29,7 +29,7 @@ export default function SubscriptionButton({
 
       const response =
         await fetch(
-          "/api/stripe/create-subscription",
+          "/api/paddle/create-subscription",
           {
             method:"POST",
             headers:{

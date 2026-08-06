@@ -11,7 +11,7 @@ export default function UpgradeButton({ reportId }: { reportId: string }) {
       setLoading(true);
       trackClientEvent("report_unlock_checkout_started", { report_id: reportId });
 
-      const res = await fetch("/api/stripe/create-checkout-session", {
+      const res = await fetch("/api/paddle/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -26,11 +26,11 @@ export default function UpgradeButton({ reportId }: { reportId: string }) {
         return;
       }
 
-      alert(data?.error || "Stripe error");
+      alert(data?.error || "Paddle checkout error");
       setLoading(false);
     } catch (err) {
       console.error(err);
-      alert("Stripe error");
+      alert("Paddle checkout error");
       setLoading(false);
     }
   }

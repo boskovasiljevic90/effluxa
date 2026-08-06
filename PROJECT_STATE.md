@@ -8,7 +8,7 @@ Commercially live means:
 - Users can upload invoice
 - AI analysis works
 - Reports are viewable
-- Stripe payment works
+- Paddle billing integration is implemented
 - Paid users are differentiated
 - App is deployed to production
 
@@ -26,7 +26,7 @@ Working:
 - Report detail page
 
 Not ready:
-- Stripe billing
+- Paddle sandbox credentials and end-to-end payment validation
 - Production deployment
 - Background processing
 - Rate limiting
@@ -61,7 +61,7 @@ DAY 1-2
 - Add basic error handling
 
 DAY 3-4
-- Implement Stripe subscriptions
+- Implement Paddle subscriptions
 - Add PRO vs FREE logic
 - Limit FREE users (e.g. 3 invoices)
 
@@ -95,4 +95,4 @@ DAY 10
 
 ## CURRENT PHASE
 Phase: LAUNCH PREPARATION
-Next milestone: Stripe integration
+Next milestone: Configure Paddle sandbox, run a real test payment/webhook cycle, then cut over to production.

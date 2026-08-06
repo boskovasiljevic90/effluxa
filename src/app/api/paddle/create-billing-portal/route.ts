@@ -1,11 +1,9 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+import { getPaddle } from "@/lib/paddle";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,23 +25,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (!["PRO","BUSINESS"].includes(user.role) || !user.stripeCustomerId) {
+    if (
+      !["PRO", "BUSINESS"].includes(user.role) ||
+      !user.paddleCustomerId ||
+      !user.paddleSubscriptionId
+    ) {
       return NextResponse.json(
         { error: "Billing portal is available only to active paid accounts." },
         { status: 403 }
       );
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
+    const portalSession = await getPaddle().customerPortalSessions.create(
+      user.paddleCustomerId,
+      [user.paddleSubscriptionId]
+    );
 
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: user.stripeCustomerId,
-      return_url: `${appUrl}/dashboard/settings`,
-    });
-
-    return NextResponse.json({ url: portalSession.url });
+    return NextResponse.json({ url: portalSession.urls.general.overview });
   } catch (error) {
-    console.error("BILLING PORTAL ERROR:", error);
+    console.error("PADDLE BILLING PORTAL ERROR:", error);
 
     return NextResponse.json(
       { error: "Failed to open billing portal." },

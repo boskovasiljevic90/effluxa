@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
-import Stripe from "stripe";
 import UpgradeButton from "./UpgradeButton";
 import DeleteReportButton from "./DeleteReportButton";
 import ShareReportButton from "./ShareReportButton";
@@ -35,12 +34,9 @@ interface Props {
   params: {
     id: string;
   };
-  searchParams?: {
-    session_id?: string;
-  };
 }
 
-export default async function ReportPage({ params, searchParams }: Props) {
+export default async function ReportPage({ params }: Props) {
   const user = await getUser();
 
   if (!user) {
@@ -62,45 +58,6 @@ export default async function ReportPage({ params, searchParams }: Props) {
 
   if (!report) {
     return <div style={{ padding: "40px" }}>Report not found.</div>;
-  }
-
-  if (!report.unlocked && searchParams?.session_id && process.env.STRIPE_SECRET_KEY) {
-    try {
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-      const session = await stripe.checkout.sessions.retrieve(searchParams.session_id);
-
-      const paid =
-        session.payment_status === "paid" ||
-        session.status === "complete";
-
-      if (
-        paid &&
-        session.metadata?.reportId === report.id &&
-        session.metadata?.userId === user.id
-      ) {
-        await prisma.upload.update({
-          where: { id: report.id },
-          data: {
-            unlocked: true,
-            unlockedAt: new Date(),
-            checkoutSessionId: session.id,
-          },
-        });
-
-        report = await prisma.upload.findFirst({
-          where: {
-            id: reportId,
-            userId: workspace.owner.id,
-          },
-          include: {
-            client: true,
-          },
-        });
-      }
-    } catch (error) {
-      console.error("STRIPE SESSION VERIFY ERROR:", error);
-    }
   }
 
   if (!report) {

@@ -8,7 +8,7 @@ export default function BillingPortalButton() {
   async function openBillingPortal() {
     setLoading(true);
 
-    const res = await fetch("/api/stripe/create-billing-portal", {
+    const res = await fetch("/api/paddle/create-billing-portal", {
       method: "POST",
     });
 

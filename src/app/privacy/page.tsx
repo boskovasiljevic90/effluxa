@@ -39,7 +39,7 @@ export default function PrivacyPage() {
 
           <h2 style={{ marginTop: "30px" }}>Payments</h2>
           <p>
-            Payments are processed securely by Stripe. Effluxa does not store card numbers.
+            Payments are processed securely by Paddle. Effluxa does not store card numbers.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>AI Processing</h2>

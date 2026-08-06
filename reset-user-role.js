@@ -11,7 +11,7 @@ async function main() {
     },
     data: {
       role: "FREE",
-      subscriptionId: null,
+      paddleSubscriptionId: null,
     },
   });
 
