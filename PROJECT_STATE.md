@@ -28,6 +28,8 @@ Working:
 - Paddle catalog and EUR prices for Full Audit, Pro, and Agency
 - Paddle production API key, client token, and webhook destination configured
 - Paddle production variables configured in Vercel
+- Paddle live default payment link configured as `https://www.effluxa.com/checkout`
+- Legacy Stripe environment variables removed from Vercel and local environment files
 - Production deployment and smoke test passed
 - Paddle sandbox API key and client token created for validation
 - Sandbox catalog configured with five active EUR prices
@@ -37,7 +39,6 @@ Working:
 
 Not ready:
 - Full sandbox checkout payment and webhook cycle (no test card submitted)
-- Live Checkout Settings verification (requires an authenticated live Paddle session)
 - Background processing
 - Rate limiting
 - Error handling hardening
@@ -115,4 +116,4 @@ Completed:
 - Production deploy passed
 - Production smoke test passed, including webhook signature rejection without a signature
 
-Next milestone: Complete a controlled Paddle sandbox checkout/webhook cycle with a Paddle test card, verify the live default payment link, then remove the legacy Stripe rollback variables and continue the remaining launch hardening.
+Next milestone: Complete a controlled Paddle sandbox checkout/webhook cycle with a Paddle test card, then continue the remaining launch hardening.
