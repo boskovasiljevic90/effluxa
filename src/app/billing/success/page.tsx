@@ -22,7 +22,11 @@ export default async function BillingSuccessPage({
   const token = cookies().get("token")?.value;
 
   if (!token) {
-    redirect("/login");
+    redirect(
+      `/login?returnTo=${encodeURIComponent(
+        `/billing/success?transaction_id=${transactionId}`
+      )}`
+    );
   }
 
   let userId: string;
@@ -30,7 +34,11 @@ export default async function BillingSuccessPage({
   try {
     userId = (jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }).userId;
   } catch {
-    redirect("/login");
+    redirect(
+      `/login?returnTo=${encodeURIComponent(
+        `/billing/success?transaction_id=${transactionId}`
+      )}`
+    );
   }
 
   let customData: Awaited<ReturnType<typeof syncPaddleTransactionById>>;

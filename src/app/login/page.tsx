@@ -42,7 +42,14 @@ export default function LoginPage() {
       }
 
       trackClientEvent("login_completed");
-      window.location.href = "/dashboard";
+
+      const returnTo = new URLSearchParams(window.location.search).get("returnTo");
+      const safeReturnTo =
+        returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
+          ? returnTo
+          : "/dashboard";
+
+      window.location.href = safeReturnTo;
     } catch (err) {
       console.error(err);
       alert("Login failed");

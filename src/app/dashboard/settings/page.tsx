@@ -51,7 +51,7 @@ export default async function SettingsPage() {
           <div className="card-title">Current Plan</div>
           <div className="metric-value">{displayPlanLabel(user.role)}</div>
 
-          {user.role === "BUSINESS" && user.subscriptionEndDate && (
+          {user.role !== "FREE" && user.subscriptionEndDate && (
             <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
               Active until {new Date(user.subscriptionEndDate).toLocaleDateString()}.
             </p>
@@ -97,7 +97,7 @@ export default async function SettingsPage() {
           </div>
         )}
 
-        {user.role === "BUSINESS" && (
+        {user.role !== "FREE" && (
           <div className="card full-width">
             <div className="card-title">Manage Subscription</div>
             <p className="gray" style={{ lineHeight: 1.7 }}>
