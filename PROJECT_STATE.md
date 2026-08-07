@@ -40,9 +40,11 @@ Working:
 - Paddle production database billing migration applied
 - Existing-user login verified after the billing migration
 - Paddle webhook provisioning is protected against repeated activation events
+- PRO users can open the Paddle billing portal
+- Billing success preserves the transaction through a re-login
 
 Not ready:
-- Authenticated app-level sandbox webhook provisioning test for a real Effluxa user/report
+- Authenticated app-level sandbox subscription provisioning test for a real Effluxa user
 - Background processing
 - Rate limiting
 - Error handling hardening
@@ -119,6 +121,6 @@ Completed:
 - Production deploy passed
 - Production smoke test passed, including webhook signature rejection without a signature
 
-Paddle status: Payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, and login compatibility are verified. No live production charge was used during testing.
+Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal, and repeated-event protection are verified. No live production charge was used during testing, and an authenticated sandbox subscription provisioning test is still pending.
 
 Next milestone: Resume the pre-Paddle launch roadmap with the remaining launch hardening, starting with file validation, usage/rate limits, and error handling. The authenticated app-level sandbox webhook provisioning test remains an optional billing verification task before launch.
