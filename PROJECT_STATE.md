@@ -35,15 +35,18 @@ Working:
 - Sandbox catalog configured with five active EUR prices
 - Sandbox default payment link configured
 - Sandbox pricing validator passed against all five prices
-- Sandbox draft transaction created successfully without payment
+- Sandbox checkout opened successfully from an HTTPS Effluxa preview
+- Paddle sandbox test-card payment completed successfully
+- Paddle production database billing migration applied
+- Existing-user login verified after the billing migration
+- Paddle webhook provisioning is protected against repeated activation events
 
 Not ready:
-- Full sandbox checkout payment and webhook cycle (no test card submitted)
+- Authenticated app-level sandbox webhook provisioning test for a real Effluxa user/report
 - Background processing
 - Rate limiting
 - Error handling hardening
 - Proper report UI
-- Legal pages
 - File validation
 - User dashboard polish
 
@@ -116,4 +119,6 @@ Completed:
 - Production deploy passed
 - Production smoke test passed, including webhook signature rejection without a signature
 
-Next milestone: Complete a controlled Paddle sandbox checkout/webhook cycle with a Paddle test card, then continue the remaining launch hardening.
+Paddle status: Payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, and login compatibility are verified. No live production charge was used during testing.
+
+Next milestone: Resume the pre-Paddle launch roadmap with the remaining launch hardening, starting with file validation, usage/rate limits, and error handling. The authenticated app-level sandbox webhook provisioning test remains an optional billing verification task before launch.

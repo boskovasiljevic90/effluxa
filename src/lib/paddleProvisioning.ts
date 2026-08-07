@@ -1,4 +1,4 @@
-import { Role } from "@prisma/client";
+import { Prisma, Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { trackEvent } from "@/lib/events";
 import {
@@ -31,6 +31,23 @@ function paddleCustomData(value?: Record<string, unknown> | null) {
     product?: string;
     plan?: string;
   };
+}
+
+async function hasTrackedEvent(
+  type: string,
+  userId: string,
+  metadata: Prisma.InputJsonObject
+) {
+  const existing = await prisma.event.findFirst({
+    where: {
+      type,
+      userId,
+      metadata: { equals: metadata },
+    },
+    select: { id: true },
+  });
+
+  return Boolean(existing);
 }
 
 async function cancelPreviousSubscription(
@@ -71,16 +88,20 @@ export async function provisionPaddleTransaction(transaction: PaddleTransactionL
       },
     });
 
-    await trackEvent({
-      type: "full_audit_unlocked",
-      userId,
-      reportId: customData.reportId,
-      metadata: {
-        transactionId: transaction.id,
-        product: customData.product,
-        provider: "paddle",
-      },
-    });
+    const eventMetadata = {
+      transactionId: transaction.id,
+      product: customData.product,
+      provider: "paddle",
+    };
+
+    if (!(await hasTrackedEvent("full_audit_unlocked", userId, eventMetadata))) {
+      await trackEvent({
+        type: "full_audit_unlocked",
+        userId,
+        reportId: customData.reportId,
+        metadata: eventMetadata,
+      });
+    }
   }
 
   if (transaction.subscriptionId) {
@@ -135,26 +156,35 @@ export async function syncPaddleSubscription(
   if (active && nextRole) {
     await cancelPreviousSubscription(user.paddleSubscriptionId, subscription.id);
 
-    await trackEvent({
-      type: `${customData.product}_activated`,
-      userId: user.id,
-      metadata: {
-        subscriptionId: subscription.id,
-        plan: customData.plan,
-        provider: "paddle",
-      },
-    });
+    const eventType = `${customData.product}_activated`;
+    const eventMetadata = {
+      subscriptionId: subscription.id,
+      plan: customData.plan || "unknown",
+      provider: "paddle",
+    };
+
+    if (!(await hasTrackedEvent(eventType, user.id, eventMetadata))) {
+      await trackEvent({
+        type: eventType,
+        userId: user.id,
+        metadata: eventMetadata,
+      });
+    }
   }
 
   if (subscription.status === "canceled") {
-    await trackEvent({
-      type: "subscription_cancelled",
-      userId: user.id,
-      metadata: {
-        subscriptionId: subscription.id,
-        provider: "paddle",
-      },
-    });
+    const eventMetadata = {
+      subscriptionId: subscription.id,
+      provider: "paddle",
+    };
+
+    if (!(await hasTrackedEvent("subscription_cancelled", user.id, eventMetadata))) {
+      await trackEvent({
+        type: "subscription_cancelled",
+        userId: user.id,
+        metadata: eventMetadata,
+      });
+    }
   }
 }
 
