@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     where: { id: userId },
     data: {
       weeklyUploadCount: 0,
+      weeklyResetDate: new Date(),
     },
   });
 

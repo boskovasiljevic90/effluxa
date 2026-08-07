@@ -49,11 +49,18 @@ Working:
 
 Not ready:
 - Background processing
-- Rate limiting
+- Distributed rate limiting
 - Error handling hardening
 - Proper report UI
-- File validation
+- Production deployment of the latest upload hardening
 - User dashboard polish
+
+Launch hardening completed locally:
+- Server-side upload validation now checks file signatures for PDF, XLSX, and XLS files
+- Empty, oversized, unsupported, and binary-looking CSV uploads are rejected before AI processing
+- Upload requests have an additional per-user rate limit
+- Weekly free-audit usage resets automatically after seven days
+- Admin usage reset also refreshes the weekly usage window
 
 ---
 
@@ -126,4 +133,4 @@ Completed:
 
 Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal flow, sandbox subscription provisioning, and repeated-event protection are verified. No live production charge was used during testing. The production Paddle key’s portal permission should be rechecked in the live Paddle dashboard before the first paid customer uses Manage Billing.
 
-Next milestone: Resume the pre-Paddle launch roadmap with the remaining launch hardening, starting with file validation, usage/rate limits, and error handling.
+Next milestone: Deploy and smoke-test the upload hardening, then continue with remaining error handling and report/dashboard polish. The current local patch has not been deployed yet.

@@ -12,6 +12,7 @@ import { sendAdminNotificationEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 import { canUseUnlimitedUploads } from "@/lib/access";
 import { buildFallbackAuditReport, normalizeAuditReport, shouldUseFallbackReport } from "@/lib/reportQuality";
+import { validateUploadFile } from "@/lib/uploadValidation";
 
 export const runtime = "nodejs";
 
@@ -167,6 +168,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const userLimited = rateLimit({
+      req,
+      key: `upload_user:${user.id}`,
+      limit: 3,
+      windowMs: 60000,
+    });
+
+    if (userLimited) return userLimited;
+
+    const now = new Date();
+    const weeklyWindowMs = 7 * 24 * 60 * 60 * 1000;
+    const resetAt = user.weeklyResetDate?.getTime() || 0;
+    const weeklyWindowExpired = now.getTime() - resetAt >= weeklyWindowMs;
+
+    if (weeklyWindowExpired) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          weeklyUploadCount: 0,
+          weeklyResetDate: now,
+        },
+      });
+
+      user.weeklyUploadCount = 0;
+      user.weeklyResetDate = now;
+    }
+
     const workspace = await getWorkspaceOwner(user);
     const hasUnlimitedUploads = canUseUnlimitedUploads({ user, workspace });
 
@@ -180,7 +208,13 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const uploadedValue = formData.get("file");
+    const file =
+      uploadedValue &&
+      typeof uploadedValue !== "string" &&
+      typeof uploadedValue.arrayBuffer === "function"
+        ? (uploadedValue as File)
+        : null;
     const rawClientId = formData.get("clientId") as string | null;
     const clientId = rawClientId?.trim() || null;
 
@@ -204,28 +238,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const allowedExtensions = [".pdf", ".csv", ".xlsx", ".xls"];
+    const fileValidation = await validateUploadFile(file);
+
+    if (!fileValidation.valid) {
+      return NextResponse.json(
+        { error: fileValidation.error },
+        { status: 400 }
+      );
+    }
+
     const lowerName = file.name.toLowerCase();
-
-    const validFile = allowedExtensions.some((ext) =>
-      lowerName.endsWith(ext)
-    );
-
-    if (!validFile) {
-      return NextResponse.json(
-        { error: "Only PDF, CSV, XLSX, and XLS files are supported." },
-        { status: 400 }
-      );
-    }
-
-    const maxSize = 10 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { error: "File too large. Maximum size is 10MB." },
-        { status: 400 }
-      );
-    }
 
     let financialText = "";
 
