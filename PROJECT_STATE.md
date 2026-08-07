@@ -37,14 +37,17 @@ Working:
 - Sandbox pricing validator passed against all five prices
 - Sandbox checkout opened successfully from an HTTPS Effluxa preview
 - Paddle sandbox test-card payment completed successfully
+- Authenticated sandbox subscription provisioning completed end-to-end
+- Sandbox test account upgraded to PRO after successful payment
+- Paddle customer/subscription IDs and activation event verified in the database
+- Sandbox customer portal session creation verified with the required portal permission
 - Paddle production database billing migration applied
 - Existing-user login verified after the billing migration
 - Paddle webhook provisioning is protected against repeated activation events
-- PRO users can open the Paddle billing portal
+- Sandbox PRO users can open the Paddle billing portal with the required API permission
 - Billing success preserves the transaction through a re-login
 
 Not ready:
-- Authenticated app-level sandbox subscription provisioning test for a real Effluxa user
 - Background processing
 - Rate limiting
 - Error handling hardening
@@ -121,6 +124,6 @@ Completed:
 - Production deploy passed
 - Production smoke test passed, including webhook signature rejection without a signature
 
-Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal, and repeated-event protection are verified. No live production charge was used during testing, and an authenticated sandbox subscription provisioning test is still pending.
+Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal flow, sandbox subscription provisioning, and repeated-event protection are verified. No live production charge was used during testing. The production Paddle key’s portal permission should be rechecked in the live Paddle dashboard before the first paid customer uses Manage Billing.
 
-Next milestone: Resume the pre-Paddle launch roadmap with the remaining launch hardening, starting with file validation, usage/rate limits, and error handling. The authenticated app-level sandbox webhook provisioning test remains an optional billing verification task before launch.
+Next milestone: Resume the pre-Paddle launch roadmap with the remaining launch hardening, starting with file validation, usage/rate limits, and error handling.
