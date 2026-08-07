@@ -67,12 +67,15 @@ export async function createPaddleCheckoutTransaction({
   customerId?: string | null;
   customData: PaddleCustomData;
 }) {
+  const checkoutUrl = process.env.PADDLE_CHECKOUT_URL;
+  const shouldUseCheckoutUrl = process.env.PADDLE_ENVIRONMENT !== "sandbox";
+
   const transaction = await getPaddle().transactions.create({
     items: [{ priceId, quantity: 1 }],
     customerId: customerId || undefined,
     customData,
-    checkout: process.env.PADDLE_CHECKOUT_URL
-      ? { url: process.env.PADDLE_CHECKOUT_URL }
+    checkout: shouldUseCheckoutUrl && checkoutUrl
+      ? { url: checkoutUrl }
       : undefined,
   });
 
