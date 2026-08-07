@@ -1,7 +1,7 @@
 "use client";
 
 import Script from "next/script";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type PaddleCheckoutEvent = {
   name?: string;
@@ -20,12 +20,16 @@ declare global {
         token: string;
         eventCallback?: (event: PaddleCheckoutEvent) => void;
       }) => void;
+      Checkout: {
+        open: (options: { transactionId: string }) => void;
+      };
     };
   }
 }
 
 export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
+  const initialized = useRef(false);
   const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
   const environment =
     process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "sandbox"
@@ -33,40 +37,85 @@ export default function CheckoutPage() {
       : "production";
 
   function initializePaddle() {
-    if (!token || !window.Paddle) {
+    if (initialized.current) {
+      return;
+    }
+
+    if (!token || !window.Paddle?.Checkout) {
       setError("Checkout is temporarily unavailable. Please try again later.");
       return;
     }
 
-    if (environment === "sandbox") {
-      window.Paddle.Environment.set("sandbox");
+    initialized.current = true;
+
+    try {
+      if (environment === "sandbox") {
+        window.Paddle.Environment.set("sandbox");
+      }
+
+      window.Paddle.Initialize({
+        token,
+        eventCallback: (event) => {
+          if (event.name === "checkout.error") {
+            setError("Checkout is temporarily unavailable. Please try again later.");
+            return;
+          }
+
+          if (event.name !== "checkout.completed") {
+            return;
+          }
+
+          const transactionId = event.data?.transaction_id;
+
+          if (transactionId) {
+            window.location.href = `/billing/success?transaction_id=${encodeURIComponent(transactionId)}`;
+            return;
+          }
+
+          window.location.href = "/dashboard?billing=success";
+        },
+      });
+
+      const transactionId = new URLSearchParams(window.location.search).get("_ptxn");
+
+      if (transactionId) {
+        window.Paddle.Checkout.open({ transactionId });
+      }
+    } catch {
+      initialized.current = false;
+      setError("Checkout is temporarily unavailable. Please try again later.");
     }
-
-    window.Paddle.Initialize({
-      token,
-      eventCallback: (event) => {
-        if (event.name !== "checkout.completed") {
-          return;
-        }
-
-        const transactionId = event.data?.transaction_id;
-
-        if (transactionId) {
-          window.location.href = `/billing/success?transaction_id=${encodeURIComponent(transactionId)}`;
-          return;
-        }
-
-        window.location.href = "/dashboard?billing=success";
-      },
-    });
   }
+
+  useEffect(() => {
+    const pollForPaddle = window.setInterval(() => {
+      if (window.Paddle?.Checkout) {
+        initializePaddle();
+      }
+
+      if (initialized.current) {
+        window.clearInterval(pollForPaddle);
+      }
+    }, 200);
+
+    const timeout = window.setTimeout(() => {
+      if (!initialized.current && !error) {
+        setError("Checkout is temporarily unavailable. Please try again later.");
+      }
+    }, 10000);
+
+    return () => {
+      window.clearInterval(pollForPaddle);
+      window.clearTimeout(timeout);
+    };
+  }, [error]);
 
   return (
     <main style={{ minHeight: "100vh", padding: "48px 24px", background: "#f8fafc" }}>
       <Script
         src="https://cdn.paddle.com/paddle/v2/paddle.js"
         strategy="afterInteractive"
-        onLoad={initializePaddle}
+        onReady={initializePaddle}
         onError={() => setError("Checkout is temporarily unavailable. Please try again later.")}
       />
 
