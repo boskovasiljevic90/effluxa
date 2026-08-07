@@ -15,10 +15,6 @@ import { buildFallbackAuditReport, normalizeAuditReport, shouldUseFallbackReport
 
 export const runtime = "nodejs";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
 function extractJSON(text: string) {
   const cleaned = text
     .replace(/```json/g, "")
@@ -48,6 +44,10 @@ function safeParseAIJson(raw: string) {
 }
 
 async function analyzeWithAI(file: File, financialText?: string) {
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY!,
+  });
+
   const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 
   const content: any[] = [];

@@ -46,6 +46,11 @@ export default function SubscriptionButton({
         await response.json();
 
 
+      if (data.transactionId) {
+        window.location.href = `/checkout?_ptxn=${encodeURIComponent(data.transactionId)}`;
+        return;
+      }
+
       if(data.url){
 
         window.location.href = data.url;
