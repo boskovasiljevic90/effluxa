@@ -1,8 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { safeVerifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rateLimit";
+import { trackError } from "@/lib/errorTracking";
 import {
   createPaddleCheckoutTransaction,
   getPaddlePriceId,
@@ -36,6 +38,15 @@ function isPlan(value: unknown): value is Plan {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit({
+      req,
+      key: "paddle_subscription_checkout",
+      limit: 10,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
     const token = req.cookies.get("token")?.value;
 
     if (!token) {
@@ -45,12 +56,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as {
-      userId: string;
-    };
+    const decoded = safeVerifyToken(token);
+
+    if (!decoded) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const user = await prisma.user.findUnique({
       where: {
@@ -124,6 +134,11 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("PADDLE SUBSCRIPTION CHECKOUT ERROR:", error);
+
+    await trackError({
+      type: "paddle_subscription_checkout_error",
+      error,
+    });
 
     return NextResponse.json(
       {

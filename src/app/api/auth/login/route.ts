@@ -17,9 +17,18 @@ export async function POST(req: NextRequest) {
 
     if (limited) return limited;
 
-    const body = await req.json();
-    const email = String(body?.email || "").trim().toLowerCase();
-    const password = body?.password;
+    const body = await req.json().catch(() => null);
+    const email = typeof body?.email === "string"
+      ? body.email.trim().toLowerCase()
+      : "";
+    const password = typeof body?.password === "string" ? body.password : "";
+
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email and password are required." },
+        { status: 400 }
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -57,8 +66,11 @@ export async function POST(req: NextRequest) {
 
     return response;
 
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
+    return NextResponse.json(
+      { error: "We couldn't sign you in right now. Please try again." },
+      { status: 500 }
+    );
   }
 }

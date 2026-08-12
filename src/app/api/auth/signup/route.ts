@@ -19,9 +19,11 @@ export async function POST(req: NextRequest) {
 
     if (limited) return limited;
 
-    const body = await req.json();
-    const email = String(body?.email || "").trim().toLowerCase();
-    const password = body?.password;
+    const body = await req.json().catch(() => null);
+    const email = typeof body?.email === "string"
+      ? body.email.trim().toLowerCase()
+      : "";
+    const password = typeof body?.password === "string" ? body.password : "";
     const termsAccepted = body?.termsAccepted === true;
 
     if (!email || !password) {
@@ -34,6 +36,13 @@ export async function POST(req: NextRequest) {
     if (!termsAccepted) {
       return NextResponse.json(
         { error: "You must accept the Terms of Service and Privacy Policy." },
+        { status: 400 }
+      );
+    }
+
+    if (email.length > 254 || !email.includes("@")) {
+      return NextResponse.json(
+        { error: "Please enter a valid email address." },
         { status: 400 }
       );
     }
@@ -106,6 +115,9 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (error) {
     console.error("SIGNUP ERROR:", error);
-    return NextResponse.json({ error: "Signup failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "We couldn't create your account right now. Please try again." },
+      { status: 500 }
+    );
   }
 }

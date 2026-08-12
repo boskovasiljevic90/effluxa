@@ -246,11 +246,11 @@ export async function GET(req: NextRequest, { params }: Props) {
         "Content-Disposition": `attachment; filename="effluxa-audit-${report.id}.pdf"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("PDF DOWNLOAD ERROR:", error);
 
     return NextResponse.json(
-      { error: error.message || "Failed to generate PDF" },
+      { error: "We couldn't generate the PDF right now. Please try again." },
       { status: 500 }
     );
   }

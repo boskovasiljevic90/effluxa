@@ -8,19 +8,30 @@ export default function BillingPortalButton() {
   async function openBillingPortal() {
     setLoading(true);
 
-    const res = await fetch("/api/paddle/create-billing-portal", {
-      method: "POST",
-    });
+    try {
+      const res = await fetch("/api/paddle/create-billing-portal", {
+        method: "POST",
+      });
 
-    const data = await res.json();
+      const data = await res.json().catch(() => ({}));
 
-    if (!res.ok) {
-      alert(data.error || "Failed to open billing portal.");
+      if (!res.ok) {
+        alert(data.error || "Failed to open billing portal.");
+        return;
+      }
+
+      if (!data?.url) {
+        alert("Billing portal link is unavailable. Please try again.");
+        return;
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error("BILLING PORTAL UI ERROR:", error);
+      alert("We couldn't open billing right now. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    window.location.href = data.url;
   }
 
   return (

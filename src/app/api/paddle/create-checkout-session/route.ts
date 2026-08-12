@@ -1,10 +1,11 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+import { safeVerifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { trackEvent } from "@/lib/events";
 import { trackError } from "@/lib/errorTracking";
+import { rateLimit } from "@/lib/rateLimit";
 import {
   createPaddleCheckoutTransaction,
   getPaddlePriceId,
@@ -12,6 +13,15 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
+    const limited = rateLimit({
+      req,
+      key: "paddle_report_checkout",
+      limit: 10,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
     const token = req.cookies.get("token")?.value;
 
     if (!token) {
@@ -21,17 +31,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET!
-    ) as {
-      userId: string;
-    };
+    const decoded = safeVerifyToken(token);
 
-    const body = await req.json();
+    if (!decoded) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => null);
     const reportId = body?.reportId;
 
-    if (!reportId) {
+    if (typeof reportId !== "string" || !reportId.trim()) {
       return NextResponse.json(
         { error: "Missing reportId" },
         { status: 400 }

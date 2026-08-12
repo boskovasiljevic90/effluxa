@@ -50,16 +50,20 @@ Working:
 Not ready:
 - Background processing
 - Distributed rate limiting
-- Error handling hardening
 - Proper report UI
 - User dashboard polish
 
-Launch hardening completed locally:
+Launch hardening completed:
 - Server-side upload validation now checks file signatures for PDF, XLSX, and XLS files
 - Empty, oversized, unsupported, and binary-looking CSV uploads are rejected before AI processing
 - Upload requests have an additional per-user rate limit
 - Weekly free-audit usage resets automatically after seven days
 - Admin usage reset also refreshes the weekly usage window
+- Invalid or expired auth tokens return a clean unauthorized response
+- Login, signup, and Paddle request bodies are validated before processing
+- Paddle checkout and billing portal actions have request throttling and error tracking
+- PDF generation errors no longer expose internal exception messages
+- Billing portal UI handles network failures and missing portal links safely
 
 ---
 
@@ -132,6 +136,6 @@ Completed:
 
 Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal flow, sandbox subscription provisioning, and repeated-event protection are verified. No live production charge was used during testing. The production Paddle key’s portal permission should be rechecked in the live Paddle dashboard before the first paid customer uses Manage Billing.
 
-Latest deployed hardening: commit `9b81234` is live on `https://www.effluxa.com`. Production smoke passed for public routes, protected dashboard redirects, unauthenticated upload rejection, unsigned Paddle webhook rejection, and explicit Paddle CSP hosts.
+Latest deployed hardening: upload hardening commit `9b81234` is live on `https://www.effluxa.com`. The error-handling patch is verified locally and is pending its production deploy.
 
 Next milestone: Continue with remaining error handling and report/dashboard polish.
