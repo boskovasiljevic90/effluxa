@@ -15,7 +15,8 @@ export default function PrivacyPage() {
 
         <div className="audit-card" style={{ lineHeight: 1.8 }}>
           <p>
-            Effluxa processes uploaded financial documents to generate AI-powered financial audit reports.
+            Effluxa is a product by NeedAIHelp. Effluxa processes uploaded financial documents to generate
+            AI-powered financial audit reports.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>Data We Collect</h2>
@@ -39,7 +40,8 @@ export default function PrivacyPage() {
 
           <h2 style={{ marginTop: "30px" }}>Payments</h2>
           <p>
-            Payments are processed securely by Paddle. Effluxa does not store card numbers.
+            Payments are processed securely by Paddle. Effluxa does not store card numbers. Paddle may process
+            billing and transaction information needed to complete purchases and manage subscriptions.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>AI Processing</h2>

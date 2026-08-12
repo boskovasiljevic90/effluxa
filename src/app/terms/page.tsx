@@ -15,7 +15,8 @@ export default function TermsPage() {
 
         <div className="audit-card" style={{ lineHeight: 1.8 }}>
           <p>
-            Effluxa provides AI-generated financial leakage audit reports for informational purposes.
+            Effluxa is a product by NeedAIHelp. Effluxa provides AI-generated financial leakage audit reports
+            for informational purposes.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>No Financial Advice</h2>
@@ -32,7 +33,16 @@ export default function TermsPage() {
 
           <h2 style={{ marginTop: "30px" }}>Payments</h2>
           <p>
-            Full AI audit unlocks are one-time digital purchases. Payment processing is handled by Paddle.
+            Full AI audit unlocks are one-time digital purchases. Pro and Agency are recurring subscriptions
+            billed monthly or annually according to the plan selected at checkout. Payment processing is handled
+            by Paddle. You can manage payment details and subscriptions from the Billing area in your account.
+          </p>
+
+          <h2 style={{ marginTop: "30px" }}>Subscription Cancellation</h2>
+          <p>
+            You may cancel a Pro or Agency subscription through the Paddle billing portal. Cancellation stops
+            future renewals; access normally remains available through the current paid billing period.
+            Refund requests are reviewed based on the circumstances and applicable consumer rules.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>Limitations</h2>
