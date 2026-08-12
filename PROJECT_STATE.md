@@ -136,6 +136,6 @@ Completed:
 
 Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal flow, sandbox subscription provisioning, and repeated-event protection are verified. No live production charge was used during testing. The production Paddle key’s portal permission should be rechecked in the live Paddle dashboard before the first paid customer uses Manage Billing.
 
-Latest deployed hardening: upload hardening commit `9b81234` is live on `https://www.effluxa.com`. The error-handling patch is verified locally and is pending its production deploy.
+Latest deployed hardening: error-handling commit `3320b82` is live on `https://www.effluxa.com`. Production smoke passed for public routes, protected dashboard redirects, malformed auth input, invalid tokens, unauthenticated Paddle/upload actions, unsigned Paddle webhook rejection, and explicit Paddle CSP hosts.
 
 Next milestone: Continue with remaining error handling and report/dashboard polish.
