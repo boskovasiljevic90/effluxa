@@ -50,7 +50,6 @@ Working:
 Not ready:
 - Background processing
 - Distributed rate limiting
-- Proper report UI
 - User dashboard polish
 
 Launch hardening completed:
@@ -64,6 +63,11 @@ Launch hardening completed:
 - Paddle checkout and billing portal actions have request throttling and error tracking
 - PDF generation errors no longer expose internal exception messages
 - Billing portal UI handles network failures and missing portal links safely
+- Report overview now surfaces score, savings access, risk, and report status in a compact responsive summary
+- Free previews mask savings and risk details until the full audit is unlocked
+- Full reports safely normalize anomalies and numeric values before display
+- Reports list correctly treats Pro and Agency reports as unlocked and labels limited-data reports
+- Duplicate Agency health content was removed from the dashboard overview
 
 ---
 
@@ -136,6 +140,6 @@ Completed:
 
 Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal flow, sandbox subscription provisioning, and repeated-event protection are verified. No live production charge was used during testing. The production Paddle key’s portal permission should be rechecked in the live Paddle dashboard before the first paid customer uses Manage Billing.
 
-Latest deployed hardening: error-handling commit `3320b82` is live on `https://www.effluxa.com`. Production smoke passed for public routes, protected dashboard redirects, malformed auth input, invalid tokens, unauthenticated Paddle/upload actions, unsigned Paddle webhook rejection, and explicit Paddle CSP hosts.
+Latest deployed hardening: report/dashboard polish commit `d4f27c2` is live on `https://www.effluxa.com`. Production build passed, and responsive QA passed at desktop and 390px mobile width with no horizontal overflow.
 
-Next milestone: Continue with remaining error handling and report/dashboard polish.
+Next milestone: Final launch QA: confirm legal/sales copy, run one end-to-end authenticated upload with a safe test document, and verify the production Paddle portal with the live production key before opening to first customers.
