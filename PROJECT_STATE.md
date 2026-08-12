@@ -68,6 +68,8 @@ Launch hardening completed:
 - Full reports safely normalize anomalies and numeric values before display
 - Reports list correctly treats Pro and Agency reports as unlocked and labels limited-data reports
 - Duplicate Agency health content was removed from the dashboard overview
+- Public footer and legal pages identify Effluxa as a product by NeedAIHelp
+- Terms now distinguish one-time Full Audit purchases from recurring Pro and Agency subscriptions
 
 ---
 
@@ -140,6 +142,6 @@ Completed:
 
 Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal flow, sandbox subscription provisioning, and repeated-event protection are verified. No live production charge was used during testing. The production Paddle key’s portal permission should be rechecked in the live Paddle dashboard before the first paid customer uses Manage Billing.
 
-Latest deployed hardening: report/dashboard polish commit `d4f27c2` is live on `https://www.effluxa.com`. Production build passed, and responsive QA passed at desktop and 390px mobile width with no horizontal overflow.
+Latest deployed hardening: launch-copy commit `cf5220d` is live on `https://www.effluxa.com`. Production build passed, public route/legal attribution smoke passed, Vercel production Paddle variables are present, and responsive QA previously passed at desktop and 390px mobile width with no horizontal overflow.
 
-Next milestone: Final launch QA: confirm legal/sales copy, run one end-to-end authenticated upload with a safe test document, and verify the production Paddle portal with the live production key before opening to first customers.
+Next milestone: Final manual readiness checks: run one end-to-end authenticated upload with a safe test document, and verify the production Paddle portal with the live production key before opening to first customers. No live charge is required for either check.
