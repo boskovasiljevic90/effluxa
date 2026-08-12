@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { isFallbackReport } from "@/lib/reportDisplay";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -237,6 +238,10 @@ export default async function ReportsPage({
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {reports.map((report) => {
               const data = report.parsedData as any;
+              const reportIsUnlocked =
+                report.unlocked ||
+                user.role === "PRO" ||
+                workspace.hasBusinessAccess;
 
               return (
                 <Link key={report.id} href={`/dashboard/reports/${report.id}`}>
@@ -271,14 +276,10 @@ export default async function ReportsPage({
                           Leakage Score: {data?.leakage_score ?? "N/A"}/100
                         </div>
 
-                        {report.internalNote && (
-                          <div className="gray" style={{ marginTop: "8px", color: "#4ade80" }}>
-                            Internal note saved
-                          </div>
-                        )}
-
                         <div className="gray" style={{ marginTop: "8px" }}>
-                          Estimated Savings: €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
+                          Estimated Savings: {reportIsUnlocked
+                            ? `€${data?.estimated_savings?.toLocaleString?.() || "N/A"}`
+                            : "Locked until full audit is unlocked"}
                         </div>
 
                         {report.internalNote && (
@@ -292,21 +293,27 @@ export default async function ReportsPage({
                             Client: {clients.find((client) => client.id === report.clientId)?.name || "Assigned client"}
                           </div>
                         )}
+
+                        {isFallbackReport(data) && (
+                          <div className="gray" style={{ marginTop: "8px", color: "#facc15" }}>
+                            Limited-data report
+                          </div>
+                        )}
                       </div>
 
                       <div
                         style={{
                           padding: "9px 15px",
                           borderRadius: "999px",
-                          background: report.unlocked
+                          background: reportIsUnlocked
                             ? "rgba(34,197,94,0.15)"
                             : "rgba(255,255,255,0.08)",
-                          color: report.unlocked ? "#4ade80" : "#cbd5e1",
+                          color: reportIsUnlocked ? "#4ade80" : "#cbd5e1",
                           fontWeight: "bold",
                           fontSize: "14px",
                         }}
                       >
-                        {report.unlocked ? "UNLOCKED" : "PREVIEW"}
+                        {reportIsUnlocked ? "UNLOCKED" : "PREVIEW"}
                       </div>
                     </div>
                   </div>

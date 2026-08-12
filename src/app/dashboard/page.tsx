@@ -234,31 +234,6 @@ export default async function DashboardPage() {
 
 
   
-
-  const overallHealthScore =
-    reports.length === 0
-      ? 0
-      : Math.max(
-          0,
-          Math.min(
-            100,
-            Math.round(
-              100 -
-              averageLeakageScore * 0.6 +
-              Math.min(20, totalEstimatedSavings / 1000)
-            )
-          )
-        );
-
-  const healthStatus =
-    overallHealthScore >= 85
-      ? "Excellent"
-      : overallHealthScore >= 70
-      ? "Good"
-      : overallHealthScore >= 50
-      ? "Needs Attention"
-      : "High Risk";
-
 return (
     <>
       <div className="topbar">
@@ -274,48 +249,6 @@ return (
 
 
       
-      {workspace.hasBusinessAccess && (
-        <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Agency Health</div>
-
-          <div
-            style={{
-              fontSize: "42px",
-              fontWeight: 800,
-              marginTop: "16px",
-            }}
-          >
-            {overallHealthScore}/100
-          </div>
-
-          <div
-            style={{
-              color:
-                overallHealthScore >= 70
-                  ? "#4ade80"
-                  : overallHealthScore >= 50
-                  ? "#facc15"
-                  : "#f87171",
-              marginTop: "8px",
-              fontWeight: 700,
-            }}
-          >
-            {healthStatus}
-          </div>
-
-          <ul
-            style={{
-              marginTop: "18px",
-              lineHeight: 1.9,
-            }}
-          >
-            <li>Average leakage: {averageLeakageScore}/100</li>
-            <li>Potential savings: €{totalEstimatedSavings.toLocaleString()}</li>
-            <li>Highest audit risk: {highestRiskAudit}/100</li>
-            <li>Improvement trend: {improvementTrend}%</li>
-          </ul>
-        </div>
-      )}
 {workspace.hasBusinessAccess && (
         <div
           className="card"

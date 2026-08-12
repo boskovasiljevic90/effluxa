@@ -17,6 +17,10 @@ export type DisplayRisk = {
   reason: string;
 };
 
+export function displayNumber(value: unknown, fallback = 0) {
+  return numberFrom(value, fallback);
+}
+
 function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }

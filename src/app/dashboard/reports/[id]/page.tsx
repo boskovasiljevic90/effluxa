@@ -11,7 +11,7 @@ import ChangeReportClientForm from "./ChangeReportClientForm";
 import InternalNoteForm from "./InternalNoteForm";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
-import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
+import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, displayNumber, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -60,10 +60,6 @@ export default async function ReportPage({ params }: Props) {
     return <div style={{ padding: "40px" }}>Report not found.</div>;
   }
 
-  if (!report) {
-    return <div style={{ padding: "40px" }}>Report not found.</div>;
-  }
-
   const data = report.parsedData as any;
   const isUnlocked = canAccessFullReport({ report, user, workspace });
   const isLimitedDataReport = isFallbackReport(data);
@@ -101,6 +97,19 @@ export default async function ReportPage({ params }: Props) {
   const recommendations = asTextArray(data?.recommendations, [
     "No AI recommendations were generated from the uploaded data.",
   ]);
+  const anomalies = asRiskItems(data?.anomalies);
+  const leakageScore = Math.max(0, Math.min(100, Math.round(displayNumber(data?.leakage_score))));
+  const estimatedSavings = Math.max(0, displayNumber(data?.estimated_savings));
+  const riskLevel = data?.risk_level || "Insufficient data";
+  const confidenceLevel = data?.confidence_level || "Insufficient data";
+  const executiveSummary =
+    data?.executive_summary ||
+    data?.summary ||
+    "Effluxa detected financial optimization opportunities in this document.";
+  const cfoSummary = data?.cfo_summary || "Insufficient data";
+  const visibleSavings = isUnlocked ? estimatedSavings : null;
+  const visibleRiskLevel = isUnlocked ? riskLevel : "Unlock to view";
+  const visibleConfidence = isUnlocked ? confidenceLevel : "Included in full audit";
 
   const previousClientAudit = report.clientId
     ? await prisma.upload.findFirst({
@@ -118,16 +127,16 @@ export default async function ReportPage({ params }: Props) {
     : null;
 
   const previousData = previousClientAudit?.parsedData as any;
-  const currentLeakage = Number(data?.leakage_score || 0);
-  const previousLeakage = Number(previousData?.leakage_score || 0);
+  const currentLeakage = leakageScore;
+  const previousLeakage = displayNumber(previousData?.leakage_score);
   const leakagePointChange = previousClientAudit
     ? currentLeakage - previousLeakage
     : 0;
   const leakageImprovement = previousClientAudit
     ? previousLeakage - currentLeakage
     : 0;
-  const currentSavings = Number(data?.estimated_savings || 0);
-  const previousSavings = Number(previousData?.estimated_savings || 0);
+  const currentSavings = estimatedSavings;
+  const previousSavings = displayNumber(previousData?.estimated_savings);
   const savingsChange = previousClientAudit
     ? currentSavings - previousSavings
     : 0;
@@ -149,26 +158,25 @@ export default async function ReportPage({ params }: Props) {
 
   return (
     <>
-      <div style={{ maxWidth: "1100px" }}>
-        <h1 style={{ fontSize: "42px", marginBottom: "18px" }}>
-          Effluxa AI Financial Leak Audit
-        </h1>
+      <div className="audit-report-shell">
+        <div className="audit-report-header">
+          <div>
+            <div className="audit-eyebrow">Financial leakage audit</div>
+            <h1 className="audit-report-title">Effluxa AI Financial Leak Audit</h1>
+            <div className="audit-report-meta">
+              <span>{report.fileUrl}</span>
+              <span>{new Date(report.createdAt).toLocaleString()}</span>
+              {report.client && <span>Client: {report.client.name}</span>}
+            </div>
+          </div>
 
-        <p>
-          <strong>File:</strong> {report.fileUrl}
-        </p>
-
-        <p>
-          <strong>Date:</strong> {new Date(report.createdAt).toLocaleString()}
-        </p>
-
-        {report.client && (
-          <p>
-            <strong>Client:</strong> {report.client.name}
-          </p>
-        )}
-
-        <DeleteReportButton reportId={report.id} />
+          <div className="audit-report-actions">
+            <span className={`audit-status-badge ${isUnlocked ? "is-unlocked" : "is-preview"}`}>
+              {isUnlocked ? "Full audit" : "Preview"}
+            </span>
+            <DeleteReportButton reportId={report.id} />
+          </div>
+        </div>
 
         {workspace.hasBusinessAccess && (
           <>
@@ -205,19 +213,34 @@ export default async function ReportPage({ params }: Props) {
           </>
         )}
 
-        <div className="audit-card" style={{ marginTop: "36px" }}>
-          <h2>Preview Summary</h2>
-          <p style={{ marginTop: "16px", lineHeight: 1.7 }}>
-            {data?.executive_summary ||
-              data?.summary ||
-              "Effluxa detected financial optimization opportunities in this document."}
-          </p>
+        <div className="audit-summary-grid">
+          <div className="audit-metric-card audit-metric-score">
+            <span>Leakage score</span>
+            <strong>{leakageScore}<small>/100</small></strong>
+            <p>Higher scores indicate more leakage risk to review.</p>
+          </div>
+          <div className="audit-metric-card audit-metric-savings">
+            <span>Estimated savings</span>
+            <strong>{visibleSavings === null ? "Locked" : `€${visibleSavings.toLocaleString()}`}</strong>
+            <p>{visibleSavings === null ? "Unlock the full audit to reveal the opportunity." : "Conservative opportunity identified in this file."}</p>
+          </div>
+          <div className="audit-metric-card">
+            <span>Risk level</span>
+            <strong>{visibleRiskLevel}</strong>
+            <p>Confidence: {visibleConfidence}</p>
+          </div>
+          <div className="audit-metric-card">
+            <span>Report access</span>
+            <strong>{isUnlocked ? "Full" : "Preview"}</strong>
+            <p>{isUnlocked ? "All available findings are visible." : "Unlock the full audit to continue."}</p>
+          </div>
         </div>
 
-        <div className="audit-card" style={{ marginTop: "28px" }}>
-          <h2>Leakage Score</h2>
-          <p style={{ fontSize: "42px", fontWeight: 800, marginTop: "18px" }}>
-            {data?.leakage_score ?? 0}/100
+        <div className="audit-card audit-summary-card">
+          <div className="audit-section-kicker">Executive overview</div>
+          <h2>What Effluxa found</h2>
+          <p style={{ marginTop: "16px", lineHeight: 1.8 }}>
+            {executiveSummary}
           </p>
         </div>
 
@@ -338,20 +361,11 @@ export default async function ReportPage({ params }: Props) {
             )}
 
             <div className="savings-card" style={{ marginTop: "28px" }}>
+              <div className="audit-section-kicker">Commercial opportunity</div>
               <h2>Estimated Savings Opportunity</h2>
-              <p className="savings-value">
-                €{data?.estimated_savings?.toLocaleString?.() || "N/A"}
-              </p>
-            </div>
-
-
-            <div className="audit-card" style={{ marginTop: "28px" }}>
-              <h2>Risk Level</h2>
-              <p style={{ fontSize: "32px", fontWeight: 800, marginTop: "18px" }}>
-                {data?.risk_level || "Insufficient data"}
-              </p>
-              <p className="gray" style={{ marginTop: "10px" }}>
-                Confidence: {data?.confidence_level || "Insufficient data"}
+              <p className="savings-value">€{estimatedSavings.toLocaleString()}</p>
+              <p style={{ marginTop: "12px", color: "#166534", lineHeight: 1.7 }}>
+                Use this as a prioritisation signal, then validate the underlying transactions before taking action.
               </p>
             </div>
 
@@ -378,11 +392,15 @@ export default async function ReportPage({ params }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>Anomalies & Duplicate Payment Risks</h2>
               <ul style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {(data?.anomalies || []).map((item: any, index: number) => (
-                  <li key={`a-${index}`}>{item.item} — {item.reason}</li>
+                {anomalies.map((item, index) => (
+                  <li key={`a-${index}`}>
+                    <strong>{item.item}</strong>{item.reason ? ` — ${item.reason}` : ""}
+                  </li>
                 ))}
-                {duplicatePaymentRisks.map((item: any, index: number) => (
-                  <li key={`d-${index}`}>{item.item} — {item.reason}</li>
+                {duplicatePaymentRisks.map((item, index) => (
+                  <li key={`d-${index}`}>
+                    <strong>{item.item}</strong>{item.reason ? ` — ${item.reason}` : ""}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -399,7 +417,7 @@ export default async function ReportPage({ params }: Props) {
             <div className="audit-card" style={{ marginTop: "28px" }}>
               <h2>CFO Summary</h2>
               <p style={{ marginTop: "16px", lineHeight: 1.8 }}>
-                {data?.cfo_summary || "Insufficient data"}
+                {cfoSummary}
               </p>
             </div>
 
