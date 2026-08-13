@@ -26,19 +26,23 @@ export type PaddleCustomData = {
 
 let paddleClient: Paddle | null = null;
 
+function normalizePaddleEnvValue(value?: string | null) {
+  return value?.replace(/\\[rn]/g, "").trim();
+}
+
 export function getPaddle() {
   if (paddleClient) {
     return paddleClient;
   }
 
-  const apiKey = process.env.PADDLE_API_KEY;
+  const apiKey = normalizePaddleEnvValue(process.env.PADDLE_API_KEY);
 
   if (!apiKey) {
     throw new Error("PADDLE_API_KEY is not configured.");
   }
 
   const environment =
-    process.env.PADDLE_ENVIRONMENT === "sandbox"
+    normalizePaddleEnvValue(process.env.PADDLE_ENVIRONMENT) === "sandbox"
       ? Environment.sandbox
       : Environment.production;
 
@@ -55,7 +59,7 @@ export function getPaddlePriceId(plan: PaddlePlan) {
     agency_annual: "PADDLE_AGENCY_ANNUAL_PRICE_ID",
   };
 
-  return process.env[priceEnv[plan]];
+  return normalizePaddleEnvValue(process.env[priceEnv[plan]]);
 }
 
 export async function createPaddleCheckoutTransaction({
@@ -67,8 +71,9 @@ export async function createPaddleCheckoutTransaction({
   customerId?: string | null;
   customData: PaddleCustomData;
 }) {
-  const checkoutUrl = process.env.PADDLE_CHECKOUT_URL;
-  const shouldUseCheckoutUrl = process.env.PADDLE_ENVIRONMENT !== "sandbox";
+  const checkoutUrl = normalizePaddleEnvValue(process.env.PADDLE_CHECKOUT_URL);
+  const shouldUseCheckoutUrl =
+    normalizePaddleEnvValue(process.env.PADDLE_ENVIRONMENT) !== "sandbox";
 
   const transaction = await getPaddle().transactions.create({
     items: [{ priceId, quantity: 1 }],

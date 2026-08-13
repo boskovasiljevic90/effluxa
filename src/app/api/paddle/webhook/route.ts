@@ -9,7 +9,7 @@ import { trackError } from "@/lib/errorTracking";
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("paddle-signature") || "";
-  const secret = process.env.PADDLE_WEBHOOK_SECRET;
+  const secret = process.env.PADDLE_WEBHOOK_SECRET?.replace(/\\[rn]/g, "").trim();
   const rawBody = await req.text();
 
   if (!secret || !signature) {

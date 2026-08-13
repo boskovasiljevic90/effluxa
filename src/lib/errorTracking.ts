@@ -25,6 +25,10 @@ export async function trackError({
             error?.message ||
             String(error || "Unknown error"),
           errorName: error?.name || null,
+          errorType: error?.type || null,
+          errorCode: error?.code || null,
+          errorDetail: error?.detail || null,
+          errorDetails: error?.errors || null,
           stack:
             process.env.NODE_ENV === "production"
               ? null

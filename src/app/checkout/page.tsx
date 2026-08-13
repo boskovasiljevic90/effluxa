@@ -30,9 +30,9 @@ declare global {
 export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const initialized = useRef(false);
-  const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+  const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN?.replace(/\\[rn]/g, "").trim();
   const environment =
-    process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "sandbox"
+    process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT?.replace(/\\[rn]/g, "").trim() === "sandbox"
       ? "sandbox"
       : "production";
 
