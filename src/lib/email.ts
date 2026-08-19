@@ -1,5 +1,14 @@
 import { Resend } from "resend";
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 function getResendClient() {
   if (!process.env.RESEND_API_KEY) return null;
   return new Resend(process.env.RESEND_API_KEY);
@@ -78,13 +87,13 @@ export async function sendContactNotificationEmail({
     html: `
       <h2>New Contact Message</h2>
 
-      <p><strong>Name:</strong> ${name || "N/A"}</p>
-      <p><strong>Email:</strong> ${email}</p>
-      <p><strong>Subject:</strong> ${subject || "N/A"}</p>
+      <p><strong>Name:</strong> ${escapeHtml(name || "N/A")}</p>
+      <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+      <p><strong>Subject:</strong> ${escapeHtml(subject || "N/A")}</p>
 
       <hr />
 
-      <p>${message}</p>
+      <p>${escapeHtml(message).replace(/\n/g, "<br />")}</p>
     `,
   });
 }
@@ -113,7 +122,7 @@ export async function sendTeamInviteEmail({
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6;">
         <h2>You're invited to Effluxa</h2>
-        <p>${ownerEmail} invited you to join their Effluxa Business workspace.</p>
+        <p>${escapeHtml(ownerEmail)} invited you to join their Effluxa Business workspace.</p>
         <p>Use this same email address to create your account or log in.</p>
         <p>
           <a href="${appUrl}/signup" style="display:inline-block;background:#0f172a;color:white;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">
@@ -162,7 +171,7 @@ export async function sendMonthlyExecutiveSummaryEmail({
     subject: `${companyName || "Effluxa"} Monthly Executive Intelligence Report`,
     html: `
       <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#0f172a;">
-        <h2>${companyName || "Effluxa"} Monthly Executive Intelligence Report</h2>
+        <h2>${escapeHtml(companyName || "Effluxa")} Monthly Executive Intelligence Report</h2>
 
         <p>Your latest Effluxa workspace intelligence summary is ready.</p>
 
@@ -171,15 +180,15 @@ export async function sendMonthlyExecutiveSummaryEmail({
           <p><strong>Potential savings found:</strong> €${totalSavings.toLocaleString()}</p>
           <p><strong>Average leakage score:</strong> ${averageLeakageScore}/100</p>
           <p><strong>Highest risk score:</strong> ${highestRiskScore}/100</p>
-          <p><strong>Top risk client:</strong> ${topRiskClient || "Insufficient data"}</p>
-          <p><strong>Top savings client:</strong> ${topSavingsClient || "Insufficient data"}</p>
+          <p><strong>Top risk client:</strong> ${escapeHtml(topRiskClient || "Insufficient data")}</p>
+          <p><strong>Top savings client:</strong> ${escapeHtml(topSavingsClient || "Insufficient data")}</p>
         </div>
 
         <h3 style="margin-top:28px;">Priority Action Plan</h3>
 
         ${
           priorityActions && priorityActions.length > 0
-            ? `<ol>${priorityActions.map((item) => `<li>${item}</li>`).join("")}</ol>`
+            ? `<ol>${priorityActions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ol>`
             : `<p>Upload more financial documents to generate recurring action insights.</p>`
         }
 

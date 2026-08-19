@@ -43,7 +43,7 @@ const faqItems: Array<[string, string]> = [
   ],
   [
     "How long are uploaded files kept?",
-    "Uploaded documents and generated report data are retained while needed to provide your account and reports. To request deletion, contact support@effluxa.com.",
+    "Effluxa keeps generated report data while your account is active so you can review your audit history. You can delete individual reports or permanently delete the account from Account Settings.",
   ],
   [
     "How quickly do I get a report?",

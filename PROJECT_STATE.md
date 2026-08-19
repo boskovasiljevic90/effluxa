@@ -63,6 +63,12 @@ Launch hardening completed:
 - Paddle checkout and billing portal actions have request throttling and error tracking
 - PDF generation errors no longer expose internal exception messages
 - Billing portal UI handles network failures and missing portal links safely
+- Account owners can permanently delete their Effluxa account from Settings after cancelling an active paid subscription
+- Individual report/client deletion is available and the account deletion transaction removes related reports, clients, team memberships, support messages, reset tokens and events
+- Automated data-retention cron removes expired reset tokens, old operational events and old contact messages with mandatory CRON_SECRET protection
+- Cron jobs now fail closed when CRON_SECRET is missing instead of accepting unauthenticated calls
+- Contact submissions are length-validated, normalized and safely escaped before being placed into notification email HTML
+- Production security headers include CSP, clickjacking protection, MIME sniffing protection, strict referrer policy, permissions policy and HSTS
 - Report overview now surfaces score, savings access, risk, and report status in a compact responsive summary
 - Free previews mask savings and risk details until the full audit is unlocked
 - Full reports safely normalize anomalies and numeric values before display
@@ -144,4 +150,4 @@ Paddle status: Technical payment processor migration complete. Production checko
 
 Latest deployed hardening: launch-copy commit `cf5220d` is live on `https://www.effluxa.com`. Production build passed, public route/legal attribution smoke passed, Vercel production Paddle variables are present, and responsive QA previously passed at desktop and 390px mobile width with no horizontal overflow.
 
-Next milestone: Final manual readiness checks: run one end-to-end authenticated upload with a safe test document, and verify the production Paddle portal with the live production key before opening to first customers. No live charge is required for either check.
+Next milestone: Live launch operations. No beta cohort or live payment is required before launch. Monitor real customer signup, upload, report, Paddle checkout, support and deletion cases through the procedures in `docs/OPERATIONS_AND_DATA_PROCEDURES.md` and `docs/LAUNCH_RUNBOOK.md`.

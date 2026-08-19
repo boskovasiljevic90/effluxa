@@ -9,6 +9,7 @@ import ChangePasswordForm from "./ChangePasswordForm";
 import BillingPortalButton from "./BillingPortalButton";
 import BusinessBrandingForm from "./BusinessBrandingForm";
 import EmailPreferencesForm from "./EmailPreferencesForm";
+import DeleteAccountForm from "./DeleteAccountForm";
 import { displayPlanLabel } from "@/lib/planDisplay";
 
 async function getUser() {
@@ -126,6 +127,15 @@ export default async function SettingsPage() {
             Update your account password securely.
           </p>
           <ChangePasswordForm />
+        </div>
+
+        <div className="card full-width account-danger-card">
+          <div className="card-title">Delete Account</div>
+          <p className="gray" style={{ lineHeight: 1.7 }}>
+            You can delete individual reports and clients from their respective pages.
+            Use the control below to permanently remove the complete Effluxa account.
+          </p>
+          <DeleteAccountForm email={user.email} />
         </div>
 
         <div className="card full-width">

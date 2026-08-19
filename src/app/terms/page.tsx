@@ -9,9 +9,11 @@ export default function TermsPage() {
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "60px 40px" }}>
         <Link href="/" style={{ color: "#60a5fa" }}>← Back to Effluxa</Link>
 
-        <h1 style={{ fontSize: "44px", marginTop: "40px", marginBottom: "24px" }}>
+        <h1 style={{ fontSize: "44px", marginTop: "40px", marginBottom: "12px" }}>
           Terms of Service
         </h1>
+
+        <p style={{ color: "#64748b", marginBottom: "24px" }}>Last updated: 19 August 2026</p>
 
         <div className="audit-card" style={{ lineHeight: 1.8 }}>
           <p>
@@ -43,6 +45,13 @@ export default function TermsPage() {
             You may cancel a Pro or Agency subscription through the Paddle billing portal. Cancellation stops
             future renewals; access normally remains available through the current paid billing period.
             Refund requests are reviewed based on the circumstances and applicable consumer rules.
+          </p>
+
+          <h2 style={{ marginTop: "30px" }}>Account Deletion</h2>
+          <p>
+            You may delete your Effluxa account from Account Settings after cancelling any active paid
+            subscription. Account deletion is permanent for data held in Effluxa. Paddle may retain billing
+            records required for transaction, tax, fraud-prevention, or legal purposes.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>Limitations</h2>

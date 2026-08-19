@@ -8,9 +8,9 @@ import { trackEvent } from "@/lib/events";
 export async function GET(req: NextRequest) {
   try {
     const authHeader = req.headers.get("authorization");
-    const expectedSecret = process.env.CRON_SECRET;
+    const expectedSecret = process.env.CRON_SECRET?.trim();
 
-    if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
+    if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
