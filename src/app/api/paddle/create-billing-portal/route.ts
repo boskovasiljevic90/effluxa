@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (
-      !["PRO", "BUSINESS"].includes(user.role) ||
+      !["PRO", "BUSINESS", "AGENCY"].includes(user.role) ||
       !user.paddleCustomerId ||
       !user.paddleSubscriptionId
     ) {
