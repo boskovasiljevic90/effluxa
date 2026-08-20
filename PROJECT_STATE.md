@@ -135,7 +135,7 @@ DAY 10
 ---
 
 ## CURRENT PHASE
-Phase: PRODUCTION BILLING CUTOVER COMPLETE
+Phase: LIVE LAUNCH OPERATIONS
 
 Completed:
 - Paddle live credentials created
@@ -148,6 +148,6 @@ Completed:
 
 Paddle status: Technical payment processor migration complete. Production checkout configuration, client integration, catalog, webhook endpoint, database schema, login compatibility, Pro billing portal flow, sandbox subscription provisioning, and repeated-event protection are verified. No live production charge was used during testing. The production Paddle key’s portal permission should be rechecked in the live Paddle dashboard before the first paid customer uses Manage Billing.
 
-Latest deployed hardening: launch-copy commit `cf5220d` is live on `https://www.effluxa.com`. Production build passed, public route/legal attribution smoke passed, Vercel production Paddle variables are present, and responsive QA previously passed at desktop and 390px mobile width with no horizontal overflow.
+Latest deployed hardening: security/admin commit `75e8c54` is live on `https://www.effluxa.com`. It adds atomic password-reset token consumption, reset/change-password throttling, centralized operational-admin authorization and least-privilege admin user queries. Production build passed, public route/legal attribution smoke passed, protected cron/admin routes reject unauthenticated requests, Vercel production Paddle variables are present, and responsive QA previously passed at desktop and 390px mobile width with no horizontal overflow.
 
-Next milestone: Live launch operations. No beta cohort or live payment is required before launch. Monitor real customer signup, upload, report, Paddle checkout, support and deletion cases through the procedures in `docs/OPERATIONS_AND_DATA_PROCEDURES.md` and `docs/LAUNCH_RUNBOOK.md`.
+Next milestone: first-customer acquisition and live learning. No beta cohort or live payment is required before launch. Use `docs/LIVE_LAUNCH_PLAYBOOK.md`, `docs/OPERATIONS_AND_DATA_PROCEDURES.md` and `docs/LAUNCH_RUNBOOK.md` to monitor real customer signup, upload, report, Paddle checkout, support and deletion cases.
