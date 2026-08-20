@@ -29,9 +29,17 @@ a {
 }
 
 .public-brand {
-  font-size: 30px;
-  font-weight: 900;
-  letter-spacing: -1.5px;
+  display: block;
+  width: 160px;
+  flex: 0 0 auto;
+}
+
+.public-brand img,
+.logo img,
+.mobile-dashboard-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .public-desktop-nav {
@@ -88,8 +96,7 @@ input {
 }
 
 .logo {
-  font-size: 30px;
-  font-weight: bold;
+  width: 170px;
   margin-bottom: 40px;
 }
 
@@ -620,15 +627,10 @@ input {
 }
 
 .mobile-dashboard-logo {
+  display: block;
+  width: 132px;
   color: white;
-  font-size: 28px;
-  font-weight: 900;
   text-decoration: none;
-  letter-spacing: -1px;
-}
-
-.mobile-dashboard-logo span {
-  color: #2563eb;
 }
 
 .mobile-menu-button,

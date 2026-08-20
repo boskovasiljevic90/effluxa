@@ -16,6 +16,7 @@ export default function PublicFooter() {
       }}
     >
       <div>
+        <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" style={{ width: "150px", height: "auto", marginBottom: "16px" }} />
         <div>© 2026 Effluxa. AI Financial Leak Audit.</div>
         <div style={{ marginTop: "8px", fontSize: "13px" }}>
           Effluxa is a product by{" "}

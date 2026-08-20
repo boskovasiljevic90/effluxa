@@ -119,8 +119,8 @@ export default async function SharedReportPage({
     >
       <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
         <div style={{ marginBottom: "36px" }}>
-          <Link href="/" style={{ fontWeight: 900, fontSize: "26px" }}>
-            Eff<span style={{ color: "#2563eb" }}>luxa</span>
+          <Link href="/" aria-label="Effluxa home">
+            <img src="/brand/effluxa-wordmark-light.svg" alt="Effluxa" style={{ width: "165px", height: "auto" }} />
           </Link>
         </div>
 

@@ -76,7 +76,7 @@ export default async function DashboardLayout({
         <aside className="sidebar">
           <Link href="/dashboard">
             <div className="logo">
-              Eff<span>luxa</span>
+              <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" />
             </div>
           </Link>
 

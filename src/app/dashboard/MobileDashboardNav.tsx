@@ -31,7 +31,7 @@ export default function MobileDashboardNav({
         </button>
 
         <Link href="/dashboard" className="mobile-dashboard-logo">
-          Eff<span>luxa</span>
+          <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" />
         </Link>
 
         <div className="mobile-profile-dot" aria-label="Account">
@@ -44,7 +44,7 @@ export default function MobileDashboardNav({
           <div className="mobile-menu-panel">
             <div className="mobile-menu-header">
               <Link href="/dashboard" className="mobile-dashboard-logo" onClick={() => setOpen(false)}>
-                Eff<span>luxa</span>
+                <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" />
               </Link>
 
               <button onClick={() => setOpen(false)} className="mobile-menu-close" aria-label="Close dashboard menu">

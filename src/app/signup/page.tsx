@@ -70,7 +70,7 @@ export default function SignupPage() {
           }}
         >
           <div className="logo" style={{ marginBottom: "40px" }}>
-            Eff<span>luxa</span>
+            <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" />
           </div>
 
           <div

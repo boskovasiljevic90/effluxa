@@ -12,8 +12,8 @@ export default function PublicHeader() {
 
   return (
     <header className="public-header">
-      <Link href="/" className="public-brand" onClick={closeMenu}>
-        Eff<span style={{ color: "#2563eb" }}>luxa</span>
+      <Link href="/" className="public-brand" onClick={closeMenu} aria-label="Effluxa home">
+        <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" />
       </Link>
 
       <nav className="public-desktop-nav">

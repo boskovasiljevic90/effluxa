@@ -1,0 +1,6 @@
+<svg width="512" height="512" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Effluxa mark</title>
+  <rect width="64" height="64" rx="16" fill="#FFFFFF"/>
+  <path d="M18 18H46V25H27V29H43V36H27V39H46V46H18V18Z" fill="#0F172A"/>
+  <path d="M43 18L50 18L50 25" stroke="#2563EB" stroke-width="4" stroke-linecap="round"/>
+</svg>

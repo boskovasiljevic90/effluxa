@@ -120,7 +120,8 @@ export default function CheckoutPage() {
       />
 
       <div style={{ maxWidth: "760px", margin: "0 auto", textAlign: "center" }}>
-        <p style={{ color: "#2563eb", fontWeight: 700 }}>Effluxa secure checkout</p>
+        <img src="/brand/effluxa-wordmark-light.svg" alt="Effluxa" style={{ width: "170px", height: "auto", margin: "0 auto 18px" }} />
+        <p style={{ color: "#2563eb", fontWeight: 700 }}>Secure checkout</p>
         <h1 style={{ fontSize: "40px", margin: "16px 0" }}>Complete your payment</h1>
         <p style={{ color: "#475569", lineHeight: 1.7 }}>
           Paddle securely handles payment, tax, receipts and subscription management.
