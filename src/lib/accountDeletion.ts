@@ -25,6 +25,20 @@ export async function deleteAccountData(userId: string) {
 
     const ownedClientIds = ownedClients.map((client) => client.id);
 
+    const ownedUploads = await tx.upload.findMany({
+      where: {
+        OR: [
+          { userId },
+          ...(ownedClientIds.length > 0
+            ? [{ clientId: { in: ownedClientIds } }]
+            : []),
+        ],
+      },
+      select: { id: true },
+    });
+
+    const ownedUploadIds = ownedUploads.map((upload) => upload.id);
+
     const uploadsDeleted = await tx.upload.deleteMany({
       where: {
         OR: [
@@ -46,7 +60,22 @@ export async function deleteAccountData(userId: string) {
       },
     });
 
-    await tx.event.deleteMany({ where: { userId } });
+    await tx.event.deleteMany({
+      where: {
+        OR: [
+          { userId },
+          ...(ownedUploadIds.length > 0
+            ? [{ reportId: { in: ownedUploadIds } }]
+            : []),
+          {
+            metadata: {
+              path: ["workspaceOwnerId"],
+              equals: userId,
+            },
+          },
+        ],
+      },
+    });
     await tx.passwordResetToken.deleteMany({ where: { email: user.email } });
     await tx.contactMessage.deleteMany({ where: { email: user.email } });
     await tx.user.delete({ where: { id: userId } });
