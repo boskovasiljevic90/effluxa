@@ -13,7 +13,7 @@ export default function PublicHeader() {
   return (
     <header className="public-header">
       <Link href="/" className="public-brand" onClick={closeMenu} aria-label="Effluxa home">
-        <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" />
+        <img src="/brand/effluxa-wordmark-light.svg" alt="Effluxa" />
       </Link>
 
       <nav className="public-desktop-nav">
