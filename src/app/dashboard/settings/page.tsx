@@ -11,6 +11,7 @@ import BusinessBrandingForm from "./BusinessBrandingForm";
 import EmailPreferencesForm from "./EmailPreferencesForm";
 import DeleteAccountForm from "./DeleteAccountForm";
 import { displayPlanLabel } from "@/lib/planDisplay";
+import { hasComplimentaryAgencyAccess } from "@/lib/complimentaryAccess";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -34,6 +35,8 @@ export default async function SettingsPage() {
 
   if (!user) redirect("/login");
 
+  const complimentaryAgencyAccess = hasComplimentaryAgencyAccess(user);
+
   return (
     <>
       <h1 style={{ fontSize: "42px" }}>Account Settings</h1>
@@ -51,6 +54,12 @@ export default async function SettingsPage() {
         <div className="card">
           <div className="card-title">Current Plan</div>
           <div className="metric-value">{displayPlanLabel(user.role)}</div>
+
+          {complimentaryAgencyAccess && user.complimentaryAgencyAccessUntil && (
+            <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
+              Complimentary partner access active until {new Date(user.complimentaryAgencyAccessUntil).toLocaleDateString()}.
+            </p>
+          )}
 
           {user.role !== "FREE" && user.subscriptionEndDate && (
             <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
@@ -98,7 +107,7 @@ export default async function SettingsPage() {
           </div>
         )}
 
-        {user.role !== "FREE" && (
+        {user.role !== "FREE" && user.paddleSubscriptionId && (
           <div className="card full-width">
             <div className="card-title">Manage Subscription</div>
             <p className="gray" style={{ lineHeight: 1.7 }}>

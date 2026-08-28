@@ -8,6 +8,7 @@ import {
   subscriptionEndDate,
   transactionCustomData,
 } from "@/lib/paddle";
+import { hasComplimentaryAgencyAccess } from "@/lib/complimentaryAccess";
 
 type PaddleTransactionLike = {
   id: string;
@@ -129,8 +130,11 @@ export async function syncPaddleSubscription(
 
   const nextRole = roleFromPaddleProduct(customData.product);
   const active = isActivePaddleSubscription(subscription.status);
+  const hasPartnerAccess = hasComplimentaryAgencyAccess(user);
   const role =
-    active
+    hasPartnerAccess
+      ? Role.BUSINESS
+      : active
       ? nextRole
         ? nextRole === "PRO"
           ? Role.PRO
@@ -138,7 +142,7 @@ export async function syncPaddleSubscription(
         : user.role
       : subscription.status === "past_due"
         ? user.role
-        : Role.FREE;
+      : Role.FREE;
 
   await prisma.user.update({
     where: { id: user.id },

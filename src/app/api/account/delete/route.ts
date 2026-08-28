@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { safeVerifyToken } from "@/lib/auth";
 import { rateLimit } from "@/lib/rateLimit";
 import { deleteAccountData } from "@/lib/accountDeletion";
+import { hasActivePaidSubscription } from "@/lib/complimentaryAccess";
 
 export async function DELETE(req: NextRequest) {
   try {
@@ -30,6 +31,7 @@ export async function DELETE(req: NextRequest) {
         id: true,
         email: true,
         role: true,
+        paddleSubscriptionId: true,
         subscriptionStatus: true,
         subscriptionEndDate: true,
       },
@@ -58,10 +60,7 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const subscriptionStillActive =
-      user.role !== "FREE" &&
-      user.subscriptionStatus === "active" &&
-      (!user.subscriptionEndDate || user.subscriptionEndDate > new Date());
+    const subscriptionStillActive = hasActivePaidSubscription(user);
 
     if (subscriptionStillActive) {
       return NextResponse.json(

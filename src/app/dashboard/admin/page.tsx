@@ -8,6 +8,7 @@ import { getOperationalAdminFromToken } from "@/lib/adminAuth";
 import AdminResetUsageButton from "./AdminResetUsageButton";
 import DeleteContactMessageButton from "./DeleteContactMessageButton";
 import DeleteEventButton from "./DeleteEventButton";
+import PartnerAccessForm from "./PartnerAccessForm";
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
 
@@ -246,7 +247,7 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="card" style={{ marginTop: "40px" }}>
+      <div className="card" style={{ marginTop: "40px" }}>
           <div className="card-title">Funnel Analytics</div>
 
           <div className="report-grid" style={{ marginTop: "22px" }}>
@@ -290,9 +291,11 @@ export default async function AdminDashboardPage() {
               <div className="metric-value green">{businessConversionRate}%</div>
             </div>
           </div>
-        </div>
+      </div>
 
-        <div className="card" style={{ marginTop: "40px" }}>
+      <PartnerAccessForm />
+
+      <div className="card" style={{ marginTop: "40px" }}>
           <div className="card-title">Top Events</div>
 
           <div style={{ display: "grid", gap: "12px", marginTop: "18px" }}>

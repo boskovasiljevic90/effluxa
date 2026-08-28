@@ -1,15 +1,17 @@
 import { prisma } from "@/lib/prisma";
+import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 
 export async function getWorkspaceOwner(user: {
   id: string;
   email: string;
   role: string;
+  paddleSubscriptionId?: string | null;
+  subscriptionStatus?: string | null;
+  subscriptionEndDate?: Date | string | null;
+  complimentaryAgencyAccessUntil?: Date | string | null;
+  complimentaryAgencyAccessRevokedAt?: Date | string | null;
 }) {
-  const now = new Date();
-  const subscriptionActive =
-    user.role === "BUSINESS" &&
-    (user as any).subscriptionStatus === "active" &&
-    (!(user as any).subscriptionEndDate || new Date((user as any).subscriptionEndDate) > now);
+  const subscriptionActive = hasActiveAgencyAccess(user);
 
   if (subscriptionActive) {
     return {
@@ -44,11 +46,7 @@ export async function getWorkspaceOwner(user: {
     },
   });
 
-  const ownerSubscriptionActive =
-    owner &&
-    owner.role === "BUSINESS" &&
-    (owner as any).subscriptionStatus === "active" &&
-    (!(owner as any).subscriptionEndDate || new Date((owner as any).subscriptionEndDate) > now);
+  const ownerSubscriptionActive = owner && hasActiveAgencyAccess(owner);
 
   if (!owner || !ownerSubscriptionActive) {
     return {

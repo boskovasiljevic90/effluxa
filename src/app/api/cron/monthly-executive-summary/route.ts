@@ -19,11 +19,19 @@ export async function GET(req: NextRequest) {
     const businessUsers = await prisma.user.findMany({
       where: {
         role: "BUSINESS",
-        subscriptionStatus: "active",
         emailMonthlySummary: true,
         OR: [
-          { subscriptionEndDate: null },
-          { subscriptionEndDate: { gt: new Date() } },
+          {
+            subscriptionStatus: "active",
+            OR: [
+              { subscriptionEndDate: null },
+              { subscriptionEndDate: { gt: new Date() } },
+            ],
+          },
+          {
+            complimentaryAgencyAccessRevokedAt: null,
+            complimentaryAgencyAccessUntil: { gt: new Date() },
+          },
         ],
       },
     });

@@ -26,6 +26,10 @@ model User {
   paddleSubscriptionId          String?
   subscriptionEndDate   DateTime?
   subscriptionStatus    String   @default("inactive")
+  complimentaryAgencyAccessUntil DateTime?
+  complimentaryAgencyAccessGrantedAt DateTime?
+  complimentaryAgencyAccessRevokedAt DateTime?
+  complimentaryAgencyAccessReason String?
   preferredLanguage     String   @default("en")
   companyName          String?
   reportFooter         String?
