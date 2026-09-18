@@ -162,7 +162,11 @@ model ContactMessage {
   email     String
   subject   String?
   message   String
+  source    String   @default("general_support")
+  status    String   @default("NEW")
   createdAt DateTime @default(now())
+
+  @@index([source, status, createdAt])
 }
 
 model PasswordResetToken {

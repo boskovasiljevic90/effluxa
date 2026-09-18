@@ -9,6 +9,7 @@ import AdminResetUsageButton from "./AdminResetUsageButton";
 import DeleteContactMessageButton from "./DeleteContactMessageButton";
 import DeleteEventButton from "./DeleteEventButton";
 import PartnerAccessForm from "./PartnerAccessForm";
+import ContactMessageStatus from "./ContactMessageStatus";
 import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
 import { buildGrowthCohorts } from "@/lib/growthMetrics";
@@ -153,6 +154,17 @@ export default async function AdminDashboardPage() {
   const contactMessages = await prisma.contactMessage.findMany({
     orderBy: { createdAt: "desc" },
     take: 20,
+  });
+
+  const openPartnerPilotLeads = await prisma.contactMessage.count({
+    where: {
+      source: "partner_pilot",
+      status: { not: "CLOSED" },
+    },
+  });
+
+  const totalPartnerPilotLeads = await prisma.contactMessage.count({
+    where: { source: "partner_pilot" },
   });
 
   const checkoutCount = await prisma.event.count({
@@ -1047,6 +1059,9 @@ export default async function AdminDashboardPage() {
 
         <div className="card" style={{ marginTop: "40px" }}>
           <div className="card-title">Recent Contact Messages</div>
+          <p className="gray" style={{ marginTop: "10px", lineHeight: 1.6 }}>
+            Partner-pilot leads: {totalPartnerPilotLeads} total · {openPartnerPilotLeads} open. Update the status after the first response so partner conversion is measurable.
+          </p>
 
           {contactMessages.length === 0 ? (
             <p className="gray">No contact messages yet.</p>
@@ -1077,6 +1092,24 @@ export default async function AdminDashboardPage() {
                   <div className="gray" style={{ marginTop: "10px", fontSize: "13px" }}>
                     {new Date(message.createdAt).toLocaleString()}
                   </div>
+
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", marginTop: "10px" }}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        padding: "5px 9px",
+                        borderRadius: "999px",
+                        background: message.source === "partner_pilot" ? "rgba(99,102,241,0.20)" : "rgba(255,255,255,0.08)",
+                        color: message.source === "partner_pilot" ? "#c7d2fe" : "#cbd5e1",
+                        fontSize: "12px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      {message.source === "partner_pilot" ? "Partner pilot" : "General support"}
+                    </span>
+                  </div>
+
+                  <ContactMessageStatus messageId={message.id} initialStatus={message.status} />
 
                   <DeleteContactMessageButton messageId={message.id} />
                 </div>

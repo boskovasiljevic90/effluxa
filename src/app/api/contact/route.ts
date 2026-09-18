@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
         email,
         subject: subject || null,
         message,
+        source,
       },
     });
 
