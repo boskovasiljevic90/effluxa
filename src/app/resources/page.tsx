@@ -7,7 +7,7 @@ import { RESOURCE_CONTENT } from "./content";
 export const metadata: Metadata = {
   title: "Financial Leakage Audit Guides | Effluxa",
   description:
-    "Practical, evidence-first guides for duplicate invoices, vendor price creep and recurring software spend audits.",
+    "Practical, evidence-first guides for duplicate invoices, vendor price creep, recurring software spend, cash flow and client portfolio audits.",
   alternates: {
     canonical: "https://www.effluxa.com/resources",
   },
@@ -35,7 +35,7 @@ export default function ResourcesPage() {
             Practical guides for finding financial leakage.
           </h1>
           <p style={{ marginTop: "24px", fontSize: "21px", lineHeight: 1.7, color: "#475569", maxWidth: "760px" }}>
-            Start with the evidence you already have. These guides explain what to compare, what can be misleading and how to turn a possible issue into a reviewable control action.
+            Start with the evidence you already have. These guides explain what to compare, what can be misleading and how to turn a possible issue into a reviewable control action — for your own business or across a client portfolio.
           </p>
         </div>
 

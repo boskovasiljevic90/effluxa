@@ -32,6 +32,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
       "duplicate-invoice-audit",
       "vendor-price-creep-audit",
       "recurring-software-spend-audit",
+      "cash-flow-working-capital-audit",
+      "accounting-firm-client-leakage-review",
     ].map((slug) => ({
       url: `${baseUrl}/resources/${slug}`,
       lastModified: new Date(),

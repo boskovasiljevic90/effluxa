@@ -111,6 +111,72 @@ export const RESOURCE_CONTENT: Record<string, ResourceContent> = {
     caveat:
       "A recurring charge is not waste simply because it repeats. Confirm usage, contractual obligations and business continuity before cancelling or reducing a subscription.",
   },
+  "cash-flow-working-capital-audit": {
+    slug: "cash-flow-working-capital-audit",
+    eyebrow: "Cash-flow control guide",
+    title: "How to review cash-flow pressure and working-capital leakage from a finance export",
+    description:
+      "An evidence-first checklist for reviewing receivables, payables, inventory, payment terms and financing pressure without an integration project.",
+    intro:
+      "Cash-flow pressure is often visible before a business misses a payment, but the signal is spread across receivables aging, payables timing, inventory, customer credits and short-term financing. A useful review connects those records without turning a timing issue into a loss claim.",
+    whyItMatters:
+      "Working capital affects the room a business has to operate, invest and negotiate. The goal of a first-pass review is to identify the specific balances, terms or process gaps that deserve an owner and a decision, not to produce a false-precision cash forecast.",
+    signals: [
+      "Receivables are aging while payment terms or collection ownership are unclear.",
+      "Customer credits, unapplied cash or disputed balances remain open across periods.",
+      "Inventory is slow-moving, overstocked or exposed to write-off without a documented review.",
+      "Supplier terms are shorter than customer collection cycles, creating avoidable timing pressure.",
+      "Interest, fees or short-term financing costs rise without a clear operational explanation.",
+    ],
+    workflow: [
+      "Start with a dated receivables, payables, inventory or cash export that identifies the period and currency.",
+      "Separate confirmed balances from aging, timing and policy signals that need context.",
+      "Compare customer terms, supplier terms, collection actions and inventory movement together where the file supports it.",
+      "Assign one owner to each material review item and record the evidence needed to close it.",
+      "Repeat the review in the next period and compare the open control queue, not only the headline cash balance.",
+    ],
+    questions: [
+      "Which overdue balances have a named owner and a next collection action?",
+      "Are customer credits or unapplied receipts hiding the true collection picture?",
+      "Does inventory aging reflect a real demand issue, a data cut-off or a provisioning policy?",
+      "What changed in payment terms, financing cost or cash conversion since the last period?",
+    ],
+    caveat:
+      "Aged or open balances are not automatically bad debt or realised loss. Confirm cut-off, disputes, terms and accounting treatment with the responsible finance professional before acting.",
+  },
+  "accounting-firm-client-leakage-review": {
+    slug: "accounting-firm-client-leakage-review",
+    eyebrow: "Advisor workflow guide",
+    title: "A repeatable financial-leakage review for accounting and fractional-CFO client portfolios",
+    description:
+      "A practical operating model for standardising first-pass leakage reviews across client files while keeping evidence, ownership and limitations visible.",
+    intro:
+      "An accounting or fractional-CFO firm does not need a new integration for every client to start a useful leakage conversation. It needs a safe intake, a consistent review scope, traceable evidence and a follow-up workflow that can be repeated in the next period.",
+    whyItMatters:
+      "A standardised first pass lets an advisor spend more time on judgement and client decisions instead of rebuilding the same spreadsheet review. The operating advantage comes from repeatability and trust: each finding should show what was observed, how strong the evidence is and who owns the next check.",
+    signals: [
+      "Different client files use inconsistent vendor, category, period or payment fields.",
+      "A possible finding cannot be traced back to a source row, page, period or calculation basis.",
+      "Client recommendations are delivered without an owner, due date or verification note.",
+      "One-off audits are not compared with the next period, so recurring control weaknesses stay invisible.",
+      "Estimated opportunities are presented as recovered savings before the client confirms an outcome.",
+    ],
+    workflow: [
+      "Agree with the client on a redacted, supported file and one initial review question.",
+      "Use the same intake fields across clients: period, currency, file type, scope and known limitations.",
+      "Review evidence-backed findings and separate potential exposure from confirmed outcomes.",
+      "Share a client-safe summary, assign the next control action and record the responsible owner.",
+      "Return to the next reporting period and compare recurring, new and no-longer-detected control signals.",
+    ],
+    questions: [
+      "Can the client approve a redacted file and identify the reporting period before upload?",
+      "Which first review question is valuable enough to discuss with the decision-maker?",
+      "What evidence and owner are required before a finding can be marked actioned?",
+      "How will the firm distinguish a potential opportunity from verified recovered value?",
+    ],
+    caveat:
+      "A repeatable screening workflow supports professional judgement; it does not replace bookkeeping, reconciliation, tax work, procurement approval or the advisor's responsibility to validate the source data.",
+  },
 };
 
 export const RESOURCE_SLUGS = Object.keys(RESOURCE_CONTENT);
