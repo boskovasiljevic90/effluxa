@@ -62,6 +62,36 @@ model Upload {
   createdAt         DateTime  @default(now())
   user              User      @relation(fields: [userId], references: [id])
   client            Client?   @relation(fields: [clientId], references: [id])
+  controlActions    ControlAction[]
+}
+
+model ControlAction {
+  id                String   @id @default(uuid())
+  reportId          String
+  workspaceOwnerId  String
+  createdByUserId   String?
+  findingId         String
+  findingTitle      String
+  ruleId            String?
+  findingCategory   String?
+  findingSeverity   String
+  recommendedAction String
+  evidence          Json
+  quantifiedAmount  Float?
+  currency          String   @default("EUR")
+  status            String   @default("OPEN")
+  ownerEmail        String?
+  dueDate           DateTime?
+  outcomeNote       String?
+  resolvedAmount    Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  report            Upload   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, findingId])
+  @@index([workspaceOwnerId, status])
+  @@index([reportId, status])
 }
 
 

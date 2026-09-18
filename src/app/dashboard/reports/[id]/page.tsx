@@ -9,6 +9,7 @@ import DeleteReportButton from "./DeleteReportButton";
 import ShareReportButton from "./ShareReportButton";
 import ChangeReportClientForm from "./ChangeReportClientForm";
 import InternalNoteForm from "./InternalNoteForm";
+import ControlActionPanel from "./ControlActionPanel";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
 import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, displayNumber, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
@@ -107,6 +108,11 @@ export default async function ReportPage({ params }: Props) {
     data?.summary ||
     "Effluxa detected financial optimization opportunities in this document.";
   const cfoSummary = data?.cfo_summary || "Insufficient data";
+  const isStructuredAudit = data?.analysisVersion === "2.0" || data?.analysisVersion === "3.0";
+  const auditMetrics = data?.metrics || {};
+  const engineFindings = isStructuredAudit && Array.isArray(data?.findings)
+    ? data.findings.filter((finding: any) => finding && typeof finding === "object")
+    : [];
   const visibleSavings = isUnlocked ? estimatedSavings : null;
   const visibleRiskLevel = isUnlocked ? riskLevel : "Unlock to view";
   const visibleConfidence = isUnlocked ? confidenceLevel : "Included in full audit";
@@ -155,6 +161,45 @@ export default async function ReportPage({ params }: Props) {
         },
       })
     : [];
+
+  const controlActions = workspace.hasBusinessAccess && isUnlocked && isStructuredAudit
+    ? await prisma.controlAction.findMany({
+        where: {
+          reportId: report.id,
+          workspaceOwnerId: workspace.owner.id,
+        },
+        orderBy: { updatedAt: "desc" },
+        select: {
+          id: true,
+          findingId: true,
+          findingTitle: true,
+          findingSeverity: true,
+          status: true,
+          ownerEmail: true,
+          dueDate: true,
+          outcomeNote: true,
+          quantifiedAmount: true,
+          resolvedAmount: true,
+          currency: true,
+          updatedAt: true,
+        },
+      })
+    : [];
+
+  const controlFindingSnapshots = engineFindings.map((finding: any) => ({
+    id: String(finding.id || ""),
+    title: String(finding.title || "Untitled finding"),
+    severity: String(finding.severity || "MEDIUM"),
+    category: String(finding.category || "CONTROL_EXCEPTION"),
+    ruleId: String(finding.ruleId || ""),
+    recommendedAction: String(finding.recommendedAction || "Validate the underlying evidence."),
+    evidenceCount: Array.isArray(finding.evidence) ? finding.evidence.length : 0,
+    quantifiedAmount:
+      typeof finding.quantification?.amount === "number"
+        ? finding.quantification.amount
+        : null,
+    currency: String(finding.quantification?.currency || "EUR"),
+  })).filter((finding: any) => finding.id);
 
   return (
     <>
@@ -243,6 +288,124 @@ export default async function ReportPage({ params }: Props) {
             {executiveSummary}
           </p>
         </div>
+
+        {workspace.hasBusinessAccess && isUnlocked && isStructuredAudit && (
+          <ControlActionPanel
+            reportId={report.id}
+            findings={controlFindingSnapshots}
+            actions={controlActions.map((action) => ({
+              ...action,
+              dueDate: action.dueDate?.toISOString() || null,
+              updatedAt: action.updatedAt.toISOString(),
+            }))}
+          />
+        )}
+
+        {isUnlocked && isStructuredAudit && (
+          <div className="audit-card" style={{ marginTop: "28px" }}>
+            <div className="audit-section-kicker">Quantified review map</div>
+            <h2>What the rules quantified</h2>
+            <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+              These figures are exposures and review signals. They are not confirmed loss or realised savings.
+            </p>
+            <div
+              style={{
+                marginTop: "18px",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit,minmax(190px,1fr))",
+                gap: "14px",
+              }}
+            >
+              {[
+                ["Potential duplicate exposure", auditMetrics.potentialDuplicateExposure],
+                ["Avoidable-cost run-rate", auditMetrics.avoidableCostRunRate],
+                ["Working-capital exposure", auditMetrics.workingCapitalExposure],
+                ["Control-risk exposure", auditMetrics.controlRiskExposure],
+              ].map(([label, amount]) => (
+                <div
+                  key={String(label)}
+                  style={{
+                    padding: "16px",
+                    borderRadius: "14px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <div className="gray">{label}</div>
+                  <div style={{ fontSize: "24px", fontWeight: 900, marginTop: "8px" }}>
+                    €{displayNumber(amount).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isUnlocked && isStructuredAudit && (
+          <div className="audit-card" style={{ marginTop: "28px" }}>
+            <div className="audit-section-kicker">Evidence-backed findings</div>
+            <h2>Verified control findings</h2>
+            <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+              Each item below is linked to extracted source evidence. “Potential fraud indicator” describes a control signal, not a confirmed conclusion.
+            </p>
+            <div style={{ display: "grid", gap: "12px", marginTop: "18px" }}>
+              {engineFindings.length === 0 && (
+                <p className="gray">No deterministic findings were generated from the available data.</p>
+              )}
+              {engineFindings.map((finding: any, index: number) => {
+                const severity = String(finding.severity || "MEDIUM").toUpperCase();
+                const severityColor =
+                  severity === "CRITICAL" ? "#dc2626" :
+                    severity === "HIGH" ? "#ea580c" :
+                      severity === "MEDIUM" ? "#ca8a04" : "#2563eb";
+                const evidence = Array.isArray(finding.evidence) ? finding.evidence : [];
+                const amount = finding.quantification?.amount;
+                const currency = finding.quantification?.currency || "EUR";
+
+                return (
+                  <details
+                    key={finding.id || index}
+                    style={{
+                      border: "1px solid rgba(148,163,184,0.28)",
+                      borderRadius: "14px",
+                      padding: "14px 16px",
+                      background: "rgba(255,255,255,0.035)",
+                    }}
+                  >
+                    <summary style={{ cursor: "pointer", listStyle: "none" }}>
+                      <span style={{ color: severityColor, fontWeight: 900, marginRight: "10px" }}>
+                        {severity}
+                      </span>
+                      <strong>{finding.title || "Untitled finding"}</strong>
+                    </summary>
+                    <div style={{ marginTop: "14px", lineHeight: 1.7 }}>
+                      <p>{finding.description || "No description available."}</p>
+                      <p className="gray" style={{ marginTop: "8px" }}>
+                        Rule: {finding.ruleId || "n/a"} · Confidence: {Math.round(Number(finding.confidence || 0) * 100)}%
+                        {amount !== null && amount !== undefined && " · " + currency + " " + displayNumber(amount).toLocaleString()}
+                      </p>
+                      <p style={{ marginTop: "10px" }}>
+                        <strong>Action:</strong> {finding.recommendedAction || "Validate the underlying evidence."}
+                      </p>
+                      {evidence.length > 0 && (
+                        <ul style={{ marginTop: "10px", paddingLeft: "20px" }}>
+                          {evidence.map((item: any, evidenceIndex: number) => (
+                            <li key={evidenceIndex}>
+                              {item.detail || "Source evidence"}
+                              {" — "}{item.source || "uploaded document"}
+                              {item.page ? ", page " + item.page : ""}
+                              {item.row ? ", row " + item.row : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {workspace.hasBusinessAccess && previousClientAudit && (
           <div className="audit-card" style={{ marginTop: "28px" }}>

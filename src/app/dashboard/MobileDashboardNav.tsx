@@ -66,6 +66,10 @@ export default function MobileDashboardNav({
                 <Link href="/dashboard/portfolio" className="sidebar-item" onClick={() => setOpen(false)}>Portfolio</Link>
               )}
 
+              {hasBusinessAccess && (
+                <Link href="/dashboard/controls" className="sidebar-item" onClick={() => setOpen(false)}>Controls</Link>
+              )}
+
               <Link href="/dashboard/upload" className="sidebar-item" onClick={() => setOpen(false)}>Upload Audit</Link>
 
               <Link href="/dashboard/notifications" className="sidebar-item" onClick={() => setOpen(false)}>
