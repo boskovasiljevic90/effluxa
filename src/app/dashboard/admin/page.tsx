@@ -179,6 +179,35 @@ export default async function AdminDashboardPage() {
     where: { type: "signup" },
   });
 
+  const signupAttributionEvents = await prisma.event.findMany({
+    where: {
+      type: "signup",
+      createdAt: { gte: thirtyDaysAgo },
+    },
+    select: { metadata: true },
+  });
+
+  const signupAttributionCounts = new Map<string, number>();
+  for (const event of signupAttributionEvents) {
+    const metadata = event.metadata && typeof event.metadata === "object"
+      ? event.metadata as Record<string, any>
+      : {};
+    const source = typeof metadata.acquisitionSource === "string"
+      ? metadata.acquisitionSource
+      : metadata.acquisitionChannel === "partner_referral"
+        ? "partner_referral"
+        : "direct";
+    const content = typeof metadata.acquisitionContent === "string"
+      ? ` / ${metadata.acquisitionContent}`
+      : "";
+    const key = `${source}${content}`;
+    signupAttributionCounts.set(key, (signupAttributionCounts.get(key) || 0) + 1);
+  }
+
+  const signupAttributionRows = Array.from(signupAttributionCounts.entries())
+    .map(([source, count]) => ({ source, count }))
+    .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source));
+
   const uploadEventsCount = await prisma.event.count({
     where: { type: "upload_created" },
   });
@@ -694,6 +723,37 @@ export default async function AdminDashboardPage() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="card" style={{ marginTop: "40px" }}>
+        <div className="card-title">Signup Acquisition · Last 30 Days</div>
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          First-touch source captured after analytics consent. Partner referrals remain separated from organic content so channel performance is not conflated.
+        </p>
+
+        {signupAttributionRows.length === 0 ? (
+          <p className="gray" style={{ marginTop: "22px" }}>No attributed signup events yet.</p>
+        ) : (
+          <div style={{ display: "grid", gap: "10px", marginTop: "22px" }}>
+            {signupAttributionRows.map((row) => (
+              <div
+                key={row.source}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: "14px",
+                  padding: "14px 16px",
+                  borderRadius: "12px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <span>{row.source}</span>
+                <strong>{row.count}</strong>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ marginTop: "40px" }}>

@@ -8,6 +8,7 @@ import { trackEvent } from "@/lib/events";
 import { sendWelcomeEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 import { normalizeReferralCode, REFERRAL_COOKIE } from "@/lib/referrals";
+import { ACQUISITION_COOKIE, parseAcquisitionCookie } from "@/lib/acquisition";
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,6 +70,9 @@ export async function POST(req: NextRequest) {
     const referralCode = normalizeReferralCode(
       req.cookies.get(REFERRAL_COOKIE)?.value
     );
+    const acquisition = parseAcquisitionCookie(
+      req.cookies.get(ACQUISITION_COOKIE)?.value
+    );
     const now = new Date();
     const referringPartner = referralCode
       ? await prisma.user.findFirst({
@@ -111,7 +115,16 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       metadata: {
         termsAccepted: true,
-        acquisitionChannel: referringPartner ? "partner_referral" : "direct",
+        acquisitionChannel: referringPartner
+          ? "partner_referral"
+          : acquisition
+            ? "organic"
+            : "direct",
+        acquisitionSource: acquisition?.source || null,
+        acquisitionMedium: acquisition?.medium || null,
+        acquisitionCampaign: acquisition?.campaign || null,
+        acquisitionContent: acquisition?.content || null,
+        acquisitionLandingPath: acquisition?.landingPath || null,
         referralCode: referringPartner?.referralCode || null,
       },
     });

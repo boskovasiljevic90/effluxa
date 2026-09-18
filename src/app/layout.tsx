@@ -3,6 +3,7 @@ import "./globals.css";
 import AnalyticsScripts from "@/components/analytics/AnalyticsScripts";
 import CookieConsent from "@/components/analytics/CookieConsent";
 import ReferralCapture from "@/components/ReferralCapture";
+import AcquisitionCapture from "@/components/AcquisitionCapture";
 
 export const metadata: Metadata = {
   title: "Effluxa — AI Financial Leak Audit",
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body>
         <AnalyticsScripts />
         <ReferralCapture />
+        <AcquisitionCapture />
         {children}
         <CookieConsent />
       </body>

@@ -14,6 +14,14 @@ The Admin dashboard is intended to answer whether Effluxa is becoming a product 
 - **Partner activation** — a referred account completes an audit within seven days of signup.
 - **Report share** — an authenticated workspace successfully creates or reuses a client-safe report share link.
 - **Report export** — an authenticated workspace successfully generates a report PDF, workspace PDF, or workspace CSV.
+- **First-touch acquisition** — after analytics consent, the first recognised resource, partner landing page, or UTM source is stored for up to 90 days and attached to the signup event. Partner referral attribution remains a separate, higher-priority channel.
+
+Recognised organic sources currently include:
+
+- `resources` with the guide slug as content;
+- `partner_landing` for the accounting-firm page;
+- `sample_audit` for the sample report;
+- explicit `utm_source`, `utm_medium`, `utm_campaign` and optional `utm_content` values.
 
 ## Why these metrics
 
@@ -22,6 +30,8 @@ The first business question is not how many people visited the site. It is wheth
 The sequence is:
 
 `signup → completed audit → activation → share/export/action → second audit → paid expansion`
+
+The acquisition layer adds the first question before that sequence: `which first-touch source produced the signup?` It is intentionally consent-aware; users who reject analytics consent are not assigned an acquisition cookie and are reported as direct unless they arrive through the separate partner-referral mechanism.
 
 If activation is low, fix upload, file support, or report clarity. If activation is healthy but 28-day return is low, improve recurring comparison, reminders, and control follow-up. If return is healthy but paid conversion is low, fix packaging and proof before adding more engine features.
 
