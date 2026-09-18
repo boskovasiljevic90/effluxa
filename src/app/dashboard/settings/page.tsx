@@ -98,6 +98,11 @@ export default async function SettingsPage() {
               {getReferralLink(user.referralCode)}
             </div>
             <ReferralLinkActions referralLink={getReferralLink(user.referralCode)} />
+            <Link href="/dashboard/partner">
+              <button className="primary-button" style={{ marginTop: "14px" }}>
+                Open Partner Launchpad
+              </button>
+            </Link>
           </div>
         )}
 

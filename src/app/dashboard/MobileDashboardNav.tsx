@@ -11,6 +11,7 @@ export default function MobileDashboardNav({
   hasBusinessAccess,
   isOwner,
   isTeamMember,
+  hasReferralCode,
   unreadNotificationsCount,
 }: {
   email?: string | null;
@@ -19,6 +20,7 @@ export default function MobileDashboardNav({
   hasBusinessAccess: boolean;
   isOwner: boolean;
   isTeamMember: boolean;
+  hasReferralCode: boolean;
   unreadNotificationsCount: number;
 }) {
   const [open, setOpen] = useState(false);
@@ -77,6 +79,10 @@ export default function MobileDashboardNav({
               </Link>
 
               <Link href="/dashboard/settings" className="sidebar-item" onClick={() => setOpen(false)}>Settings</Link>
+
+              {hasReferralCode && (
+                <Link href="/dashboard/partner" className="sidebar-item" onClick={() => setOpen(false)}>Partner Launchpad</Link>
+              )}
 
               {hasBusinessAccess && isOwner && (
                 <Link href="/dashboard/team" className="sidebar-item" onClick={() => setOpen(false)}>Team</Link>

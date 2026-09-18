@@ -73,6 +73,7 @@ export default async function DashboardLayout({
         hasBusinessAccess={Boolean(workspace?.hasBusinessAccess)}
         isOwner={Boolean(workspace?.isOwner)}
         isTeamMember={Boolean(workspace?.isTeamMember)}
+        hasReferralCode={Boolean(user?.referralCode)}
         unreadNotificationsCount={unreadNotificationsCount}
       />
 
@@ -126,6 +127,12 @@ export default async function DashboardLayout({
             <Link href="/dashboard/settings" className="sidebar-item">
               Settings
             </Link>
+
+            {user?.referralCode && (
+              <Link href="/dashboard/partner" className="sidebar-item">
+                Partner Launchpad
+              </Link>
+            )}
 
             {workspace?.hasBusinessAccess && workspace?.isOwner && (
               <Link href="/dashboard/team" className="sidebar-item">
