@@ -13,8 +13,12 @@ import { rateLimit } from "@/lib/rateLimit";
 import { canUseUnlimitedUploads } from "@/lib/access";
 import { buildFallbackAuditReport, normalizeAuditReport, shouldUseFallbackReport } from "@/lib/reportQuality";
 import { validateUploadFile } from "@/lib/uploadValidation";
+import { extractText } from "@/lib/fileParser";
+import { analyzeAuditV2 } from "@/lib/audit-v2";
+import { analyzeAuditV3 } from "@/lib/audit-v3";
 
 export const runtime = "nodejs";
+export const maxDuration = 300;
 
 function extractJSON(text: string) {
   const cleaned = text
@@ -44,6 +48,10 @@ function safeParseAIJson(raw: string) {
   }
 }
 
+type LegacyContentPart =
+  | { type: "input_file"; file_data?: string; file_id?: string; filename?: string }
+  | { type: "input_text"; text: string };
+
 async function analyzeWithAI(file: File, financialText?: string) {
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY!,
@@ -51,7 +59,7 @@ async function analyzeWithAI(file: File, financialText?: string) {
 
   const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
 
-  const content: any[] = [];
+  const content: LegacyContentPart[] = [];
 
   if (isPdf) {
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -132,7 +140,7 @@ ${financialText ? financialText.slice(0, 30000) : ""}
         content,
       },
     ],
-  });
+  } as unknown as Parameters<typeof openai.responses.create>[0]) as unknown as { output_text?: string };
 
   return safeParseAIJson(response.output_text || "");
 }
@@ -270,22 +278,54 @@ export async function POST(req: NextRequest) {
       }).join("\n\n");
     }
 
+    if (lowerName.endsWith(".pdf")) {
+      financialText = await extractText(Buffer.from(await file.arrayBuffer()), "application/pdf");
+    }
+
+    const analysisStartedAt = Date.now();
     let parsedData;
+    let fallbackUsed = false;
+    // Production is permanently on the validated V3 pipeline. This avoids a
+    // build-time .env value silently routing live uploads through legacy V1.
+    const auditEngine = process.env.NODE_ENV === "production"
+      ? "v3"
+      : process.env.EFFLUXA_AUDIT_V3_ENABLED === "true"
+        ? "v3"
+        : process.env.EFFLUXA_AUDIT_V2_ENABLED === "true"
+          ? "v2"
+          : "v1";
 
     try {
-      parsedData = normalizeAuditReport(
-        await analyzeWithAI(file, financialText),
-        {
+      if (auditEngine === "v3") {
+        parsedData = await analyzeAuditV3({
+          file,
           fileName: file.name,
           financialText,
-        }
-      );
+          language: user.preferredLanguage === "sr" ? "Serbian" : "English",
+        });
+      } else if (auditEngine === "v2") {
+        parsedData = await analyzeAuditV2({
+          file,
+          fileName: file.name,
+          financialText,
+          language: user.preferredLanguage === "sr" ? "Serbian" : "English",
+        });
+      } else {
+        parsedData = normalizeAuditReport(
+          await analyzeWithAI(file, financialText),
+          {
+            fileName: file.name,
+            financialText,
+          }
+        );
+      }
     } catch (analysisError) {
       if (!shouldUseFallbackReport(analysisError)) {
         throw analysisError;
       }
 
       console.warn("UPLOAD FALLBACK REPORT USED:", analysisError);
+      fallbackUsed = true;
 
       parsedData = buildFallbackAuditReport({
         fileName: file.name,
@@ -296,6 +336,37 @@ export async function POST(req: NextRequest) {
             : "AI output could not be converted into the required audit schema.",
       });
     }
+
+    if (parsedData && typeof parsedData === "object" && !Array.isArray(parsedData)) {
+      const reportData = parsedData as Record<string, any>;
+      const existingQuality =
+        reportData.report_quality &&
+        typeof reportData.report_quality === "object" &&
+        !Array.isArray(reportData.report_quality)
+          ? reportData.report_quality
+          : {};
+
+      parsedData = {
+        ...reportData,
+        report_quality: {
+          ...existingQuality,
+          audit_engine: auditEngine,
+          analysis_duration_ms: Date.now() - analysisStartedAt,
+          fallback_used: fallbackUsed || existingQuality.fallback_used === true,
+        },
+      };
+    }
+
+    const storedReportData =
+      parsedData && typeof parsedData === "object" && !Array.isArray(parsedData)
+        ? (parsedData as Record<string, any>)
+        : null;
+    const storedReportQuality =
+      storedReportData?.report_quality &&
+      typeof storedReportData.report_quality === "object" &&
+      !Array.isArray(storedReportData.report_quality)
+        ? storedReportData.report_quality
+        : null;
 
     const upload = await prisma.upload.create({
       data: {
@@ -325,6 +396,22 @@ export async function POST(req: NextRequest) {
       metadata: {
         fileName: file.name,
         fileSize: file.size,
+        analysisVersion:
+          parsedData && typeof parsedData === "object" && "analysisVersion" in parsedData && typeof parsedData.analysisVersion === "string"
+            ? parsedData.analysisVersion
+            : "1.0",
+        auditEngine,
+        analysisPath:
+          storedReportQuality?.analysis_path || null,
+        analysisDurationMs:
+          storedReportQuality?.analysis_duration_ms || null,
+        fallbackUsed,
+        findingCount:
+          Array.isArray(storedReportData?.findings)
+            ? storedReportData.findings.length
+            : null,
+        extractedRecordCount:
+          storedReportQuality?.extracted_record_count || null,
         workspaceOwnerId: workspace.owner.id,
         uploadedBy: user.email,
         clientId: client?.id || null,
@@ -336,7 +423,7 @@ export async function POST(req: NextRequest) {
       success: true,
       upload,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("UPLOAD ERROR:", error);
 
     await trackError({
@@ -344,7 +431,7 @@ export async function POST(req: NextRequest) {
       error,
     });
 
-    const message = String(error?.message || "");
+    const message = error instanceof Error ? error.message : String(error || "");
 
     const isQuotaError =
       message.includes("429") ||

@@ -134,6 +134,43 @@ export default async function AdminDashboardPage() {
     where: { type: "upload_created" },
   });
 
+  const uploadAnalysisEvents = await prisma.event.findMany({
+    where: {
+      type: "upload_created",
+      createdAt: { gte: thirtyDaysAgo },
+    },
+    select: { metadata: true },
+  });
+
+  const analysisTelemetry = uploadAnalysisEvents
+    .map((event) => (event.metadata && typeof event.metadata === "object" ? event.metadata as any : null))
+    .filter((metadata): metadata is Record<string, any> => Boolean(metadata?.analysisDurationMs));
+  const v3Telemetry = analysisTelemetry.filter((metadata) => metadata.auditEngine === "v3");
+  const fastPathTelemetry = v3Telemetry.filter((metadata) => metadata.analysisPath === "fast_text");
+  const fallbackTelemetry = analysisTelemetry.filter((metadata) => metadata.fallbackUsed === true);
+  const telemetryDurations = v3Telemetry
+    .map((metadata) => Number(metadata.analysisDurationMs))
+    .filter((duration) => Number.isFinite(duration) && duration >= 0)
+    .sort((a, b) => a - b);
+
+  function percentile(values: number[], percentileValue: number) {
+    if (values.length === 0) return 0;
+    const index = Math.min(
+      values.length - 1,
+      Math.max(0, Math.ceil((percentileValue / 100) * values.length) - 1)
+    );
+    return values[index];
+  }
+
+  const v3MedianMs = percentile(telemetryDurations, 50);
+  const v3P95Ms = percentile(telemetryDurations, 95);
+  const v3Share = analysisTelemetry.length > 0
+    ? Math.round((v3Telemetry.length / analysisTelemetry.length) * 100)
+    : 0;
+  const fastPathShare = v3Telemetry.length > 0
+    ? Math.round((fastPathTelemetry.length / v3Telemetry.length) * 100)
+    : 0;
+
   const signupUserIds = await prisma.event.findMany({
     where: { type: "signup", userId: { not: null } },
     select: { userId: true },
@@ -480,6 +517,41 @@ export default async function AdminDashboardPage() {
               <div className="metric-value green">{businessConversionRate}%</div>
             </div>
           </div>
+        </div>
+
+      <div className="card" style={{ marginTop: "40px" }}>
+        <div className="card-title">Engine Performance · Last 30 Days</div>
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          Production telemetry from completed uploads. New reports record engine path,
+          duration, extraction volume and fallback status without storing source-file contents.
+        </p>
+
+        <div className="report-grid" style={{ marginTop: "22px" }}>
+          <div className="card">
+            <div className="card-title">Telemetry Audits</div>
+            <div className="metric-value">{analysisTelemetry.length}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">V3 Share</div>
+            <div className="metric-value green">{v3Share}%</div>
+          </div>
+          <div className="card">
+            <div className="card-title">V3 Fast Path</div>
+            <div className="metric-value">{fastPathShare}%</div>
+          </div>
+          <div className="card">
+            <div className="card-title">V3 Median</div>
+            <div className="metric-value">{v3MedianMs ? `${Math.round(v3MedianMs / 1000)}s` : "—"}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">V3 P95</div>
+            <div className="metric-value">{v3P95Ms ? `${Math.round(v3P95Ms / 1000)}s` : "—"}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Fallback Reports</div>
+            <div className="metric-value">{fallbackTelemetry.length}</div>
+          </div>
+        </div>
       </div>
 
       <div className="card" style={{ marginTop: "40px" }}>
