@@ -11,6 +11,7 @@ import DeleteEventButton from "./DeleteEventButton";
 import PartnerAccessForm from "./PartnerAccessForm";
 import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
+import { buildGrowthCohorts } from "@/lib/growthMetrics";
 
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
@@ -41,6 +42,42 @@ export default async function AdminDashboardPage() {
   });
 
   const now = new Date();
+
+  const growthAccounts = await prisma.user.findMany({
+    select: {
+      id: true,
+      createdAt: true,
+      role: true,
+      referredByCode: true,
+      subscriptionStatus: true,
+      subscriptionEndDate: true,
+      complimentaryAgencyAccessUntil: true,
+      complimentaryAgencyAccessRevokedAt: true,
+    },
+  });
+
+  const growthAudits = await prisma.upload.findMany({
+    select: {
+      userId: true,
+      createdAt: true,
+    },
+  });
+
+  const growthCohorts = buildGrowthCohorts(
+    growthAccounts.map((account) => ({
+      id: account.id,
+      createdAt: account.createdAt,
+      isPartner: Boolean(account.referredByCode),
+      isPaid:
+        (account.role !== "FREE" &&
+          ["active", "trialing"].includes(account.subscriptionStatus) &&
+          (!account.subscriptionEndDate || account.subscriptionEndDate > now)) ||
+        (account.role === "BUSINESS" &&
+          !account.complimentaryAgencyAccessRevokedAt &&
+          Boolean(account.complimentaryAgencyAccessUntil && account.complimentaryAgencyAccessUntil > now)),
+    })),
+    growthAudits
+  );
 
   const activeBusinessUsersCount = await prisma.user.count({
     where: {
@@ -397,6 +434,18 @@ export default async function AdminDashboardPage() {
     where: { type: "monthly_executive_summary_sent" },
   });
 
+  const reportShareEventsCount = await prisma.event.count({
+    where: { type: "report_share_created" },
+  });
+
+  const reportExportEventsCount = await prisma.event.count({
+    where: {
+      type: {
+        in: ["report_pdf_exported", "workspace_pdf_exported", "workspace_csv_exported"],
+      },
+    },
+  });
+
   const eventGroups = await prisma.event.groupBy({
     by: ["type"],
     where: {
@@ -444,6 +493,7 @@ export default async function AdminDashboardPage() {
 
   const launchReadyCount = launchChecklist.filter((item) => item.done).length;
   const launchReadyPercent = Math.round((launchReadyCount / launchChecklist.length) * 100);
+  const formatRate = (value: number | null) => value === null ? "—" : `${value}%`;
 
   return (
     <div className="page-container">
@@ -570,6 +620,16 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className="card">
+              <div className="card-title">Report Shares</div>
+              <div className="metric-value green">{reportShareEventsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Report Exports</div>
+              <div className="metric-value">{reportExportEventsCount}</div>
+            </div>
+
+            <div className="card">
               <div className="card-title">Account Signup → Upload</div>
               <div className="metric-value">{signupToUploadRate}%</div>
             </div>
@@ -585,6 +645,44 @@ export default async function AdminDashboardPage() {
             </div>
           </div>
         </div>
+
+      <div className="card" style={{ marginTop: "40px" }}>
+        <div className="card-title">Activation &amp; Cohort Metrics</div>
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          Activation means a completed audit within 7 days of signup. Return means a second completed audit within 28 days; the return rate only uses cohorts old enough to have reached day 28. These are account-level signals, not revenue or savings claims.
+        </p>
+
+        <div style={{ overflowX: "auto", marginTop: "22px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "780px" }}>
+            <thead>
+              <tr style={{ textAlign: "left", color: "#94a3b8", fontSize: "12px" }}>
+                <th style={{ padding: "10px 12px" }}>Cohort</th>
+                <th style={{ padding: "10px 12px" }}>Signups</th>
+                <th style={{ padding: "10px 12px" }}>Audit ≤7d</th>
+                <th style={{ padding: "10px 12px" }}>Activation</th>
+                <th style={{ padding: "10px 12px" }}>Matured</th>
+                <th style={{ padding: "10px 12px" }}>Return ≤28d</th>
+                <th style={{ padding: "10px 12px" }}>Paid</th>
+                <th style={{ padding: "10px 12px" }}>Partner activation</th>
+              </tr>
+            </thead>
+            <tbody>
+              {growthCohorts.map((cohort) => (
+                <tr key={cohort.label} style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                  <td style={{ padding: "14px 12px", fontWeight: 800 }}>{cohort.label}</td>
+                  <td style={{ padding: "14px 12px" }}>{cohort.signups}</td>
+                  <td style={{ padding: "14px 12px" }}>{cohort.activatedWithin7Days}</td>
+                  <td style={{ padding: "14px 12px", color: "#86efac", fontWeight: 800 }}>{formatRate(cohort.activationRate)}</td>
+                  <td style={{ padding: "14px 12px" }}>{cohort.matureFor28DayRetention}</td>
+                  <td style={{ padding: "14px 12px", color: "#86efac", fontWeight: 800 }}>{formatRate(cohort.retentionRate)}</td>
+                  <td style={{ padding: "14px 12px" }}>{cohort.paidAccounts} ({formatRate(cohort.paidRate)})</td>
+                  <td style={{ padding: "14px 12px" }}>{cohort.partnerSignups > 0 ? formatRate(cohort.partnerActivationRate) : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <div className="card" style={{ marginTop: "40px" }}>
         <div className="card-title">Engine Performance · Last 30 Days</div>

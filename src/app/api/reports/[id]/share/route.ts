@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
+import { trackEvent } from "@/lib/events";
 
 export async function POST(
   req: NextRequest,
@@ -56,6 +57,16 @@ export async function POST(
     const updatedReport = await prisma.upload.update({
       where: { id: report.id },
       data: { shareToken },
+    });
+
+    await trackEvent({
+      type: "report_share_created",
+      userId: user.id,
+      reportId: report.id,
+      metadata: {
+        reused: Boolean(report.shareToken),
+        workspaceOwnerId: workspace.owner.id,
+      },
     });
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";

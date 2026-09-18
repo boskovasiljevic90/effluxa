@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { trackEvent } from "@/lib/events";
 
 function wrapText(text: string, maxLength = 88) {
   const words = String(text || "").split(" ");
@@ -64,6 +65,15 @@ export async function GET(req: NextRequest) {
         : 0;
 
     const highestRisk = leakageScores.length > 0 ? Math.max(...leakageScores) : 0;
+
+    await trackEvent({
+      type: "workspace_pdf_exported",
+      userId: user.id,
+      metadata: {
+        workspaceOwnerId: workspace.owner.id,
+        reportCount: reports.length,
+      },
+    });
 
     const pdfDoc = await PDFDocument.create();
     let page = pdfDoc.addPage([595, 842]);

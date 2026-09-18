@@ -5,6 +5,7 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
 import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
+import { trackEvent } from "@/lib/events";
 
 export const runtime = "nodejs";
 
@@ -238,6 +239,17 @@ export async function GET(req: NextRequest, { params }: Props) {
     );
 
     const pdfBytes = await pdfDoc.save();
+
+    await trackEvent({
+      type: "report_pdf_exported",
+      userId: user.id,
+      reportId: report.id,
+      metadata: {
+        workspaceOwnerId: workspace.owner.id,
+        analysisVersion: data?.analysisVersion || "1.0",
+        limitedData: isLimitedDataReport,
+      },
+    });
 
     return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,

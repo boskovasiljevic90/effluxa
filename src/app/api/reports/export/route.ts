@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
+import { trackEvent } from "@/lib/events";
 
 function csvEscape(value: any) {
   const text = String(value ?? "");
@@ -32,6 +33,15 @@ export async function GET(req: NextRequest) {
     const accessibleReports = reports.filter((report) =>
       canAccessFullReport({ report, user, workspace })
     );
+
+    await trackEvent({
+      type: "workspace_csv_exported",
+      userId: user.id,
+      metadata: {
+        workspaceOwnerId: workspace.owner.id,
+        reportCount: accessibleReports.length,
+      },
+    });
 
     const rows = [
       ["Client", "File", "Date", "Leakage Score", "Risk Level", "Estimated Savings", "Confidence", "Unlocked", "Internal Note"],
