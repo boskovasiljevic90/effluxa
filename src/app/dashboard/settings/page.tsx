@@ -10,6 +10,7 @@ import BillingPortalButton from "./BillingPortalButton";
 import BusinessBrandingForm from "./BusinessBrandingForm";
 import EmailPreferencesForm from "./EmailPreferencesForm";
 import DeleteAccountForm from "./DeleteAccountForm";
+import ReferralLinkActions from "./ReferralLinkActions";
 import { displayPlanLabel } from "@/lib/planDisplay";
 import { hasComplimentaryAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
@@ -96,6 +97,7 @@ export default async function SettingsPage() {
             >
               {getReferralLink(user.referralCode)}
             </div>
+            <ReferralLinkActions referralLink={getReferralLink(user.referralCode)} />
           </div>
         )}
 

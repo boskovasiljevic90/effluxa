@@ -1,10 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { normalizeReferralCode } from "@/lib/referrals";
 
 export default function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [signupHref, setSignupHref] = useState("/signup");
+
+  useEffect(() => {
+    const referralCode = normalizeReferralCode(
+      new URLSearchParams(window.location.search).get("ref")
+    );
+
+    if (referralCode) {
+      setSignupHref(`/signup?ref=${encodeURIComponent(referralCode)}`);
+    }
+  }, []);
 
   function closeMenu() {
     setMenuOpen(false);
@@ -21,7 +33,7 @@ export default function PublicHeader() {
         <Link href="/#pricing">Pricing</Link>
         <Link href="/contact">Contact</Link>
         <Link href="/login">Login</Link>
-        <Link href="/signup">
+        <Link href={signupHref}>
           <button
             style={{
               padding: "12px 20px",
@@ -56,7 +68,7 @@ export default function PublicHeader() {
           <Link href="/#pricing" onClick={closeMenu}>Pricing</Link>
           <Link href="/contact" onClick={closeMenu}>Contact</Link>
           <Link href="/login" onClick={closeMenu}>Login</Link>
-          <Link href="/signup" className="public-mobile-cta" onClick={closeMenu}>
+          <Link href={signupHref} className="public-mobile-cta" onClick={closeMenu}>
             Start Free
           </Link>
         </nav>
