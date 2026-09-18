@@ -10,6 +10,21 @@ export type GrowthAudit = {
   createdAt: Date | string;
 };
 
+export type AcquisitionSignup = {
+  userId: string;
+  source: string;
+  createdAt: Date | string;
+};
+
+export type AcquisitionFunnelRow = {
+  source: string;
+  signups: number;
+  activatedWithin7Days: number;
+  activationRate: number | null;
+  paidAccounts: number;
+  paidRate: number | null;
+};
+
 export type GrowthCohort = {
   label: string;
   signups: number;
@@ -125,4 +140,53 @@ export function buildGrowthCohorts(
     buildCohort("Last 30 days", accounts, auditsByUser, current30Start, nowAt + 1, nowAt),
     buildCohort("Previous 30 days", accounts, auditsByUser, previous30Start, current30Start, nowAt),
   ];
+}
+
+export function buildAcquisitionFunnel(
+  signups: AcquisitionSignup[],
+  accounts: GrowthAccount[],
+  audits: GrowthAudit[]
+): AcquisitionFunnelRow[] {
+  const accountById = new Map(accounts.map((account) => [account.id, account]));
+  const auditsByUser = new Map<string, number[]>();
+
+  for (const audit of audits) {
+    const auditAt = timestamp(audit.createdAt);
+    if (!auditAt) continue;
+    const existing = auditsByUser.get(audit.userId) || [];
+    existing.push(auditAt);
+    auditsByUser.set(audit.userId, existing);
+  }
+
+  const grouped = new Map<string, { signups: number; activated: number; paid: number }>();
+  const seenUsers = new Set<string>();
+
+  for (const signup of signups) {
+    if (seenUsers.has(signup.userId)) continue;
+    seenUsers.add(signup.userId);
+
+    const account = accountById.get(signup.userId);
+    const signupAt = timestamp(account?.createdAt || signup.createdAt);
+    const firstAuditAt = (auditsByUser.get(signup.userId) || [])
+      .filter((auditAt) => auditAt >= signupAt)
+      .sort((a, b) => a - b)[0];
+    const activated = firstAuditAt !== undefined && firstAuditAt <= signupAt + 7 * DAY_MS;
+    const current = grouped.get(signup.source) || { signups: 0, activated: 0, paid: 0 };
+
+    current.signups += 1;
+    if (activated) current.activated += 1;
+    if (account?.isPaid) current.paid += 1;
+    grouped.set(signup.source, current);
+  }
+
+  return Array.from(grouped.entries())
+    .map(([source, values]) => ({
+      source,
+      signups: values.signups,
+      activatedWithin7Days: values.activated,
+      activationRate: percentage(values.activated, values.signups),
+      paidAccounts: values.paid,
+      paidRate: percentage(values.paid, values.signups),
+    }))
+    .sort((a, b) => b.signups - a.signups || a.source.localeCompare(b.source));
 }

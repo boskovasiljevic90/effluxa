@@ -12,7 +12,7 @@ import PartnerAccessForm from "./PartnerAccessForm";
 import ContactMessageStatus from "./ContactMessageStatus";
 import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
-import { buildGrowthCohorts } from "@/lib/growthMetrics";
+import { buildAcquisitionFunnel, buildGrowthCohorts } from "@/lib/growthMetrics";
 
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
@@ -64,8 +64,7 @@ export default async function AdminDashboardPage() {
     },
   });
 
-  const growthCohorts = buildGrowthCohorts(
-    growthAccounts.map((account) => ({
+  const growthAccountSnapshots = growthAccounts.map((account) => ({
       id: account.id,
       createdAt: account.createdAt,
       isPartner: Boolean(account.referredByCode),
@@ -76,9 +75,9 @@ export default async function AdminDashboardPage() {
         (account.role === "BUSINESS" &&
           !account.complimentaryAgencyAccessRevokedAt &&
           Boolean(account.complimentaryAgencyAccessUntil && account.complimentaryAgencyAccessUntil > now)),
-    })),
-    growthAudits
-  );
+    }));
+
+  const growthCohorts = buildGrowthCohorts(growthAccountSnapshots, growthAudits);
 
   const activeBusinessUsersCount = await prisma.user.count({
     where: {
@@ -184,11 +183,12 @@ export default async function AdminDashboardPage() {
       type: "signup",
       createdAt: { gte: thirtyDaysAgo },
     },
-    select: { metadata: true },
+    select: { userId: true, createdAt: true, metadata: true },
   });
 
-  const signupAttributionCounts = new Map<string, number>();
-  for (const event of signupAttributionEvents) {
+  const acquisitionSignups = signupAttributionEvents.flatMap((event) => {
+    if (!event.userId) return [];
+
     const metadata = event.metadata && typeof event.metadata === "object"
       ? event.metadata as Record<string, any>
       : {};
@@ -200,13 +200,15 @@ export default async function AdminDashboardPage() {
     const content = typeof metadata.acquisitionContent === "string"
       ? ` / ${metadata.acquisitionContent}`
       : "";
-    const key = `${source}${content}`;
-    signupAttributionCounts.set(key, (signupAttributionCounts.get(key) || 0) + 1);
-  }
 
-  const signupAttributionRows = Array.from(signupAttributionCounts.entries())
-    .map(([source, count]) => ({ source, count }))
-    .sort((a, b) => b.count - a.count || a.source.localeCompare(b.source));
+    return [{ userId: event.userId, source: `${source}${content}`, createdAt: event.createdAt }];
+  });
+
+  const signupAttributionRows = buildAcquisitionFunnel(
+    acquisitionSignups,
+    growthAccountSnapshots,
+    growthAudits
+  );
 
   const uploadEventsCount = await prisma.event.count({
     where: { type: "upload_created" },
@@ -735,23 +737,27 @@ export default async function AdminDashboardPage() {
           <p className="gray" style={{ marginTop: "22px" }}>No attributed signup events yet.</p>
         ) : (
           <div style={{ display: "grid", gap: "10px", marginTop: "22px" }}>
-            {signupAttributionRows.map((row) => (
-              <div
-                key={row.source}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "14px",
-                  padding: "14px 16px",
-                  borderRadius: "12px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <span>{row.source}</span>
-                <strong>{row.count}</strong>
-              </div>
-            ))}
+              {signupAttributionRows.map((row) => (
+                <div
+                  key={row.source}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "14px",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    padding: "14px 16px",
+                    borderRadius: "12px",
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <strong>{row.source}</strong>
+                  <span className="gray">Signups: <strong className="white-text">{row.signups}</strong></span>
+                  <span className="gray">Audit ≤7d: <strong className="white-text">{row.activatedWithin7Days} ({formatRate(row.activationRate)})</strong></span>
+                  <span className="gray">Paid: <strong className="white-text">{row.paidAccounts} ({formatRate(row.paidRate)})</strong></span>
+                </div>
+              ))}
           </div>
         )}
       </div>
