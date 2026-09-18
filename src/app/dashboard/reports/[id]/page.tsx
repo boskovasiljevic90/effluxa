@@ -14,6 +14,7 @@ import FindingReview from "./FindingReview";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
 import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, displayNumber, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
+import { buildFindingTrend, formatRuleFamily } from "@/lib/reportComparison";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -147,6 +148,9 @@ export default async function ReportPage({ params }: Props) {
   const savingsChange = previousClientAudit
     ? currentSavings - previousSavings
     : 0;
+  const findingTrend = previousClientAudit
+    ? buildFindingTrend(data, previousData)
+    : null;
 
   const clients = workspace.hasBusinessAccess
     ? await prisma.client.findMany({
@@ -525,6 +529,137 @@ export default async function ReportPage({ params }: Props) {
                 </div>
               </div>
             </div>
+
+            {findingTrend && (
+              <div
+                style={{
+                  marginTop: "24px",
+                  paddingTop: "22px",
+                  borderTop: "1px solid rgba(148,163,184,0.18)",
+                }}
+              >
+                <div className="audit-section-kicker">Recurring control trend</div>
+                <h3 style={{ marginTop: "6px" }}>What changed in the evidence-backed rules</h3>
+                <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+                  This compares rule families between the latest two audits for the same client. A rule that is no longer detected is not automatically confirmed as resolved; validate the underlying evidence and control outcome.
+                </p>
+
+                {!findingTrend.hasComparableHistory ? (
+                  <p className="gray" style={{ marginTop: "16px" }}>
+                    A full rule-family comparison becomes available after two structured audits for this client.
+                  </p>
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        marginTop: "18px",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))",
+                        gap: "12px",
+                      }}
+                    >
+                      {[
+                        ["Current findings", findingTrend.currentCount],
+                        ["Previous findings", findingTrend.previousCount],
+                        ["Recurring rule families", findingTrend.recurring.length],
+                        ["New rule families", findingTrend.newRuleFamilies.length],
+                        ["Not detected now", findingTrend.noLongerDetected.length],
+                      ].map(([label, value]) => (
+                        <div
+                          key={String(label)}
+                          style={{
+                            padding: "14px",
+                            borderRadius: "12px",
+                            background: "rgba(255,255,255,0.035)",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                          }}
+                        >
+                          <div className="gray">{label}</div>
+                          <div style={{ fontSize: "24px", fontWeight: 900, marginTop: "7px" }}>
+                            {value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop: "18px",
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
+                        gap: "14px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          padding: "15px",
+                          borderRadius: "12px",
+                          background: "rgba(250,204,21,0.08)",
+                          border: "1px solid rgba(250,204,21,0.18)",
+                        }}
+                      >
+                        <strong>Recurring</strong>
+                        {findingTrend.recurring.length === 0 ? (
+                          <p className="gray" style={{ marginTop: "8px" }}>No recurring rule family detected.</p>
+                        ) : (
+                          <ul style={{ marginTop: "8px", paddingLeft: "18px" }}>
+                            {findingTrend.recurring.slice(0, 6).map((family) => (
+                              <li key={family.ruleId} style={{ marginTop: "5px" }}>
+                                {formatRuleFamily(family.ruleId)} · {family.previousCount} → {family.currentCount}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          padding: "15px",
+                          borderRadius: "12px",
+                          background: "rgba(239,68,68,0.08)",
+                          border: "1px solid rgba(239,68,68,0.18)",
+                        }}
+                      >
+                        <strong>New this period</strong>
+                        {findingTrend.newRuleFamilies.length === 0 ? (
+                          <p className="gray" style={{ marginTop: "8px" }}>No new rule family detected.</p>
+                        ) : (
+                          <ul style={{ marginTop: "8px", paddingLeft: "18px" }}>
+                            {findingTrend.newRuleFamilies.slice(0, 6).map((family) => (
+                              <li key={family.ruleId} style={{ marginTop: "5px" }}>
+                                {formatRuleFamily(family.ruleId)} · {family.currentCount}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          padding: "15px",
+                          borderRadius: "12px",
+                          background: "rgba(34,197,94,0.08)",
+                          border: "1px solid rgba(34,197,94,0.18)",
+                        }}
+                      >
+                        <strong>Not detected now</strong>
+                        {findingTrend.noLongerDetected.length === 0 ? (
+                          <p className="gray" style={{ marginTop: "8px" }}>No prior rule family disappeared from this period.</p>
+                        ) : (
+                          <ul style={{ marginTop: "8px", paddingLeft: "18px" }}>
+                            {findingTrend.noLongerDetected.slice(0, 6).map((family) => (
+                              <li key={family.ruleId} style={{ marginTop: "5px" }}>
+                                {formatRuleFamily(family.ruleId)} · was {family.previousCount}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         )}
 
