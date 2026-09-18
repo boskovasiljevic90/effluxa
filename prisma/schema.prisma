@@ -84,6 +84,8 @@ model ControlAction {
   dueDate           DateTime?
   outcomeNote       String?
   resolvedAmount    Float?
+  lastReminderAt    DateTime?
+  lastReminderKind  String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -92,6 +94,7 @@ model ControlAction {
   @@unique([reportId, findingId])
   @@index([workspaceOwnerId, status])
   @@index([reportId, status])
+  @@index([status, dueDate, lastReminderAt])
 }
 
 

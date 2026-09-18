@@ -211,6 +211,68 @@ export async function sendMonthlyExecutiveSummaryEmail({
   });
 }
 
+export async function sendControlActionReminderEmail({
+  to,
+  companyName,
+  openCount,
+  inReviewCount,
+  overdueCount,
+  dueSoonCount,
+}: {
+  to: string;
+  companyName?: string | null;
+  openCount: number;
+  inReviewCount: number;
+  overdueCount: number;
+  dueSoonCount: number;
+}) {
+  const resend = getResendClient();
+  if (!resend) return false;
+
+  const fromEmail =
+    process.env.RESEND_FROM_EMAIL ||
+    "Effluxa <noreply@effluxa.com>";
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
+  const subject = overdueCount > 0
+    ? "[Effluxa] Control workflow reminder"
+    : "[Effluxa] Weekly control workflow reminder";
+
+  await resend.emails.send({
+    from: fromEmail,
+    to,
+    subject,
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#0f172a;">
+        <h2>${escapeHtml(companyName || "Effluxa")} Control Workflow Reminder</h2>
+        <p>Your evidence-backed control queue has follow-up work that should be reviewed. Financial details are available only after signing in to Effluxa.</p>
+
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:18px;margin:20px 0;">
+          <p style="margin:0 0 6px;"><strong>Open:</strong> ${openCount}</p>
+          <p style="margin:0 0 6px;"><strong>In review:</strong> ${inReviewCount}</p>
+          <p style="margin:0 0 6px;"><strong>Overdue:</strong> ${overdueCount}</p>
+          <p style="margin:0;"><strong>Due within 7 days:</strong> ${dueSoonCount}</p>
+        </div>
+
+        <p style="margin-top:24px;">Open the authenticated Control Center to review the individual findings, client context, owners, amounts, and due dates.</p>
+
+        <p style="margin-top:24px;">
+          <a href="${appUrl}/dashboard/controls"
+             style="display:inline-block;background:#0f172a;color:white;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">
+            Open Control Center
+          </a>
+        </p>
+
+        <p style="font-size:12px;color:#64748b;margin-top:30px;">
+          Effluxa sends overdue reminders daily and reviews other open controls weekly. Verified recovered amounts are recorded only when your team confirms them.
+        </p>
+      </div>
+    `,
+  });
+
+  return true;
+}
+
 
 export async function sendWelcomeEmail({
   to,

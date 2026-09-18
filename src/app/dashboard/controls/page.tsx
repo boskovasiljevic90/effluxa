@@ -149,6 +149,10 @@ export default async function ControlsPage({
         One workspace view for evidence-backed findings that still need review, ownership, or verification.
       </p>
 
+      <p className="gray" style={{ marginTop: "8px", lineHeight: 1.6, fontSize: "13px" }}>
+        Reminder cadence: overdue controls are checked daily and other open controls weekly. Email reminders contain aggregate counts only; open Control Center to view financial details. You can disable them in Settings.
+      </p>
+
       <div className="report-grid" style={{ marginTop: "34px" }}>
         <div className="card">
           <div className="card-title">Open</div>

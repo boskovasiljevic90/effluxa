@@ -178,6 +178,8 @@ export async function POST(
         resolvedAmount,
         evidence: evidence as Prisma.InputJsonValue,
         quantifiedAmount: quantifiedAmount === undefined ? null : quantifiedAmount,
+        lastReminderAt: null,
+        lastReminderKind: null,
       },
       select: {
         id: true,

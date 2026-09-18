@@ -9,6 +9,10 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/control-action-reminders",
+      "schedule": "30 8 * * *"
+    },
+    {
       "path": "/api/cron/data-retention",
       "schedule": "15 3 * * *"
     }
