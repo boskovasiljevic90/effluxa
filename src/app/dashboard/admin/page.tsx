@@ -9,6 +9,8 @@ import AdminResetUsageButton from "./AdminResetUsageButton";
 import DeleteContactMessageButton from "./DeleteContactMessageButton";
 import DeleteEventButton from "./DeleteEventButton";
 import PartnerAccessForm from "./PartnerAccessForm";
+import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
+
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
 
@@ -37,13 +39,23 @@ export default async function AdminDashboardPage() {
     where: { role: "BUSINESS" },
   });
 
+  const now = new Date();
+
   const activeBusinessUsersCount = await prisma.user.count({
     where: {
       role: "BUSINESS",
-      subscriptionStatus: "active",
       OR: [
-        { subscriptionEndDate: null },
-        { subscriptionEndDate: { gt: new Date() } },
+        {
+          subscriptionStatus: { in: ["active", "trialing"] },
+          OR: [
+            { subscriptionEndDate: null },
+            { subscriptionEndDate: { gt: now } },
+          ],
+        },
+        {
+          complimentaryAgencyAccessRevokedAt: null,
+          complimentaryAgencyAccessUntil: { gt: now },
+        },
       ],
     },
   });
@@ -110,10 +122,8 @@ export default async function AdminDashboardPage() {
   });
 
   const revenueEvents = await prisma.event.count({
-    where: { type: "report_unlocked" },
+    where: { type: "full_audit_unlocked" },
   });
-
-  const estimatedRevenue = revenueEvents * 29;
 
   const signupEventsCount = await prisma.event.count({
     where: { type: "signup" },
@@ -148,6 +158,121 @@ export default async function AdminDashboardPage() {
   const partnerAuditsCount = await prisma.upload.count({
     where: { user: { referredByCode: { not: null } } },
   });
+
+  const referralPartners = await prisma.user.findMany({
+    where: { referralCode: { not: null } },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      email: true,
+      referralCode: true,
+      role: true,
+      paddleSubscriptionId: true,
+      subscriptionStatus: true,
+      subscriptionEndDate: true,
+      complimentaryAgencyAccessUntil: true,
+      complimentaryAgencyAccessRevokedAt: true,
+    },
+  });
+
+  const referredUsers = await prisma.user.findMany({
+    where: { referredByCode: { not: null } },
+    select: {
+      id: true,
+      referredByCode: true,
+      role: true,
+      paddleSubscriptionId: true,
+      subscriptionStatus: true,
+      subscriptionEndDate: true,
+      complimentaryAgencyAccessUntil: true,
+      complimentaryAgencyAccessRevokedAt: true,
+      uploads: {
+        select: {
+          unlocked: true,
+        },
+      },
+    },
+  });
+
+  const referredUserIds = referredUsers.map((user) => user.id);
+  const partnerControlActions = referredUserIds.length > 0
+    ? await prisma.controlAction.findMany({
+        where: { workspaceOwnerId: { in: referredUserIds } },
+        select: {
+          workspaceOwnerId: true,
+          status: true,
+          resolvedAmount: true,
+        },
+      })
+    : [];
+
+  const partnerFunnel = referralPartners
+    .map((partner) => {
+      const referralCode = partner.referralCode || "";
+      const referred = referredUsers.filter(
+        (user) => user.referredByCode === referralCode
+      );
+      const referredWithAudit = referred.filter((user) => user.uploads.length > 0);
+      const referredWithUnlockedAudit = referred.filter((user) =>
+        user.uploads.some((upload) => upload.unlocked)
+      );
+      const activeAgencyUsers = referred.filter((user) =>
+        hasActiveAgencyAccess(user, now)
+      );
+      const controls = partnerControlActions.filter((action) =>
+        referred.some((user) => user.id === action.workspaceOwnerId)
+      );
+      const actionedControls = controls.filter(
+        (action) => action.status === "ACTIONED"
+      ).length;
+      const verifiedRecovered = controls.reduce(
+        (sum, action) => sum + (Number(action.resolvedAmount) || 0),
+        0
+      );
+
+      return {
+        id: partner.id,
+        email: partner.email,
+        referralCode,
+        referralSignups: referred.length,
+        firstAudits: referredWithAudit.length,
+        unlockedAudits: referredWithUnlockedAudit.length,
+        activeAgencyUsers: activeAgencyUsers.length,
+        controlActions: controls.length,
+        actionedControls,
+        verifiedRecovered,
+      };
+    })
+    .filter((partner) =>
+      partner.referralSignups > 0 ||
+      partner.controlActions > 0 ||
+      partner.activeAgencyUsers > 0
+    )
+    .sort((a, b) =>
+      b.activeAgencyUsers - a.activeAgencyUsers ||
+      b.referralSignups - a.referralSignups
+    );
+
+  const partnerReferredWithAudit = partnerFunnel.reduce(
+    (sum, partner) => sum + partner.firstAudits,
+    0
+  );
+  const partnerUnlockedAudits = partnerFunnel.reduce(
+    (sum, partner) => sum + partner.unlockedAudits,
+    0
+  );
+  const partnerAgencyConversions = partnerFunnel.reduce(
+    (sum, partner) => sum + partner.activeAgencyUsers,
+    0
+  );
+  const partnerControlActionsCount = partnerFunnel.reduce(
+    (sum, partner) => sum + partner.controlActions,
+    0
+  );
+  const partnerVerifiedRecovered = partnerFunnel.reduce(
+    (sum, partner) => sum + partner.verifiedRecovered,
+    0
+  );
 
   const businessActivatedEventsCount = await prisma.event.count({
     where: { type: "business_subscription_activated" },
@@ -271,8 +396,11 @@ export default async function AdminDashboardPage() {
           </div>
 
           <div className="card">
-            <div className="card-title">Estimated Revenue</div>
-            <div className="metric-value green">€{estimatedRevenue}</div>
+            <div className="card-title">Paid Unlock Events</div>
+            <div className="metric-value green">{revenueEvents}</div>
+            <p className="gray" style={{ marginTop: "8px", fontSize: "12px", lineHeight: 1.5 }}>
+              Paddle unlock events; not a revenue estimate.
+            </p>
           </div>
 
           <div className="card">
@@ -345,6 +473,89 @@ export default async function AdminDashboardPage() {
               <div className="metric-value green">{businessConversionRate}%</div>
             </div>
           </div>
+      </div>
+
+      <div className="card" style={{ marginTop: "40px" }}>
+        <div className="card-title">Partner Growth Funnel</div>
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          Referral performance from signup through first audit, paid unlock, active Agency access, and verified financial recovery.
+        </p>
+
+        <div className="report-grid" style={{ marginTop: "22px" }}>
+          <div className="card">
+            <div className="card-title">Referral Signups</div>
+            <div className="metric-value green">{partnerSignupsCount}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">First Audits</div>
+            <div className="metric-value">{partnerReferredWithAudit}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Paid Unlocks</div>
+            <div className="metric-value">{partnerUnlockedAudits}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Active Agency</div>
+            <div className="metric-value green">{partnerAgencyConversions}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Control Actions</div>
+            <div className="metric-value">{partnerControlActionsCount}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Verified Recovered</div>
+            <div className="metric-value green">€{partnerVerifiedRecovered.toLocaleString()}</div>
+          </div>
+        </div>
+
+        {partnerFunnel.length === 0 ? (
+          <p className="gray" style={{ marginTop: "22px" }}>
+            No referred account has reached the first measurable funnel stage yet.
+          </p>
+        ) : (
+          <div style={{ display: "grid", gap: "14px", marginTop: "22px" }}>
+            {partnerFunnel.map((partner) => (
+              <div
+                key={partner.id}
+                style={{
+                  padding: "18px",
+                  borderRadius: "16px",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
+                  <div>
+                    <strong>{partner.email}</strong>
+                    <div className="gray" style={{ marginTop: "6px", fontSize: "12px" }}>
+                      {partner.referralCode}
+                    </div>
+                  </div>
+                  <div className="gray" style={{ fontSize: "13px" }}>
+                    {partner.referralSignups} referred signup{partner.referralSignups === 1 ? "" : "s"}
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit,minmax(145px,1fr))",
+                    gap: "12px",
+                    marginTop: "16px",
+                    fontSize: "13px",
+                  }}
+                >
+                  <div><div className="gray">First audit</div><strong>{partner.firstAudits}</strong></div>
+                  <div><div className="gray">Paid unlock</div><strong>{partner.unlockedAudits}</strong></div>
+                  <div><div className="gray">Active Agency</div><strong>{partner.activeAgencyUsers}</strong></div>
+                  <div><div className="gray">Controls</div><strong>{partner.controlActions}</strong></div>
+                  <div><div className="gray">Actioned</div><strong>{partner.actionedControls}</strong></div>
+                  <div><div className="gray">Verified recovered</div><strong>€{partner.verifiedRecovered.toLocaleString()}</strong></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <PartnerAccessForm />
