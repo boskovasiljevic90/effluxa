@@ -30,6 +30,7 @@ export default function PublicHeader() {
 
       <nav className="public-desktop-nav">
         <Link href="/#how-it-works">How it works</Link>
+        <Link href="/for-accounting-firms">For firms</Link>
         <Link href="/#pricing">Pricing</Link>
         <Link href="/contact">Contact</Link>
         <Link href="/login">Login</Link>
@@ -65,6 +66,7 @@ export default function PublicHeader() {
       {menuOpen && (
         <nav id="public-mobile-menu" className="public-mobile-menu" aria-label="Mobile navigation">
           <Link href="/#how-it-works" onClick={closeMenu}>How it works</Link>
+          <Link href="/for-accounting-firms" onClick={closeMenu}>For firms</Link>
           <Link href="/#pricing" onClick={closeMenu}>Pricing</Link>
           <Link href="/contact" onClick={closeMenu}>Contact</Link>
           <Link href="/login" onClick={closeMenu}>Login</Link>
