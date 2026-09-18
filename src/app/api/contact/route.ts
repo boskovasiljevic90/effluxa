@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendContactNotificationEmail } from "@/lib/email";
 import { trackError } from "@/lib/errorTracking";
+import { trackEvent } from "@/lib/events";
 import { rateLimit } from "@/lib/rateLimit";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -26,6 +27,9 @@ export async function POST(req: NextRequest) {
       : "";
     const subject = typeof body?.subject === "string" ? body.subject.trim() : "";
     const message = typeof body?.message === "string" ? body.message.trim() : "";
+    const source = body?.source === "partner_pilot"
+      ? "partner_pilot"
+      : "general_support";
 
     if (!email || !message || !emailPattern.test(email)) {
       return NextResponse.json(
@@ -63,6 +67,14 @@ export async function POST(req: NextRequest) {
         email,
         subject: subject || null,
         message,
+      },
+    });
+
+    await trackEvent({
+      type: "contact_message_submitted",
+      metadata: {
+        source,
+        subjectProvided: Boolean(subject),
       },
     });
 

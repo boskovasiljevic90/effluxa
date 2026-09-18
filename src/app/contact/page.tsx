@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useEffect } from "react";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
 
@@ -10,8 +11,18 @@ export default function ContactPage() {
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
+  const [source, setSource] = useState("general_support");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedSubject = params.get("subject");
+    if (requestedSubject) setSubject(requestedSubject);
+    if (params.get("source") === "partner_pilot") {
+      setSource("partner_pilot");
+    }
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +40,7 @@ export default function ContactPage() {
           email,
           subject,
           message,
+          source,
         }),
       });
 

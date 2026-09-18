@@ -87,10 +87,18 @@ export default function AccountingFirmsPage() {
                 Start a free partner audit
               </button>
             </Link>
-            <Link href="/sample-audit">
+            <Link href="/contact?subject=Partner%20pilot&source=partner_pilot">
               <button
                 className="primary-button"
                 style={{ padding: "16px 24px", fontSize: "16px", background: "white", color: "#0f172a", border: "1px solid #cbd5e1" }}
+              >
+                Request a partner pilot
+              </button>
+            </Link>
+            <Link href="/sample-audit">
+              <button
+                className="primary-button"
+                style={{ padding: "16px 24px", fontSize: "16px", background: "transparent", color: "#0f172a", border: "1px solid #cbd5e1" }}
               >
                 View a sample audit
               </button>
@@ -212,14 +220,19 @@ export default function AccountingFirmsPage() {
           ))}
         </div>
 
-        <div style={{ marginTop: "48px", padding: "30px", borderRadius: "24px", background: "#eef2ff", border: "1px solid #c7d2fe", textAlign: "center" }}>
-          <h2 style={{ fontSize: "30px", fontWeight: 950 }}>Start with one client-approved file.</h2>
+          <div style={{ marginTop: "48px", padding: "30px", borderRadius: "24px", background: "#eef2ff", border: "1px solid #c7d2fe", textAlign: "center" }}>
+            <h2 style={{ fontSize: "30px", fontWeight: 950 }}>Start with one client-approved file.</h2>
           <p style={{ marginTop: "10px", color: "#3730a3", lineHeight: 1.7 }}>
             Validate the workflow on real evidence before asking your team or client to change systems.
           </p>
           <Link href="/signup">
             <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px" }}>
               Create a free Effluxa account
+            </button>
+          </Link>
+          <Link href="/contact?subject=Partner%20pilot&source=partner_pilot" style={{ display: "inline-block", marginLeft: "12px" }}>
+            <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px", background: "white", color: "#0f172a", border: "1px solid #cbd5e1" }}>
+              Request a partner pilot
             </button>
           </Link>
         </div>
