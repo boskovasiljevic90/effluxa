@@ -10,6 +10,13 @@ import { rateLimit } from "@/lib/rateLimit";
 import { normalizeReferralCode, REFERRAL_COOKIE } from "@/lib/referrals";
 import { ACQUISITION_COOKIE, parseAcquisitionCookie } from "@/lib/acquisition";
 
+const subscriptionPlanIntents = new Set([
+  "pro_monthly",
+  "pro_annual",
+  "agency_monthly",
+  "agency_annual",
+]);
+
 export async function POST(req: NextRequest) {
   try {
     const limited = rateLimit({
@@ -27,6 +34,9 @@ export async function POST(req: NextRequest) {
       : "";
     const password = typeof body?.password === "string" ? body.password : "";
     const termsAccepted = body?.termsAccepted === true;
+    const planIntent = typeof body?.planIntent === "string" && subscriptionPlanIntents.has(body.planIntent)
+      ? body.planIntent
+      : null;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -126,6 +136,7 @@ export async function POST(req: NextRequest) {
         acquisitionContent: acquisition?.content || null,
         acquisitionLandingPath: acquisition?.landingPath || null,
         referralCode: referringPartner?.referralCode || null,
+        planIntent,
       },
     });
 

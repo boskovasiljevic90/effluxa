@@ -6,6 +6,21 @@ import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
 import { trackClientEvent } from "@/lib/clientAnalytics";
 import { normalizeReferralCode } from "@/lib/referrals";
+import type { SubscriptionPlan } from "@/components/subscription/SubscriptionButton";
+
+const subscriptionPlanIntents: SubscriptionPlan[] = [
+  "pro_monthly",
+  "pro_annual",
+  "agency_monthly",
+  "agency_annual",
+];
+
+const subscriptionPlanLabels: Record<SubscriptionPlan, string> = {
+  pro_monthly: "Pro monthly",
+  pro_annual: "Pro annual",
+  agency_monthly: "Agency monthly",
+  agency_annual: "Agency annual",
+};
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +29,7 @@ export default function SignupPage() {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasPartnerInvitation, setHasPartnerInvitation] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
 
   useEffect(() => {
     const referralCode = normalizeReferralCode(
@@ -26,6 +42,15 @@ export default function SignupPage() {
     trackClientEvent("referral_signup_started", {
       acquisition_channel: "partner_referral",
     });
+  }, []);
+
+  useEffect(() => {
+    const rawPlan = new URLSearchParams(window.location.search).get("plan");
+    if (!subscriptionPlanIntents.includes(rawPlan as SubscriptionPlan)) return;
+
+    const plan = rawPlan as SubscriptionPlan;
+    setSelectedPlan(plan);
+    trackClientEvent("signup_plan_intent", { plan });
   }, []);
 
   async function handleSignup(e: any) {
@@ -44,6 +69,7 @@ export default function SignupPage() {
           email,
           password,
           termsAccepted,
+          planIntent: selectedPlan,
         }),
       });
 
@@ -56,7 +82,10 @@ export default function SignupPage() {
       }
 
       trackClientEvent("signup_completed");
-      window.location.href = "/dashboard";
+      const destination = selectedPlan
+        ? `/dashboard?plan=${encodeURIComponent(selectedPlan)}`
+        : "/dashboard";
+      window.location.href = destination;
     } catch (err) {
       console.error(err);
       alert("Signup failed");
@@ -140,6 +169,24 @@ export default function SignupPage() {
             <p className="gray" style={{ marginBottom: "30px" }}>
               Start free. Unlock full audits only when you need them.
             </p>
+
+            {selectedPlan && (
+              <div
+                role="status"
+                style={{
+                  marginBottom: "24px",
+                  padding: "14px 16px",
+                  borderRadius: "14px",
+                  background: "rgba(37,99,235,0.14)",
+                  border: "1px solid rgba(96,165,250,0.35)",
+                  color: "#bfdbfe",
+                  fontSize: "14px",
+                  lineHeight: 1.55,
+                }}
+              >
+                You selected {subscriptionPlanLabels[selectedPlan]}. Create your free account first; secure checkout will be ready in the dashboard.
+              </div>
+            )}
 
             {hasPartnerInvitation && (
               <div

@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { trackClientEvent } from "@/lib/clientAnalytics";
+
+export type SubscriptionPlan =
+  | "pro_monthly"
+  | "pro_annual"
+  | "agency_monthly"
+  | "agency_annual";
 
 type Props = {
-  plan:
-    | "pro_monthly"
-    | "pro_annual"
-    | "agency_monthly"
-    | "agency_annual";
+  plan: SubscriptionPlan;
   label: string;
 };
 
@@ -25,6 +28,7 @@ export default function SubscriptionButton({
     try {
 
       setLoading(true);
+      trackClientEvent("subscription_checkout_started", { plan });
 
 
       const response =

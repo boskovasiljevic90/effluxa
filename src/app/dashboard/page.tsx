@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import BusinessUpgradeButton from "./BusinessUpgradeButton";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { displayPlanLabel } from "@/lib/planDisplay";
+import type { SubscriptionPlan } from "@/components/subscription/SubscriptionButton";
 
 export const dynamic = "force-dynamic";
 
@@ -26,10 +27,32 @@ async function getUser() {
   }
 }
 
-export default async function DashboardPage() {
+const subscriptionPlanIntents: SubscriptionPlan[] = [
+  "pro_monthly",
+  "pro_annual",
+  "agency_monthly",
+  "agency_annual",
+];
+
+const subscriptionPlanLabels: Record<SubscriptionPlan, string> = {
+  pro_monthly: "Pro monthly",
+  pro_annual: "Pro annual",
+  agency_monthly: "Agency monthly",
+  agency_annual: "Agency annual",
+};
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: { plan?: string };
+}) {
   const user = await getUser();
 
   if (!user) redirect("/login");
+
+  const selectedPlan = subscriptionPlanIntents.includes(searchParams?.plan as SubscriptionPlan)
+    ? searchParams?.plan as SubscriptionPlan
+    : null;
 
   const workspace = await getWorkspaceOwner(user);
 
@@ -513,6 +536,24 @@ return (
             5 team seats and priority processing.
           </p>
 
+          {selectedPlan && (
+            <div
+              role="status"
+              style={{
+                marginTop: "16px",
+                padding: "13px 15px",
+                borderRadius: "12px",
+                background: "rgba(99,102,241,0.14)",
+                border: "1px solid rgba(129,140,248,0.35)",
+                color: "#c7d2fe",
+                lineHeight: 1.55,
+                fontSize: "14px",
+              }}
+            >
+              You selected {subscriptionPlanLabels[selectedPlan]} on the pricing page. Continue below to open secure Paddle checkout.
+            </div>
+          )}
+
           <div
             style={{
               marginTop: "20px",
@@ -528,6 +569,7 @@ return (
           <BusinessUpgradeButton
             currentRole={user.role}
             hasBusinessAccess={workspace.hasBusinessAccess}
+            preferredPlan={selectedPlan}
           />
         </div>
       )}

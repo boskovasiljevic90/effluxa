@@ -1,10 +1,12 @@
 "use client";
 
 import SubscriptionButton from "@/components/subscription/SubscriptionButton";
+import type { SubscriptionPlan } from "@/components/subscription/SubscriptionButton";
 
 type Props = {
   currentRole?: string | null;
   hasBusinessAccess?: boolean;
+  preferredPlan?: SubscriptionPlan | null;
 };
 
 const plans = [
@@ -33,6 +35,7 @@ const plans = [
 export default function BusinessUpgradeButton({
   currentRole,
   hasBusinessAccess = false,
+  preferredPlan = null,
 }: Props) {
   const role = currentRole || "FREE";
 
@@ -64,6 +67,12 @@ export default function BusinessUpgradeButton({
     return true;
   });
 
+  const orderedPlans = [...visiblePlans].sort((left, right) => {
+    if (left.plan === preferredPlan) return -1;
+    if (right.plan === preferredPlan) return 1;
+    return 0;
+  });
+
   return (
     <>
       {isAgency && !hasBusinessAccess && (
@@ -80,12 +89,18 @@ export default function BusinessUpgradeButton({
           marginTop: "16px",
         }}
       >
-        {visiblePlans.map((item) => (
-          <SubscriptionButton
-            key={item.plan}
-            plan={item.plan}
-            label={item.label}
-          />
+        {orderedPlans.map((item) => (
+          <div key={item.plan} style={{ display: "grid", gap: "6px" }}>
+            <SubscriptionButton
+              plan={item.plan}
+              label={item.label}
+            />
+            {item.plan === preferredPlan && (
+              <span className="gray" style={{ fontSize: "12px", fontWeight: 700 }}>
+                Selected from pricing
+              </span>
+            )}
+          </div>
         ))}
       </div>
     </>

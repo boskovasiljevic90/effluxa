@@ -259,6 +259,12 @@ export default function HomePage() {
                 priceCurrency: "EUR",
                 name: "Pro Plan",
               },
+              {
+                "@type": "Offer",
+                price: "299",
+                priceCurrency: "EUR",
+                name: "Agency Plan",
+              },
             ],
           }),
         }}
@@ -311,7 +317,7 @@ export default function HomePage() {
               <li>✓ No subscription required</li>
             </ul>
 
-            <a href="/signup">
+            <a href="/signup?utm_source=pricing&utm_medium=owned&utm_campaign=plans&utm_content=full_audit">
               <button className="primary-button" style={{ marginTop: "24px", width: "100%" }}>
                 Start Free Preview
               </button>
@@ -348,7 +354,7 @@ export default function HomePage() {
               <li>✓ Priority processing</li>
             </ul>
 
-            <a href="/signup">
+            <a href="/signup?plan=pro_monthly&utm_source=pricing&utm_medium=owned&utm_campaign=plans&utm_content=pro_monthly">
               <button className="primary-button" style={{ marginTop: "24px", width: "100%" }}>
                 Start Pro
               </button>
@@ -384,7 +390,7 @@ export default function HomePage() {
               <li>✓ Portfolio intelligence</li>
             </ul>
 
-            <a href="/signup">
+            <a href="/signup?plan=agency_monthly&utm_source=pricing&utm_medium=owned&utm_campaign=plans&utm_content=agency_monthly">
               <button className="primary-button" style={{ marginTop: "24px", width: "100%" }}>
                 Start Agency
               </button>
