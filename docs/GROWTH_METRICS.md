@@ -41,6 +41,6 @@ If activation is low, fix upload, file support, or report clarity. If activation
 
 - No raw source-file contents are recorded in analytics events.
 - Estimated savings are not treated as recovered cash.
-- Verified recovered amount only comes from an explicit control-action outcome entered by a user.
+- Verified recovered amount only comes from an explicit control-action outcome entered by a user while the control is marked `ACTIONED` and includes an outcome/verification note. An estimate or an amount on an open control is not counted as recovered cash.
 - A partner referral is not counted as a customer until the referred account completes the relevant product step.
 - Empty cohorts are displayed as empty evidence, not as a zero-percent claim about product quality.

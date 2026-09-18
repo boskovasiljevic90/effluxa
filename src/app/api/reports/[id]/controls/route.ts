@@ -128,6 +128,20 @@ export async function POST(
       return NextResponse.json({ error: "Resolved amount must be a non-negative number." }, { status: 400 });
     }
 
+    const outcomeNote = optionalText(body?.outcomeNote, 4000);
+    if (resolvedAmount !== null && status !== "ACTIONED") {
+      return NextResponse.json(
+        { error: "Set the control to Actioned before recording a verified recovered amount." },
+        { status: 400 }
+      );
+    }
+    if (resolvedAmount !== null && !outcomeNote) {
+      return NextResponse.json(
+        { error: "Add an outcome or verification note before recording a recovered amount." },
+        { status: 400 }
+      );
+    }
+
     const quantifiedAmount = parseNonNegativeNumber(
       (finding.quantification as Record<string, unknown> | undefined)?.amount
     );
@@ -167,14 +181,14 @@ export async function POST(
         status,
         ownerEmail,
         dueDate,
-        outcomeNote: optionalText(body?.outcomeNote, 4000),
+        outcomeNote,
         resolvedAmount,
       },
       update: {
         status,
         ownerEmail,
         dueDate,
-        outcomeNote: optionalText(body?.outcomeNote, 4000),
+        outcomeNote,
         resolvedAmount,
         evidence: evidence as Prisma.InputJsonValue,
         quantifiedAmount: quantifiedAmount === undefined ? null : quantifiedAmount,

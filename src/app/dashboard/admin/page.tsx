@@ -13,6 +13,7 @@ import ContactMessageStatus from "./ContactMessageStatus";
 import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
 import { buildAcquisitionFunnel, buildGrowthCohorts } from "@/lib/growthMetrics";
+import { verifiedRecoveredAmount } from "@/lib/controlVerification";
 
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
@@ -386,6 +387,7 @@ export default async function AdminDashboardPage() {
         select: {
           workspaceOwnerId: true,
           status: true,
+          outcomeNote: true,
           resolvedAmount: true,
         },
       })
@@ -411,7 +413,7 @@ export default async function AdminDashboardPage() {
         (action) => action.status === "ACTIONED"
       ).length;
       const verifiedRecovered = controls.reduce(
-        (sum, action) => sum + (Number(action.resolvedAmount) || 0),
+        (sum, action) => sum + verifiedRecoveredAmount(action),
         0
       );
 

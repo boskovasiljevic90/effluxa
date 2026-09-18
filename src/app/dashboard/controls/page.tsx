@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { trackEvent } from "@/lib/events";
+import { isVerifiedControlAction, verifiedRecoveredAmount } from "@/lib/controlVerification";
 
 const STATUS_OPTIONS = [
   ["ALL", "All statuses"],
@@ -104,6 +105,7 @@ export default async function ControlsPage({
     select: {
       status: true,
       dueDate: true,
+      outcomeNote: true,
       resolvedAmount: true,
     },
   });
@@ -159,7 +161,7 @@ export default async function ControlsPage({
   const actionedCount = allActions.filter((action) => action.status === "ACTIONED").length;
   const overdueCount = allActions.filter((action) => isOverdue(action, now)).length;
   const verifiedRecovered = allActions.reduce(
-    (sum, action) => sum + (Number(action.resolvedAmount) || 0),
+    (sum, action) => sum + verifiedRecoveredAmount(action),
     0
   );
   const adoptionCutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
@@ -326,6 +328,7 @@ export default async function ControlsPage({
           <div style={{ display: "grid", gap: "14px", marginTop: "18px" }}>
             {actions.map((action) => {
               const overdue = isOverdue(action, now);
+              const verified = isVerifiedControlAction(action);
               return (
                 <div
                   key={action.id}
@@ -391,10 +394,12 @@ export default async function ControlsPage({
                     </div>
                     <div>
                       <div className="gray">Verified recovered</div>
-                      <div style={{ marginTop: "5px", color: action.resolvedAmount !== null ? "#86efac" : "#cbd5e1" }}>
-                        {action.resolvedAmount === null || action.resolvedAmount === undefined
-                          ? "Not verified"
-                          : `${action.currency} ${action.resolvedAmount.toLocaleString()}`}
+                      <div style={{ marginTop: "5px", color: verified ? "#86efac" : "#cbd5e1" }}>
+                        {verified
+                          ? `${action.currency} ${action.resolvedAmount?.toLocaleString()}`
+                          : action.resolvedAmount !== null && action.resolvedAmount !== undefined
+                            ? "Needs verification note"
+                            : "Not verified"}
                       </div>
                     </div>
                   </div>
