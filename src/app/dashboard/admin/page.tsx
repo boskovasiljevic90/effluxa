@@ -171,6 +171,44 @@ export default async function AdminDashboardPage() {
     ? Math.round((fastPathTelemetry.length / v3Telemetry.length) * 100)
     : 0;
 
+  const findingReviewGroups = await prisma.findingReview.groupBy({
+    by: ["verdict"],
+    where: {
+      createdAt: { gte: thirtyDaysAgo },
+    },
+    _count: { _all: true },
+  });
+
+  const findingReviewCounts = {
+    TRUE: 0,
+    FALSE: 0,
+    UNCLEAR: 0,
+  };
+
+  for (const group of findingReviewGroups) {
+    if (group.verdict in findingReviewCounts) {
+      findingReviewCounts[group.verdict as keyof typeof findingReviewCounts] = group._count._all;
+    }
+  }
+
+  const findingReviewTotal = Object.values(findingReviewCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+  const reviewedFindingRows = await prisma.findingReview.findMany({
+    where: {
+      createdAt: { gte: thirtyDaysAgo },
+    },
+    select: {
+      reportId: true,
+      findingId: true,
+    },
+    distinct: ["reportId", "findingId"],
+  });
+  const supportedReviewRate = findingReviewTotal > 0
+    ? Math.round((findingReviewCounts.TRUE / findingReviewTotal) * 100)
+    : 0;
+
   const signupUserIds = await prisma.event.findMany({
     where: { type: "signup", userId: { not: null } },
     select: { userId: true },
@@ -552,6 +590,46 @@ export default async function AdminDashboardPage() {
             <div className="metric-value">{fallbackTelemetry.length}</div>
           </div>
         </div>
+      </div>
+
+      <div className="card" style={{ marginTop: "40px" }}>
+        <div className="card-title">Reviewer Feedback · Last 30 Days</div>
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          Human validation of evidence-backed findings. This is the signal used to improve rule precision; it is not a claim that every finding is a confirmed loss.
+        </p>
+
+        {findingReviewTotal === 0 ? (
+          <p className="gray" style={{ marginTop: "22px" }}>
+            No reviewer feedback has been recorded yet.
+          </p>
+        ) : (
+          <div className="report-grid" style={{ marginTop: "22px" }}>
+            <div className="card">
+              <div className="card-title">Reviews</div>
+              <div className="metric-value">{findingReviewTotal}</div>
+            </div>
+            <div className="card">
+              <div className="card-title">Unique Findings</div>
+              <div className="metric-value">{reviewedFindingRows.length}</div>
+            </div>
+            <div className="card">
+              <div className="card-title">Supported</div>
+              <div className="metric-value green">{findingReviewCounts.TRUE}</div>
+            </div>
+            <div className="card">
+              <div className="card-title">Not Supported</div>
+              <div className="metric-value">{findingReviewCounts.FALSE}</div>
+            </div>
+            <div className="card">
+              <div className="card-title">Unclear</div>
+              <div className="metric-value">{findingReviewCounts.UNCLEAR}</div>
+            </div>
+            <div className="card">
+              <div className="card-title">Supported Share</div>
+              <div className="metric-value green">{supportedReviewRate}%</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ marginTop: "40px" }}>

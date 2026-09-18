@@ -10,6 +10,7 @@ import ShareReportButton from "./ShareReportButton";
 import ChangeReportClientForm from "./ChangeReportClientForm";
 import InternalNoteForm from "./InternalNoteForm";
 import ControlActionPanel from "./ControlActionPanel";
+import FindingReview from "./FindingReview";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
 import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, displayNumber, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
@@ -186,6 +187,25 @@ export default async function ReportPage({ params }: Props) {
       })
     : [];
 
+  const findingReviews = isUnlocked && isStructuredAudit
+    ? await prisma.findingReview.findMany({
+        where: {
+          reportId: report.id,
+          workspaceOwnerId: workspace.owner.id,
+          reviewerUserId: user.id,
+        },
+        select: {
+          findingId: true,
+          verdict: true,
+          note: true,
+        },
+      })
+    : [];
+
+  const findingReviewsByFindingId = Object.fromEntries(
+    findingReviews.map((review) => [review.findingId, review])
+  );
+
   const controlFindingSnapshots = engineFindings.map((finding: any) => ({
     id: String(finding.id || ""),
     title: String(finding.title || "Untitled finding"),
@@ -353,6 +373,7 @@ export default async function ReportPage({ params }: Props) {
                 <p className="gray">No deterministic findings were generated from the available data.</p>
               )}
               {engineFindings.map((finding: any, index: number) => {
+                const findingId = String(finding.id || "");
                 const severity = String(finding.severity || "MEDIUM").toUpperCase();
                 const severityColor =
                   severity === "CRITICAL" ? "#dc2626" :
@@ -398,6 +419,14 @@ export default async function ReportPage({ params }: Props) {
                             </li>
                           ))}
                         </ul>
+                      )}
+                      {findingId && (
+                        <FindingReview
+                          reportId={report.id}
+                          findingId={findingId}
+                          initialValue={findingReviewsByFindingId[findingId]?.verdict}
+                          initialNote={findingReviewsByFindingId[findingId]?.note}
+                        />
                       )}
                     </div>
                   </details>
