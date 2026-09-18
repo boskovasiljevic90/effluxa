@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getOperationalAdmin } from "@/lib/adminAuth";
+import { trackEvent } from "@/lib/events";
 
 export async function DELETE(
   req: NextRequest,
@@ -42,7 +43,17 @@ export async function PATCH(
   const message = await prisma.contactMessage.update({
     where: { id: params.id },
     data: { status },
-    select: { id: true, status: true },
+    select: { id: true, status: true, source: true },
+  });
+
+  await trackEvent({
+    type: "contact_lead_status_changed",
+    userId: admin.id,
+    metadata: {
+      contactMessageId: message.id,
+      source: message.source,
+      status: message.status,
+    },
   });
 
   return NextResponse.json({ success: true, message });
