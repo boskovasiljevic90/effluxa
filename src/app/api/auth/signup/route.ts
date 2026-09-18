@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import { trackEvent } from "@/lib/events";
 import { sendWelcomeEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
+import { normalizeReferralCode, REFERRAL_COOKIE } from "@/lib/referrals";
 
 export async function POST(req: NextRequest) {
   try {
@@ -65,6 +66,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const referralCode = normalizeReferralCode(
+      req.cookies.get(REFERRAL_COOKIE)?.value
+    );
+    const now = new Date();
+    const referringPartner = referralCode
+      ? await prisma.user.findFirst({
+          where: {
+            referralCode,
+            role: "BUSINESS",
+            OR: [
+              {
+                complimentaryAgencyAccessUntil: { gt: now },
+                complimentaryAgencyAccessRevokedAt: null,
+              },
+              {
+                paddleSubscriptionId: { not: null },
+                subscriptionStatus: { in: ["active", "trialing"] },
+                OR: [
+                  { subscriptionEndDate: null },
+                  { subscriptionEndDate: { gt: now } },
+                ],
+              },
+            ],
+          },
+          select: { id: true, referralCode: true },
+        })
+      : null;
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -73,14 +102,30 @@ export async function POST(req: NextRequest) {
         password: hashedPassword,
         role: "FREE",
         weeklyUploadCount: 0,
+        referredByCode: referringPartner?.referralCode || null,
       },
     });
 
     await trackEvent({
       type: "signup",
       userId: user.id,
-      metadata: { email: user.email, termsAccepted: true },
+      metadata: {
+        termsAccepted: true,
+        acquisitionChannel: referringPartner ? "partner_referral" : "direct",
+        referralCode: referringPartner?.referralCode || null,
+      },
     });
+
+    if (referringPartner?.referralCode) {
+      await trackEvent({
+        type: "referral_signup",
+        userId: user.id,
+        metadata: {
+          referralCode: referringPartner.referralCode,
+          partnerUserId: referringPartner.id,
+        },
+      });
+    }
 
     try {
       await sendWelcomeEmail({ to: email });

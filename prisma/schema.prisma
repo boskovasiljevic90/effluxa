@@ -30,6 +30,8 @@ model User {
   complimentaryAgencyAccessGrantedAt DateTime?
   complimentaryAgencyAccessRevokedAt DateTime?
   complimentaryAgencyAccessReason String?
+  referralCode          String?  @unique
+  referredByCode        String?
   preferredLanguage     String   @default("en")
   companyName          String?
   reportFooter         String?
@@ -40,6 +42,8 @@ model User {
   uploads               Upload[]
   clients              Client[]
   createdAt             DateTime @default(now())
+
+  @@index([referredByCode])
 }
 
 model Upload {

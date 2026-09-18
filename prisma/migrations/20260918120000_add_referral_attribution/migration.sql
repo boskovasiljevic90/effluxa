@@ -1,0 +1,5 @@
+ALTER TABLE "User" ADD COLUMN "referralCode" TEXT;
+ALTER TABLE "User" ADD COLUMN "referredByCode" TEXT;
+
+CREATE UNIQUE INDEX "User_referralCode_key" ON "User"("referralCode");
+CREATE INDEX "User_referredByCode_idx" ON "User"("referredByCode");

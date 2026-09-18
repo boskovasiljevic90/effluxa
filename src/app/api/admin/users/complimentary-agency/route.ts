@@ -5,6 +5,7 @@ import { Role } from "@prisma/client";
 import { getOperationalAdmin } from "@/lib/adminAuth";
 import { prisma } from "@/lib/prisma";
 import { trackEvent } from "@/lib/events";
+import { buildReferralCode, getReferralLink } from "@/lib/referrals";
 
 const ACCESS_DURATION_DAYS = 365;
 
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       data: {
         role: Role.BUSINESS,
+        referralCode: user.referralCode || buildReferralCode(user.id),
         complimentaryAgencyAccessUntil: until,
         complimentaryAgencyAccessGrantedAt: now,
         complimentaryAgencyAccessRevokedAt: null,
@@ -69,6 +71,7 @@ export async function POST(req: NextRequest) {
         id: true,
         email: true,
         role: true,
+        referralCode: true,
         complimentaryAgencyAccessUntil: true,
       },
     });
@@ -81,10 +84,17 @@ export async function POST(req: NextRequest) {
         grantedBy: admin.email,
         accessUntil: until.toISOString(),
         durationDays: ACCESS_DURATION_DAYS,
+        referralCode: updatedUser.referralCode,
       },
     });
 
-    return NextResponse.json({ success: true, user: updatedUser });
+    return NextResponse.json({
+      success: true,
+      user: updatedUser,
+      referralUrl: updatedUser.referralCode
+        ? getReferralLink(updatedUser.referralCode)
+        : null,
+    });
   } catch (error) {
     console.error("COMPLIMENTARY AGENCY GRANT ERROR:", error);
     return NextResponse.json({ error: "Failed to grant partner access." }, { status: 500 });

@@ -9,6 +9,7 @@ import {
   transactionCustomData,
 } from "@/lib/paddle";
 import { hasComplimentaryAgencyAccess } from "@/lib/complimentaryAccess";
+import { buildReferralCode } from "@/lib/referrals";
 
 type PaddleTransactionLike = {
   id: string;
@@ -148,6 +149,10 @@ export async function syncPaddleSubscription(
     where: { id: user.id },
     data: {
       role,
+      referralCode:
+        role === Role.BUSINESS
+          ? user.referralCode || buildReferralCode(user.id)
+          : user.referralCode,
       paddleCustomerId: subscription.customerId,
       paddleSubscriptionId: subscription.id,
       subscriptionStatus: subscription.status,

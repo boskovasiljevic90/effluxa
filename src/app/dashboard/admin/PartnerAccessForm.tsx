@@ -6,6 +6,7 @@ export default function PartnerAccessForm() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState<"grant" | "revoke" | null>(null);
   const [message, setMessage] = useState("");
+  const [referralUrl, setReferralUrl] = useState("");
 
   async function updateAccess(action: "grant" | "revoke") {
     setLoading(action);
@@ -24,6 +25,7 @@ export default function PartnerAccessForm() {
         return;
       }
 
+      setReferralUrl(action === "grant" ? data.referralUrl || "" : "");
       setMessage(
         action === "grant"
           ? "Agency partner access granted for 365 days."
@@ -69,6 +71,30 @@ export default function PartnerAccessForm() {
       </div>
 
       {message && <p className="gray" style={{ marginTop: "14px" }}>{message}</p>}
+
+      {referralUrl && (
+        <div
+          style={{
+            marginTop: "16px",
+            padding: "16px",
+            borderRadius: "14px",
+            background: "rgba(96,165,250,0.08)",
+            border: "1px solid rgba(96,165,250,0.20)",
+          }}
+        >
+          <div style={{ fontWeight: 700 }}>Partner referral link</div>
+          <div className="gray" style={{ marginTop: "8px", wordBreak: "break-all" }}>
+            {referralUrl}
+          </div>
+          <button
+            className="primary-button"
+            style={{ marginTop: "12px" }}
+            onClick={() => navigator.clipboard.writeText(referralUrl)}
+          >
+            Copy Referral Link
+          </button>
+        </div>
+      )}
     </div>
   );
 }

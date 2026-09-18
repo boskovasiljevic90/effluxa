@@ -12,6 +12,7 @@ import EmailPreferencesForm from "./EmailPreferencesForm";
 import DeleteAccountForm from "./DeleteAccountForm";
 import { displayPlanLabel } from "@/lib/planDisplay";
 import { hasComplimentaryAgencyAccess } from "@/lib/complimentaryAccess";
+import { getReferralLink } from "@/lib/referrals";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -67,6 +68,28 @@ export default async function SettingsPage() {
             </p>
           )}
         </div>
+
+        {user.referralCode && (
+          <div className="card full-width">
+            <div className="card-title">Partner Referrals</div>
+            <p className="gray" style={{ lineHeight: 1.7, marginTop: "10px" }}>
+              Share this link with companies that should try Effluxa. Signups from the link are attributed to your partner account for 30 days.
+            </p>
+            <div
+              style={{
+                marginTop: "16px",
+                padding: "14px 16px",
+                borderRadius: "14px",
+                background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                wordBreak: "break-all",
+                color: "#bfdbfe",
+              }}
+            >
+              {getReferralLink(user.referralCode)}
+            </div>
+          </div>
+        )}
 
         <div className="card">
           <div className="card-title">

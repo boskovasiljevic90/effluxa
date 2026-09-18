@@ -24,6 +24,7 @@ export default async function AdminDashboardPage() {
       email: true,
       role: true,
       weeklyUploadCount: true,
+      referralCode: true,
       createdAt: true,
     },
   });
@@ -81,6 +82,9 @@ export default async function AdminDashboardPage() {
   }, 0);
 
   const events = await prisma.event.findMany({
+    where: {
+      NOT: { type: { startsWith: "stripe_" } },
+    },
     orderBy: { createdAt: "desc" },
     take: 30,
   });
@@ -90,6 +94,7 @@ export default async function AdminDashboardPage() {
       type: {
         contains: "error",
       },
+      NOT: { type: { startsWith: "stripe_" } },
     },
     orderBy: { createdAt: "desc" },
     take: 20,
@@ -118,6 +123,32 @@ export default async function AdminDashboardPage() {
     where: { type: "upload_created" },
   });
 
+  const signupUserIds = await prisma.event.findMany({
+    where: { type: "signup", userId: { not: null } },
+    select: { userId: true },
+    distinct: ["userId"],
+  });
+
+  const uploadUserIds = await prisma.event.findMany({
+    where: { type: "upload_created", userId: { not: null } },
+    select: { userId: true },
+    distinct: ["userId"],
+  });
+
+  const unlockedUserIds = await prisma.event.findMany({
+    where: { type: "full_audit_unlocked", userId: { not: null } },
+    select: { userId: true },
+    distinct: ["userId"],
+  });
+
+  const partnerSignupsCount = await prisma.user.count({
+    where: { referredByCode: { not: null } },
+  });
+
+  const partnerAuditsCount = await prisma.upload.count({
+    where: { user: { referredByCode: { not: null } } },
+  });
+
   const businessActivatedEventsCount = await prisma.event.count({
     where: { type: "business_subscription_activated" },
   });
@@ -132,19 +163,22 @@ export default async function AdminDashboardPage() {
 
   const eventGroups = await prisma.event.groupBy({
     by: ["type"],
+    where: {
+      NOT: { type: { startsWith: "stripe_" } },
+    },
     _count: { type: true },
     orderBy: { _count: { type: "desc" } },
     take: 10,
   });
 
   const signupToUploadRate =
-    signupEventsCount > 0
-      ? Math.round((uploadEventsCount / signupEventsCount) * 100)
+    signupUserIds.length > 0
+      ? Math.round((uploadUserIds.length / signupUserIds.length) * 100)
       : 0;
 
   const uploadToUnlockRate =
-    uploadEventsCount > 0
-      ? Math.round((revenueEvents / uploadEventsCount) * 100)
+    uploadUserIds.length > 0
+      ? Math.round((unlockedUserIds.length / uploadUserIds.length) * 100)
       : 0;
 
   const businessConversionRate =
@@ -262,6 +296,26 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className="card">
+              <div className="card-title">Unique Signups</div>
+              <div className="metric-value">{signupUserIds.length}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Accounts with Upload</div>
+              <div className="metric-value">{uploadUserIds.length}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Partner Signups</div>
+              <div className="metric-value green">{partnerSignupsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Partner Audits</div>
+              <div className="metric-value green">{partnerAuditsCount}</div>
+            </div>
+
+            <div className="card">
               <div className="card-title">Business Activations</div>
               <div className="metric-value green">{businessActivatedEventsCount}</div>
             </div>
@@ -277,12 +331,12 @@ export default async function AdminDashboardPage() {
             </div>
 
             <div className="card">
-              <div className="card-title">Signup → Upload</div>
+              <div className="card-title">Account Signup → Upload</div>
               <div className="metric-value">{signupToUploadRate}%</div>
             </div>
 
             <div className="card">
-              <div className="card-title">Upload → Unlock</div>
+              <div className="card-title">Account Upload → Unlock</div>
               <div className="metric-value">{uploadToUnlockRate}%</div>
             </div>
 
@@ -384,6 +438,11 @@ export default async function AdminDashboardPage() {
                   <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
                     Role: {user.role} | Usage: {`${user.weeklyUploadCount}/3`}
                   </div>
+                  {user.referralCode && (
+                    <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
+                      Referral code: {user.referralCode}
+                    </div>
+                  )}
                   <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
                     Joined: {new Date(user.createdAt).toLocaleString()}
                   </div>
