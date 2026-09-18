@@ -13,6 +13,7 @@ import ContactMessageStatus from "./ContactMessageStatus";
 import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
 import { buildAcquisitionFunnel, buildGrowthCohorts } from "@/lib/growthMetrics";
+import { buildPilotLeadFunnel } from "@/lib/pilotLeadMetrics";
 import { verifiedRecoveredAmount } from "@/lib/controlVerification";
 import { buildRevenueSummary } from "@/lib/revenueMetrics";
 
@@ -80,6 +81,7 @@ export default async function AdminDashboardPage() {
   const growthAccounts = await prisma.user.findMany({
     select: {
       id: true,
+      email: true,
       createdAt: true,
       role: true,
       referredByCode: true,
@@ -96,6 +98,11 @@ export default async function AdminDashboardPage() {
     select: {
       userId: true,
       createdAt: true,
+      user: {
+        select: {
+          email: true,
+        },
+      },
     },
   });
 
@@ -115,6 +122,31 @@ export default async function AdminDashboardPage() {
   const revenueSummary = buildRevenueSummary(growthAccounts, now);
 
   const growthCohorts = buildGrowthCohorts(growthAccountSnapshots, growthAudits);
+
+  const pilotLeads = await prisma.contactMessage.findMany({
+    where: { source: "partner_pilot" },
+    select: {
+      email: true,
+      createdAt: true,
+    },
+  });
+
+  const pilotLeadFunnel = buildPilotLeadFunnel(
+    pilotLeads,
+    growthAccounts.map((account) => ({
+      email: account.email,
+      createdAt: account.createdAt,
+      isPaid: Boolean(
+        account.paddleSubscriptionId &&
+        ["active", "trialing"].includes(account.subscriptionStatus) &&
+        (!account.subscriptionEndDate || account.subscriptionEndDate > now)
+      ),
+    })),
+    growthAudits.map((audit) => ({
+      email: audit.user.email,
+      createdAt: audit.createdAt,
+    }))
+  );
 
   const activeBusinessUsersCount = await prisma.user.count({
     where: {
@@ -855,6 +887,44 @@ export default async function AdminDashboardPage() {
           <div className="card">
             <div className="card-title">Fallback Reports</div>
             <div className="metric-value">{fallbackTelemetry.length}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: "40px" }}>
+        <div className="card-title">Partner Pilot Conversion</div>
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          Same-email attribution proxy: partner-pilot contacts are deduplicated by email, signup must happen after the first lead, and activation means a first audit within 7 days of signup. This undercounts email changes and does not prove causation. Complimentary access is not counted as paid.
+        </p>
+
+        <div className="report-grid" style={{ marginTop: "22px" }}>
+          <div className="card">
+            <div className="card-title">Pilot Leads</div>
+            <div className="metric-value">{pilotLeadFunnel.totalLeads}</div>
+            <p className="gray" style={{ marginTop: "8px", fontSize: "12px" }}>
+              {pilotLeadFunnel.leadsWithoutSignup} without same-email signup
+            </p>
+          </div>
+          <div className="card">
+            <div className="card-title">Same-email Signups</div>
+            <div className="metric-value green">{pilotLeadFunnel.leadsWithSignup}</div>
+            <p className="gray" style={{ marginTop: "8px", fontSize: "12px" }}>
+              Lead → signup: {formatRate(pilotLeadFunnel.signupRate)}
+            </p>
+          </div>
+          <div className="card">
+            <div className="card-title">First Audit ≤7d</div>
+            <div className="metric-value green">{pilotLeadFunnel.activatedWithin7Days}</div>
+            <p className="gray" style={{ marginTop: "8px", fontSize: "12px" }}>
+              Signup → activation: {formatRate(pilotLeadFunnel.activationRate)}
+            </p>
+          </div>
+          <div className="card">
+            <div className="card-title">Active Paid Accounts</div>
+            <div className="metric-value green">{pilotLeadFunnel.paidAccounts}</div>
+            <p className="gray" style={{ marginTop: "8px", fontSize: "12px" }}>
+              Signup → paid: {formatRate(pilotLeadFunnel.paidRate)}
+            </p>
           </div>
         </div>
       </div>

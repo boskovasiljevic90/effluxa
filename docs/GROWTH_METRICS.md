@@ -16,6 +16,7 @@ The Admin dashboard is intended to answer whether Effluxa is becoming a product 
 - **Report export** — an authenticated workspace successfully generates a report PDF, workspace PDF, or workspace CSV.
 - **Recurring run-rate proxy** — the monthly equivalent of active Paddle Pro/Agency subscription plans, using the stored Paddle plan (`pro_monthly`, `pro_annual`, `agency_monthly`, or `agency_annual`). Annual plans are divided by 12. This is not recognized revenue and excludes taxes, Paddle fees, refunds, discounts, and complimentary access.
 - **First-touch acquisition** — after analytics consent, the first recognised resource, partner landing page, or UTM source is stored for up to 90 days and attached to the signup event. Partner referral attribution remains a separate, higher-priority channel.
+- **Partner-pilot conversion proxy** — partner-pilot contact messages are deduplicated by normalized email. A same-email account counts only when it was created on or after the first lead; activation is the first audit within seven days of that signup; paid means an active/trialing Paddle subscription within its end date. The signup, activation, and paid rates use the preceding funnel stage as their denominator.
 
 Recognised organic sources currently include:
 
@@ -44,5 +45,6 @@ If activation is low, fix upload, file support, or report clarity. If activation
 - Estimated savings are not treated as recovered cash.
 - Verified recovered amount only comes from an explicit control-action outcome entered by a user while the control is marked `ACTIONED` and includes an outcome/verification note. An estimate or an amount on an open control is not counted as recovered cash.
 - A partner referral is not counted as a customer until the referred account completes the relevant product step.
+- The partner-pilot conversion proxy is an internal directional signal, not proof of causation. It undercounts people who sign up with a different email and can include a signup influenced by another channel.
 - Empty cohorts are displayed as empty evidence, not as a zero-percent claim about product quality.
 - Active subscriptions whose plan metadata is missing are counted separately as unclassified and are excluded from the run-rate amount. Effluxa must repair the billing metadata before using the amount for commercial decisions.
