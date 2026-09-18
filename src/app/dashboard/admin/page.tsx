@@ -16,6 +16,37 @@ import { buildAcquisitionFunnel, buildGrowthCohorts } from "@/lib/growthMetrics"
 import { verifiedRecoveredAmount } from "@/lib/controlVerification";
 import { buildRevenueSummary } from "@/lib/revenueMetrics";
 
+function pilotProfileSummary(profile: unknown) {
+  if (!profile || typeof profile !== "object" || Array.isArray(profile)) return "";
+
+  const values = profile as Record<string, unknown>;
+  const roleLabels: Record<string, string> = {
+    accounting_bookkeeping: "Accounting/bookkeeping",
+    fractional_cfo: "Fractional CFO",
+    in_house_finance: "In-house finance",
+    other: "Other finance role",
+  };
+  const portfolioLabels: Record<string, string> = {
+    "1_5": "1–5 clients",
+    "6_20": "6–20 clients",
+    "21_50": "21–50 clients",
+    "50_plus": "50+ clients",
+  };
+  const focusLabels: Record<string, string> = {
+    duplicate_payments: "Duplicate payments",
+    recurring_spend: "Recurring spend/price creep",
+    cash_flow: "Cash flow/working capital",
+    not_sure: "Focus not decided",
+  };
+
+  return [
+    typeof values.role === "string" ? roleLabels[values.role] : null,
+    typeof values.portfolioSize === "string" ? portfolioLabels[values.portfolioSize] : null,
+    typeof values.focus === "string" ? focusLabels[values.focus] : null,
+    values.canProvideRedactedFile === true ? "Redacted file available" : "No file committed yet",
+  ].filter(Boolean).join(" · ");
+}
+
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
 
@@ -1185,6 +1216,23 @@ export default async function AdminDashboardPage() {
                   <div style={{ marginTop: "12px", lineHeight: 1.7 }}>
                     {message.message}
                   </div>
+
+                  {message.source === "partner_pilot" && pilotProfileSummary(message.pilotProfile) && (
+                    <div
+                      className="gray"
+                      style={{
+                        marginTop: "12px",
+                        padding: "12px 14px",
+                        borderRadius: "12px",
+                        background: "rgba(99,102,241,0.10)",
+                        border: "1px solid rgba(129,140,248,0.18)",
+                        fontSize: "13px",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      Pilot profile: {pilotProfileSummary(message.pilotProfile)}
+                    </div>
+                  )}
 
                   <div className="gray" style={{ marginTop: "10px", fontSize: "13px" }}>
                     {new Date(message.createdAt).toLocaleString()}

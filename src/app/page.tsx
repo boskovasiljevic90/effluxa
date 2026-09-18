@@ -165,8 +165,8 @@ export default function HomePage() {
           gap: "20px",
         }}>
           {[
-            ["Leakage Score", "78/100", "Financial inefficiency risk"],
-            ["Savings Found", "€18,420", "Potential optimization"],
+            ["Example Leakage Score", "78/100", "Illustrative financial-risk signal"],
+            ["Example Opportunity", "€18,420", "Illustrative potential optimization"],
             ["Client Portfolio", "12 clients", "Agency-ready tracking"],
             ["Executive Reports", "PDF + CSV", "Exportable intelligence"],
           ].map(([title, value, desc]) => (
@@ -183,6 +183,10 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+
+        <p style={{ marginTop: "18px", color: "#64748b", textAlign: "center", lineHeight: 1.6, fontSize: "13px" }}>
+          The numeric examples above are illustrative sample values, not customer results or a savings guarantee.
+        </p>
       </section>
 
       <section id="how-it-works" style={{ background: "white", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0" }}>

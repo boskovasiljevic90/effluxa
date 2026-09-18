@@ -12,8 +12,13 @@ export default function ContactPage() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [source, setSource] = useState("general_support");
+  const [pilotRole, setPilotRole] = useState("");
+  const [pilotPortfolioSize, setPilotPortfolioSize] = useState("");
+  const [pilotFocus, setPilotFocus] = useState("");
+  const [canProvideRedactedFile, setCanProvideRedactedFile] = useState(false);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const isPartnerPilot = source === "partner_pilot";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -41,6 +46,14 @@ export default function ContactPage() {
           subject,
           message,
           source,
+          pilotProfile: isPartnerPilot
+            ? {
+                role: pilotRole,
+                portfolioSize: pilotPortfolioSize,
+                focus: pilotFocus,
+                canProvideRedactedFile,
+              }
+            : undefined,
         }),
       });
 
@@ -57,6 +70,10 @@ export default function ContactPage() {
       setEmail("");
       setSubject("");
       setMessage("");
+      setPilotRole("");
+      setPilotPortfolioSize("");
+      setPilotFocus("");
+      setCanProvideRedactedFile(false);
       setLoading(false);
     } catch (error) {
       console.error(error);
@@ -98,10 +115,14 @@ export default function ContactPage() {
               height: "fit-content",
             }}
           >
-            <h2 style={{ fontSize: "26px", fontWeight: 900 }}>Support</h2>
+            <h2 style={{ fontSize: "26px", fontWeight: 900 }}>
+              {isPartnerPilot ? "Partner pilot" : "Support"}
+            </h2>
 
             <p style={{ marginTop: "16px", color: "#475569", lineHeight: 1.8 }}>
-              Use the form for upload issues, payment questions, report access, refunds, or product feedback.
+              {isPartnerPilot
+                ? "Tell us about your firm and the first client problem you want to test. We will use this only to scope a responsible pilot."
+                : "Use the form for upload issues, payment questions, report access, refunds, or product feedback."}
             </p>
 
             <div style={{ marginTop: "28px" }}>
@@ -167,6 +188,68 @@ export default function ContactPage() {
                 />
               </div>
 
+              {isPartnerPilot && (
+                <>
+                  <div>
+                    <label style={{ fontWeight: 700 }}>Your role *</label>
+                    <select
+                      required
+                      value={pilotRole}
+                      onChange={(e) => setPilotRole(e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="">Select one</option>
+                      <option value="accounting_bookkeeping">Accounting or bookkeeping firm</option>
+                      <option value="fractional_cfo">Fractional CFO or finance consultancy</option>
+                      <option value="in_house_finance">In-house finance team</option>
+                      <option value="other">Other finance professional</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontWeight: 700 }}>Client portfolio size *</label>
+                    <select
+                      required
+                      value={pilotPortfolioSize}
+                      onChange={(e) => setPilotPortfolioSize(e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="">Select one</option>
+                      <option value="1_5">1–5 client organizations</option>
+                      <option value="6_20">6–20 client organizations</option>
+                      <option value="21_50">21–50 client organizations</option>
+                      <option value="50_plus">More than 50 client organizations</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ fontWeight: 700 }}>First audit focus *</label>
+                    <select
+                      required
+                      value={pilotFocus}
+                      onChange={(e) => setPilotFocus(e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="">Select one</option>
+                      <option value="duplicate_payments">Duplicate payments</option>
+                      <option value="recurring_spend">Recurring spend or vendor price creep</option>
+                      <option value="cash_flow">Cash flow or working capital</option>
+                      <option value="not_sure">Not sure yet</option>
+                    </select>
+                  </div>
+
+                  <label style={{ display: "flex", gap: "10px", alignItems: "flex-start", color: "#475569", lineHeight: 1.5 }}>
+                    <input
+                      type="checkbox"
+                      checked={canProvideRedactedFile}
+                      onChange={(e) => setCanProvideRedactedFile(e.target.checked)}
+                      style={{ marginTop: "4px" }}
+                    />
+                    <span>I can provide a redacted sample file for the pilot.</span>
+                  </label>
+                </>
+              )}
+
               <div>
                 <label style={{ fontWeight: 700 }}>Subject</label>
                 <input
@@ -189,7 +272,9 @@ export default function ContactPage() {
                     resize: "vertical",
                     fontFamily: "inherit",
                   }}
-                  placeholder="Tell us what happened..."
+                  placeholder={isPartnerPilot
+                    ? "What would you like to test with your first client?"
+                    : "Tell us what happened..."}
                 />
               </div>
 
@@ -208,7 +293,7 @@ export default function ContactPage() {
                   opacity: loading ? 0.7 : 1,
                 }}
               >
-                {loading ? "Sending..." : "Send Message"}
+                {loading ? "Sending..." : isPartnerPilot ? "Request Partner Pilot" : "Send Message"}
               </button>
             </div>
           </form>

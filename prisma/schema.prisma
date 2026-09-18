@@ -167,6 +167,7 @@ model ContactMessage {
   status    String   @default("NEW")
   nextActionAt DateTime?
   internalNote String?
+  pilotProfile Json?
   createdAt DateTime @default(now())
 
   @@index([source, status, createdAt])

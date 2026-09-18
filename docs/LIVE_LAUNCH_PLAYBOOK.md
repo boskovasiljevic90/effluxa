@@ -57,6 +57,8 @@ Qualification questions:
 - Is the file for your own business or for a client portfolio?
 - Do you need one audit, ongoing individual use or an Agency workspace?
 
+The partner-pilot form also captures the prospect's role, approximate client-portfolio size, first audit focus and whether a redacted sample file is available. Use those fields to prioritize pilots and compare which use case reaches a first completed audit fastest; never request an unredacted file by email.
+
 ## 4. Five-minute product demonstration
 
 1. Start with the sample audit and show the leakage score, risk level and savings visibility.

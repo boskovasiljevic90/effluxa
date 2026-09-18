@@ -34,6 +34,20 @@ export default function SampleAuditPage() {
           See what Effluxa can detect from financial files before creating an account.
         </p>
 
+        <div
+          style={{
+            marginTop: "24px",
+            padding: "18px 20px",
+            borderRadius: "16px",
+            background: "#fffbeb",
+            border: "1px solid #fde68a",
+            color: "#92400e",
+            lineHeight: 1.65,
+          }}
+        >
+          <strong>Illustrative sample only.</strong> The figures and findings on this page are synthetic demonstration values. They are not a customer result, verified recovered cash, or a guarantee of savings.
+        </div>
+
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))", gap: "18px", marginTop: "36px" }}>
           {[
             ["Leakage Score", "78/100"],

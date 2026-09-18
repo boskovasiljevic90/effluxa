@@ -8,6 +8,23 @@ import { trackEvent } from "@/lib/events";
 import { rateLimit } from "@/lib/rateLimit";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const pilotRoles = new Set([
+  "accounting_bookkeeping",
+  "fractional_cfo",
+  "in_house_finance",
+  "other",
+]);
+const pilotPortfolioSizes = new Set(["1_5", "6_20", "21_50", "50_plus"]);
+const pilotFocuses = new Set([
+  "duplicate_payments",
+  "recurring_spend",
+  "cash_flow",
+  "not_sure",
+]);
+
+function allowedPilotChoice(value: unknown, allowed: Set<string>) {
+  return typeof value === "string" && allowed.has(value) ? value : null;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +47,34 @@ export async function POST(req: NextRequest) {
     const source = body?.source === "partner_pilot"
       ? "partner_pilot"
       : "general_support";
+    const rawPilotProfile = body?.pilotProfile && typeof body.pilotProfile === "object" && !Array.isArray(body.pilotProfile)
+      ? body.pilotProfile
+      : null;
+    const pilotRole = source === "partner_pilot"
+      ? allowedPilotChoice(rawPilotProfile?.role, pilotRoles)
+      : null;
+    const pilotPortfolioSize = source === "partner_pilot"
+      ? allowedPilotChoice(rawPilotProfile?.portfolioSize, pilotPortfolioSizes)
+      : null;
+    const pilotFocus = source === "partner_pilot"
+      ? allowedPilotChoice(rawPilotProfile?.focus, pilotFocuses)
+      : null;
+
+    if (source === "partner_pilot" && (!pilotRole || !pilotPortfolioSize || !pilotFocus)) {
+      return NextResponse.json(
+        { error: "Please select your firm type, client portfolio size, and first audit focus." },
+        { status: 400 }
+      );
+    }
+
+    const pilotProfile = source === "partner_pilot"
+      ? {
+          role: pilotRole,
+          portfolioSize: pilotPortfolioSize,
+          focus: pilotFocus,
+          canProvideRedactedFile: rawPilotProfile?.canProvideRedactedFile === true,
+        }
+      : null;
 
     if (!email || !message || !emailPattern.test(email)) {
       return NextResponse.json(
@@ -68,6 +113,7 @@ export async function POST(req: NextRequest) {
         subject: subject || null,
         message,
         source,
+        pilotProfile: pilotProfile || undefined,
       },
     });
 
@@ -76,6 +122,10 @@ export async function POST(req: NextRequest) {
       metadata: {
         source,
         subjectProvided: Boolean(subject),
+        pilotProfileProvided: Boolean(pilotProfile),
+        pilotRole,
+        pilotPortfolioSize,
+        pilotFocus,
       },
     });
 
