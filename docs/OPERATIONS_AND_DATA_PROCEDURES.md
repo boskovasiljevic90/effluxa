@@ -90,6 +90,8 @@ Use this when the customer cannot log in or has a legacy billing record:
 6. Treat any unexpected role change, webhook signature failure spike, login spike or data exposure as a security incident.
 7. Preserve only the minimum diagnostic details needed to investigate an incident.
 
+For partner-pilot follow-up, Admin can copy the manual draft shown on the lead record. Review it before sending through the approved human channel; Effluxa does not automatically send outreach messages.
+
 ## 6. Incident response
 
 ### Severity 1 — payments, authentication or customer data affected

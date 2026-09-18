@@ -1382,6 +1382,9 @@ export default async function AdminDashboardPage() {
                     initialStatus={message.status}
                     initialNextActionAt={message.nextActionAt?.toISOString() || null}
                     initialInternalNote={message.internalNote}
+                    source={message.source}
+                    leadName={message.name}
+                    followUpSignupUrl={`${(process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com").replace(/\/+$/, "")}/signup?utm_source=partner_pilot&utm_medium=owned&utm_campaign=pilot_intake&utm_content=manual_follow_up`}
                   />
 
                   <DeleteContactMessageButton messageId={message.id} />

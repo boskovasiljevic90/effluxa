@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buildPilotFollowUpDraft } from "@/lib/pilotFollowUp";
 
 const STATUS_OPTIONS = [
   ["NEW", "New"],
@@ -14,11 +15,17 @@ export default function ContactMessageStatus({
   initialStatus,
   initialNextActionAt,
   initialInternalNote,
+  source,
+  leadName,
+  followUpSignupUrl,
 }: {
   messageId: string;
   initialStatus: string;
   initialNextActionAt?: string | null;
   initialInternalNote?: string | null;
+  source?: string;
+  leadName?: string | null;
+  followUpSignupUrl?: string;
 }) {
   const [status, setStatus] = useState(initialStatus || "NEW");
   const [nextActionAt, setNextActionAt] = useState(initialNextActionAt ? initialNextActionAt.slice(0, 10) : "");
@@ -26,6 +33,8 @@ export default function ContactMessageStatus({
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [followUpDraft, setFollowUpDraft] = useState("");
+  const [followUpCopied, setFollowUpCopied] = useState(false);
 
   async function saveLead() {
     setSaving(true);
@@ -56,6 +65,24 @@ export default function ContactMessageStatus({
       setError("Lead could not be saved. Try again.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function copyFollowUpDraft() {
+    const draft = buildPilotFollowUpDraft({
+      name: leadName,
+      signupUrl: followUpSignupUrl,
+    });
+    setFollowUpDraft(draft);
+    setFollowUpCopied(false);
+
+    if (!navigator.clipboard?.writeText) return;
+
+    try {
+      await navigator.clipboard.writeText(draft);
+      setFollowUpCopied(true);
+    } catch {
+      setFollowUpCopied(false);
     }
   }
 
@@ -128,6 +155,51 @@ export default function ContactMessageStatus({
           }}
         />
       </label>
+
+      {source === "partner_pilot" && (
+        <div
+          style={{
+            display: "grid",
+            gap: "10px",
+            padding: "12px 14px",
+            borderRadius: "12px",
+            background: "rgba(99,102,241,0.08)",
+            border: "1px solid rgba(129,140,248,0.18)",
+          }}
+        >
+          <div style={{ fontWeight: 800 }}>Manual pilot follow-up</div>
+          <div className="gray" style={{ fontSize: "13px", lineHeight: 1.6 }}>
+            Copy a factual next-step draft for the approved human follow-up channel. Effluxa does not send it automatically.
+          </div>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={copyFollowUpDraft}
+            style={{ padding: "9px 14px", width: "fit-content" }}
+          >
+            {followUpCopied ? "Draft copied" : "Copy follow-up draft"}
+          </button>
+          {followUpDraft && (
+            <textarea
+              readOnly
+              value={followUpDraft}
+              aria-label="Partner pilot follow-up draft"
+              style={{
+                width: "100%",
+                minHeight: "190px",
+                padding: "10px",
+                borderRadius: "9px",
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.06)",
+                color: "white",
+                fontSize: "13px",
+                lineHeight: 1.5,
+                resize: "vertical",
+              }}
+            />
+          )}
+        </div>
+      )}
       {error && <span style={{ color: "#fca5a5", fontSize: "13px" }}>{error}</span>}
     </div>
   );
