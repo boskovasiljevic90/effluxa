@@ -14,6 +14,7 @@ The Admin dashboard is intended to answer whether Effluxa is becoming a product 
 - **Partner activation** — a referred account completes an audit within seven days of signup.
 - **Report share** — an authenticated workspace successfully creates or reuses a client-safe report share link.
 - **Report export** — an authenticated workspace successfully generates a report PDF, workspace PDF, or workspace CSV.
+- **Recurring run-rate proxy** — the monthly equivalent of active Paddle Pro/Agency subscription plans, using the stored Paddle plan (`pro_monthly`, `pro_annual`, `agency_monthly`, or `agency_annual`). Annual plans are divided by 12. This is not recognized revenue and excludes taxes, Paddle fees, refunds, discounts, and complimentary access.
 - **First-touch acquisition** — after analytics consent, the first recognised resource, partner landing page, or UTM source is stored for up to 90 days and attached to the signup event. Partner referral attribution remains a separate, higher-priority channel.
 
 Recognised organic sources currently include:
@@ -44,3 +45,4 @@ If activation is low, fix upload, file support, or report clarity. If activation
 - Verified recovered amount only comes from an explicit control-action outcome entered by a user while the control is marked `ACTIONED` and includes an outcome/verification note. An estimate or an amount on an open control is not counted as recovered cash.
 - A partner referral is not counted as a customer until the referred account completes the relevant product step.
 - Empty cohorts are displayed as empty evidence, not as a zero-percent claim about product quality.
+- Active subscriptions whose plan metadata is missing are counted separately as unclassified and are excluded from the run-rate amount. Effluxa must repair the billing metadata before using the amount for commercial decisions.

@@ -14,6 +14,7 @@ import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
 import { buildAcquisitionFunnel, buildGrowthCohorts } from "@/lib/growthMetrics";
 import { verifiedRecoveredAmount } from "@/lib/controlVerification";
+import { buildRevenueSummary } from "@/lib/revenueMetrics";
 
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
@@ -53,6 +54,8 @@ export default async function AdminDashboardPage() {
       referredByCode: true,
       subscriptionStatus: true,
       subscriptionEndDate: true,
+      paddleSubscriptionId: true,
+      billingPlan: true,
       complimentaryAgencyAccessUntil: true,
       complimentaryAgencyAccessRevokedAt: true,
     },
@@ -66,17 +69,19 @@ export default async function AdminDashboardPage() {
   });
 
   const growthAccountSnapshots = growthAccounts.map((account) => ({
-      id: account.id,
-      createdAt: account.createdAt,
-      isPartner: Boolean(account.referredByCode),
-      isPaid:
+    id: account.id,
+    createdAt: account.createdAt,
+    isPartner: Boolean(account.referredByCode),
+    isPaid:
         (account.role !== "FREE" &&
           ["active", "trialing"].includes(account.subscriptionStatus) &&
           (!account.subscriptionEndDate || account.subscriptionEndDate > now)) ||
         (account.role === "BUSINESS" &&
           !account.complimentaryAgencyAccessRevokedAt &&
           Boolean(account.complimentaryAgencyAccessUntil && account.complimentaryAgencyAccessUntil > now)),
-    }));
+  }));
+
+  const revenueSummary = buildRevenueSummary(growthAccounts, now);
 
   const growthCohorts = buildGrowthCohorts(growthAccountSnapshots, growthAudits);
 
@@ -547,6 +552,8 @@ export default async function AdminDashboardPage() {
   const launchReadyCount = launchChecklist.filter((item) => item.done).length;
   const launchReadyPercent = Math.round((launchReadyCount / launchChecklist.length) * 100);
   const formatRate = (value: number | null) => value === null ? "—" : `${value}%`;
+  const formatEuroCents = (value: number) =>
+    `€${(value / 100).toLocaleString("en-IE", { maximumFractionDigits: 0 })}`;
 
   return (
     <div className="page-container">
@@ -614,6 +621,20 @@ export default async function AdminDashboardPage() {
             <div className="metric-value green">{revenueEvents}</div>
             <p className="gray" style={{ marginTop: "8px", fontSize: "12px", lineHeight: 1.5 }}>
               Paddle unlock events; not a revenue estimate.
+            </p>
+          </div>
+
+          <div className="card">
+            <div className="card-title">Recurring Run-rate Proxy</div>
+            <div className="metric-value green">{formatEuroCents(revenueSummary.estimatedMrrCents)}/mo</div>
+            <p className="gray" style={{ marginTop: "8px", fontSize: "12px", lineHeight: 1.5 }}>
+              {formatEuroCents(revenueSummary.estimatedArrCents)}/yr · {revenueSummary.activePaidAccounts} active Paddle subscription{revenueSummary.activePaidAccounts === 1 ? "" : "s"}
+              {revenueSummary.unclassifiedActiveSubscriptions > 0
+                ? ` · ${revenueSummary.unclassifiedActiveSubscriptions} without a known plan`
+                : ""}
+            </p>
+            <p className="gray" style={{ marginTop: "6px", fontSize: "11px", lineHeight: 1.5 }}>
+              Normalized from active plans; excludes taxes, fees, refunds and complimentary access.
             </p>
           </div>
 

@@ -17,6 +17,14 @@ export type PaddlePlan =
   | "agency_monthly"
   | "agency_annual";
 
+const PADDLE_PLANS: PaddlePlan[] = [
+  "full_audit",
+  "pro_monthly",
+  "pro_annual",
+  "agency_monthly",
+  "agency_annual",
+];
+
 export type PaddleCustomData = {
   userId: string;
   product: PaddleProduct;
@@ -60,6 +68,12 @@ export function getPaddlePriceId(plan: PaddlePlan) {
   };
 
   return normalizePaddleEnvValue(process.env[priceEnv[plan]]);
+}
+
+export function normalizePaddlePlan(plan?: string | null): PaddlePlan | null {
+  return typeof plan === "string" && PADDLE_PLANS.includes(plan as PaddlePlan)
+    ? plan as PaddlePlan
+    : null;
 }
 
 export async function createPaddleCheckoutTransaction({

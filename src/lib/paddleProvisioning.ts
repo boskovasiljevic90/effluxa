@@ -4,6 +4,7 @@ import { trackEvent } from "@/lib/events";
 import {
   getPaddle,
   isActivePaddleSubscription,
+  normalizePaddlePlan,
   roleFromPaddleProduct,
   subscriptionEndDate,
   transactionCustomData,
@@ -130,6 +131,7 @@ export async function syncPaddleSubscription(
   }
 
   const nextRole = roleFromPaddleProduct(customData.product);
+  const nextPlan = normalizePaddlePlan(customData.plan);
   const active = isActivePaddleSubscription(subscription.status);
   const hasPartnerAccess = hasComplimentaryAgencyAccess(user);
   const role =
@@ -155,6 +157,7 @@ export async function syncPaddleSubscription(
           : user.referralCode,
       paddleCustomerId: subscription.customerId,
       paddleSubscriptionId: subscription.id,
+      billingPlan: nextPlan || user.billingPlan || null,
       subscriptionStatus: subscription.status,
       subscriptionEndDate:
         subscriptionEndDate(subscription as any) ||

@@ -24,6 +24,7 @@ model User {
   legacyPaymentSubscriptionId        String?
   paddleCustomerId                   String?
   paddleSubscriptionId               String?
+  billingPlan                        String?
   subscriptionEndDate                DateTime?
   subscriptionStatus                 String    @default("inactive")
   complimentaryAgencyAccessUntil     DateTime?
