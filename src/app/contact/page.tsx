@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect } from "react";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+import { trackClientEvent } from "@/lib/clientAnalytics";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -161,7 +162,31 @@ export default function ContactPage() {
                   fontWeight: 700,
                 }}
               >
-                Message sent successfully.
+                <div>Message sent successfully.</div>
+                {isPartnerPilot && (
+                  <>
+                    <div style={{ marginTop: "10px", fontWeight: 500, lineHeight: 1.6 }}>
+                      You can also start the first audit now with a free Effluxa account; no payment is required.
+                    </div>
+                    <Link
+                      href="/signup?utm_source=partner_pilot&utm_medium=owned&utm_campaign=pilot_intake&utm_content=contact_success"
+                      onClick={() => trackClientEvent("partner_pilot_signup_cta_clicked", {
+                        acquisition_source: "partner_pilot",
+                        acquisition_content: "contact_success",
+                      })}
+                      className="primary-button"
+                      style={{
+                        display: "inline-flex",
+                        marginTop: "14px",
+                        background: "#166534",
+                        color: "white",
+                        textDecoration: "none",
+                      }}
+                    >
+                      Start the free audit
+                    </Link>
+                  </>
+                )}
               </div>
             )}
 
