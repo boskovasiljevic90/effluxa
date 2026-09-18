@@ -21,6 +21,8 @@ Recognised organic sources currently include:
 - `resources` with the guide slug as content;
 - `partner_landing` for the accounting-firm page;
 - `sample_audit` for the sample report;
+- `shared_report` for a signup started from a shared individual audit;
+- `shared_client_portfolio` for a signup started from a shared client portfolio;
 - explicit `utm_source`, `utm_medium`, `utm_campaign` and optional `utm_content` values.
 
 ## Why these metrics

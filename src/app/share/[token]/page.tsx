@@ -10,6 +10,7 @@ import {
   isFallbackReport,
 } from "@/lib/reportDisplay";
 import Link from "next/link";
+import ShareGrowthCta from "@/components/ShareGrowthCta";
 
 type ReportData = Record<string, unknown>;
 
@@ -263,6 +264,8 @@ export default async function SharedReportPage({
             It is not financial, legal, accounting, tax, or investment advice.
           </div>
         </div>
+
+        <ShareGrowthCta variant="report" />
       </div>
     </main>
   );
