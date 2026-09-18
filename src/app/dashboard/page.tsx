@@ -244,7 +244,13 @@ return (
           </p>
         </div>
 
-        <div className="plan-badge plan-free">{workspace.hasBusinessAccess ? "AGENCY" : displayPlanLabel(user.role)}</div>
+        <div className="plan-badge plan-free">
+          {workspace.hasBusinessAccess
+            ? "AGENCY"
+            : user.role === "BUSINESS"
+              ? "AGENCY INACTIVE"
+              : displayPlanLabel(user.role)}
+        </div>
       </div>
 
 
@@ -432,12 +438,14 @@ return (
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: "28px" }}>
-        <div className="card-title">
+        <div className="card" style={{ marginBottom: "28px" }}>
+          <div className="card-title">
           {workspace.hasBusinessAccess
-            ? "Upgrade Effluxa"
-            : "Free Plan Usage"}
-        </div>
+            ? "Agency Workspace"
+            : user.role === "BUSINESS"
+              ? "Agency Access"
+              : "Free Plan Usage"}
+          </div>
 
         {workspace.hasBusinessAccess ? (
           <p className="gray" style={{ marginTop: "12px" }}>
@@ -446,6 +454,10 @@ return (
         ) : user.role === "PRO" ? (
           <p className="gray" style={{ marginTop: "12px" }}>
             Pro is active. Unlimited personal AI audits are enabled.
+          </p>
+        ) : user.role === "BUSINESS" ? (
+          <p className="gray" style={{ marginTop: "12px" }}>
+            Agency access is inactive. Reactivate an Agency plan to restore workspace features.
           </p>
         ) : (
           <p className="gray" style={{ marginTop: "12px" }}>
@@ -456,7 +468,13 @@ return (
 
       {!workspace.hasBusinessAccess && (
         <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">{user.role === "PRO" ? "Upgrade To Agency" : "Upgrade Effluxa"}</div>
+          <div className="card-title">
+            {user.role === "PRO"
+              ? "Upgrade To Agency"
+              : user.role === "BUSINESS"
+                ? "Reactivate Agency"
+                : "Upgrade Effluxa"}
+          </div>
 
           <p className="gray" style={{ marginTop: "12px" }}>
             Unlimited AI audits, unlimited reports,
@@ -470,10 +488,15 @@ return (
               fontWeight: 900,
             }}
           >
-            {user.role === "PRO" ? "Agency starts at €299/month" : "Pro starts at €79/month"}
+            {user.role === "PRO" || user.role === "BUSINESS"
+              ? "Agency starts at €299/month"
+              : "Pro starts at €79/month"}
           </div>
 
-          <BusinessUpgradeButton currentRole={user.role} />
+          <BusinessUpgradeButton
+            currentRole={user.role}
+            hasBusinessAccess={workspace.hasBusinessAccess}
+          />
         </div>
       )}
 

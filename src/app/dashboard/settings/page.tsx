@@ -13,6 +13,7 @@ import DeleteAccountForm from "./DeleteAccountForm";
 import { displayPlanLabel } from "@/lib/planDisplay";
 import { hasComplimentaryAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
+import { getWorkspaceOwner } from "@/lib/workspace";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -36,7 +37,14 @@ export default async function SettingsPage() {
 
   if (!user) redirect("/login");
 
+  const workspace = await getWorkspaceOwner(user);
+  const hasBusinessAccess = workspace.hasBusinessAccess;
   const complimentaryAgencyAccess = hasComplimentaryAgencyAccess(user);
+  const displayPlan = hasBusinessAccess
+    ? "AGENCY"
+    : user.role === "BUSINESS"
+      ? "AGENCY INACTIVE"
+      : displayPlanLabel(user.role);
 
   return (
     <>
@@ -54,7 +62,7 @@ export default async function SettingsPage() {
 
         <div className="card">
           <div className="card-title">Current Plan</div>
-          <div className="metric-value">{displayPlanLabel(user.role)}</div>
+          <div className="metric-value">{displayPlan}</div>
 
           {complimentaryAgencyAccess && user.complimentaryAgencyAccessUntil && (
             <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
@@ -62,7 +70,7 @@ export default async function SettingsPage() {
             </p>
           )}
 
-          {user.role !== "FREE" && user.subscriptionEndDate && (
+          {hasBusinessAccess && user.role !== "FREE" && user.subscriptionEndDate && (
             <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
               Active until {new Date(user.subscriptionEndDate).toLocaleDateString()}.
             </p>
@@ -93,12 +101,12 @@ export default async function SettingsPage() {
 
         <div className="card">
           <div className="card-title">
-            {user.role === "FREE"
+            {!hasBusinessAccess && user.role !== "PRO"
               ? "Free Audit Usage"
-              : `${displayPlanLabel(user.role)} Usage`}
+              : `${displayPlan} Usage`}
           </div>
           <div className="metric-value">
-            {user.role === "FREE"
+            {!hasBusinessAccess && user.role !== "PRO"
               ? `${user.weeklyUploadCount}/3`
               : "Unlimited"}
           </div>
@@ -117,7 +125,7 @@ export default async function SettingsPage() {
           </Link>
         </div>
 
-        {user.role === "BUSINESS" && (
+        {hasBusinessAccess && user.role === "BUSINESS" && (
           <div className="card full-width">
             <div className="card-title">Report Branding</div>
             <p className="gray" style={{ lineHeight: 1.7 }}>

@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
+import { trackEvent } from "@/lib/events";
 
 const STATUS_OPTIONS = [
   ["ALL", "All statuses"],
@@ -54,6 +55,7 @@ export default async function ControlsPage({
     status?: string;
     clientId?: string;
     q?: string;
+    reminder?: string;
   };
 }) {
   const user = await getUser();
@@ -69,6 +71,26 @@ export default async function ControlsPage({
   const clientId = searchParams?.clientId || "";
   const query = searchParams?.q?.trim() || "";
   const now = new Date();
+
+  if (searchParams?.reminder === "1") {
+    const clickCutoff = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const recentClick = await prisma.event.findFirst({
+      where: {
+        userId: workspace.owner.id,
+        type: "control_action_reminder_clicked",
+        createdAt: { gte: clickCutoff },
+      },
+      select: { id: true },
+    });
+
+    if (!recentClick) {
+      await trackEvent({
+        type: "control_action_reminder_clicked",
+        userId: workspace.owner.id,
+        metadata: { source: "email", page: "control_center" },
+      });
+    }
+  }
 
   const clients = await prisma.client.findMany({
     where: { ownerId: workspace.owner.id },
@@ -140,6 +162,26 @@ export default async function ControlsPage({
     (sum, action) => sum + (Number(action.resolvedAmount) || 0),
     0
   );
+  const adoptionCutoff = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+  const [reminderEmailsSent, reminderClicks] = await Promise.all([
+    prisma.event.count({
+      where: {
+        userId: workspace.owner.id,
+        type: "control_action_reminder_sent",
+        createdAt: { gte: adoptionCutoff },
+      },
+    }),
+    prisma.event.count({
+      where: {
+        userId: workspace.owner.id,
+        type: "control_action_reminder_clicked",
+        createdAt: { gte: adoptionCutoff },
+      },
+    }),
+  ]);
+  const actionRate = allActions.length > 0
+    ? Math.round((actionedCount / allActions.length) * 100)
+    : 0;
 
   return (
     <>
@@ -177,6 +219,34 @@ export default async function ControlsPage({
             Only amounts explicitly verified by your team are included.
           </p>
         </div>
+      </div>
+
+      <div className="card full-width" style={{ marginTop: "28px" }}>
+        <div className="card-title">Workflow Adoption · Last 90 Days</div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit,minmax(170px,1fr))",
+            gap: "18px",
+            marginTop: "16px",
+          }}
+        >
+          <div>
+            <div className="gray">Reminder emails sent</div>
+            <div className="metric-value" style={{ fontSize: "28px" }}>{reminderEmailsSent}</div>
+          </div>
+          <div>
+            <div className="gray">Visits from reminder email</div>
+            <div className="metric-value" style={{ fontSize: "28px" }}>{reminderClicks}</div>
+          </div>
+          <div>
+            <div className="gray">Controls actioned</div>
+            <div className="metric-value green" style={{ fontSize: "28px" }}>{actionRate}%</div>
+          </div>
+        </div>
+        <p className="gray" style={{ marginTop: "12px", lineHeight: 1.6 }}>
+          Action rate is the share of tracked controls currently marked Actioned. Reminder visits are counted once per workspace owner per 24-hour window.
+        </p>
       </div>
 
       <div className="card" style={{ marginTop: "28px" }}>

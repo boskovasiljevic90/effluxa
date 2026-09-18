@@ -4,6 +4,7 @@ import SubscriptionButton from "@/components/subscription/SubscriptionButton";
 
 type Props = {
   currentRole?: string | null;
+  hasBusinessAccess?: boolean;
 };
 
 const plans = [
@@ -31,13 +32,14 @@ const plans = [
 
 export default function BusinessUpgradeButton({
   currentRole,
+  hasBusinessAccess = false,
 }: Props) {
   const role = currentRole || "FREE";
 
   const isPro = role === "PRO";
   const isAgency = role === "BUSINESS";
 
-  if (isAgency) {
+  if (isAgency && hasBusinessAccess) {
     return (
       <p
         className="gray"
@@ -55,25 +57,37 @@ export default function BusinessUpgradeButton({
       return false;
     }
 
+    if (isAgency && item.tier === "pro") {
+      return false;
+    }
+
     return true;
   });
 
   return (
-    <div
-      style={{
-        display: "flex",
-        gap: "12px",
-        flexWrap: "wrap",
-        marginTop: "16px",
-      }}
-    >
-      {visiblePlans.map((item) => (
-        <SubscriptionButton
-          key={item.plan}
-          plan={item.plan}
-          label={item.label}
-        />
-      ))}
-    </div>
+    <>
+      {isAgency && !hasBusinessAccess && (
+        <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
+          Agency access is currently inactive. Reactivate an Agency plan to restore workspace features.
+        </p>
+      )}
+
+      <div
+        style={{
+          display: "flex",
+          gap: "12px",
+          flexWrap: "wrap",
+          marginTop: "16px",
+        }}
+      >
+        {visiblePlans.map((item) => (
+          <SubscriptionButton
+            key={item.plan}
+            plan={item.plan}
+            label={item.label}
+          />
+        ))}
+      </div>
+    </>
   );
 }

@@ -234,6 +234,7 @@ export async function sendControlActionReminderEmail({
     "Effluxa <noreply@effluxa.com>";
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
+  const controlCenterUrl = `${appUrl}/dashboard/controls?reminder=1`;
   const subject = overdueCount > 0
     ? "[Effluxa] Control workflow reminder"
     : "[Effluxa] Weekly control workflow reminder";
@@ -257,7 +258,7 @@ export async function sendControlActionReminderEmail({
         <p style="margin-top:24px;">Open the authenticated Control Center to review the individual findings, client context, owners, amounts, and due dates.</p>
 
         <p style="margin-top:24px;">
-          <a href="${appUrl}/dashboard/controls"
+          <a href="${controlCenterUrl}"
              style="display:inline-block;background:#0f172a;color:white;padding:14px 20px;border-radius:10px;text-decoration:none;font-weight:bold;">
             Open Control Center
           </a>

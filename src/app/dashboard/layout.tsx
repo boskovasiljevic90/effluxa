@@ -34,7 +34,11 @@ export default async function DashboardLayout({
   const user = await getUser();
   const workspace = user ? await getWorkspaceOwner(user) : null;
   const isAdmin = user?.email === process.env.ADMIN_EMAIL;
-  const displayPlan = workspace?.hasBusinessAccess ? "AGENCY" : displayPlanLabel(user?.role);
+  const displayPlan = workspace?.hasBusinessAccess
+    ? "AGENCY"
+    : user?.role === "BUSINESS"
+      ? "AGENCY INACTIVE"
+      : displayPlanLabel(user?.role);
 
   let unreadNotificationsCount = 0;
 
