@@ -48,6 +48,8 @@ Use these stages in a simple spreadsheet or notes file:
 | Customer | Paddle payment and access are confirmed | Send onboarding and support contact |
 | At risk | Checkout, report quality or access issue exists | Resolve before further selling |
 
+For every open partner-pilot lead, set a next-action date and one short internal note in the Admin contact pipeline. A lead status without a dated next action is not an operating sales process.
+
 Qualification questions:
 
 - What kind of financial file do you already have: PDF, CSV, XLSX or XLS?

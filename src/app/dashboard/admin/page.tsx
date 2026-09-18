@@ -167,6 +167,14 @@ export default async function AdminDashboardPage() {
     where: { source: "partner_pilot" },
   });
 
+  const duePartnerPilotLeads = await prisma.contactMessage.count({
+    where: {
+      source: "partner_pilot",
+      status: { not: "CLOSED" },
+      nextActionAt: { lte: now },
+    },
+  });
+
   const checkoutCount = await prisma.event.count({
     where: { type: "checkout_created" },
   });
@@ -1128,7 +1136,7 @@ export default async function AdminDashboardPage() {
         <div className="card" style={{ marginTop: "40px" }}>
           <div className="card-title">Recent Contact Messages</div>
           <p className="gray" style={{ marginTop: "10px", lineHeight: 1.6 }}>
-            Partner-pilot leads: {totalPartnerPilotLeads} total · {openPartnerPilotLeads} open. Update the status after the first response so partner conversion is measurable.
+            Partner-pilot leads: {totalPartnerPilotLeads} total · {openPartnerPilotLeads} open · {duePartnerPilotLeads} due for follow-up. Set a next action after every response so partner conversion is measurable.
           </p>
 
           {contactMessages.length === 0 ? (
@@ -1161,6 +1169,26 @@ export default async function AdminDashboardPage() {
                     {new Date(message.createdAt).toLocaleString()}
                   </div>
 
+                  {message.nextActionAt && (
+                    <div
+                      style={{
+                        marginTop: "10px",
+                        color: message.nextActionAt <= now && message.status !== "CLOSED" ? "#fca5a5" : "#cbd5e1",
+                        fontSize: "13px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      Next action: {new Date(message.nextActionAt).toLocaleDateString()}
+                      {message.nextActionAt <= now && message.status !== "CLOSED" ? " · Due" : ""}
+                    </div>
+                  )}
+
+                  {message.internalNote && (
+                    <div className="gray" style={{ marginTop: "8px", fontSize: "13px", lineHeight: 1.6 }}>
+                      Internal note: {message.internalNote}
+                    </div>
+                  )}
+
                   <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap", marginTop: "10px" }}>
                     <span
                       style={{
@@ -1177,7 +1205,12 @@ export default async function AdminDashboardPage() {
                     </span>
                   </div>
 
-                  <ContactMessageStatus messageId={message.id} initialStatus={message.status} />
+                  <ContactMessageStatus
+                    messageId={message.id}
+                    initialStatus={message.status}
+                    initialNextActionAt={message.nextActionAt?.toISOString() || null}
+                    initialInternalNote={message.internalNote}
+                  />
 
                   <DeleteContactMessageButton messageId={message.id} />
                 </div>

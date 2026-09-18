@@ -164,9 +164,12 @@ model ContactMessage {
   message   String
   source    String   @default("general_support")
   status    String   @default("NEW")
+  nextActionAt DateTime?
+  internalNote String?
   createdAt DateTime @default(now())
 
   @@index([source, status, createdAt])
+  @@index([source, status, nextActionAt])
 }
 
 model PasswordResetToken {
