@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+import ReferralExperience from "@/components/ReferralExperience";
 
 export const metadata: Metadata = {
   title: "Effluxa | AI Financial Leak Detection for SMEs",
@@ -68,6 +69,8 @@ export default function HomePage() {
     <main style={{ minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
       <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px 90px" }}>
         <PublicHeader />
+
+        <ReferralExperience />
 
         <div style={{ marginTop: "70px", maxWidth: "980px" }}>
           <div style={{

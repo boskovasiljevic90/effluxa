@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
 import { trackClientEvent } from "@/lib/clientAnalytics";
+import { normalizeReferralCode } from "@/lib/referrals";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,20 @@ export default function SignupPage() {
 
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [hasPartnerInvitation, setHasPartnerInvitation] = useState(false);
+
+  useEffect(() => {
+    const referralCode = normalizeReferralCode(
+      new URLSearchParams(window.location.search).get("ref")
+    );
+
+    if (!referralCode) return;
+
+    setHasPartnerInvitation(true);
+    trackClientEvent("referral_signup_started", {
+      acquisition_channel: "partner_referral",
+    });
+  }, []);
 
   async function handleSignup(e: any) {
     e.preventDefault();
@@ -125,6 +140,25 @@ export default function SignupPage() {
             <p className="gray" style={{ marginBottom: "30px" }}>
               Start free. Unlock full audits only when you need them.
             </p>
+
+            {hasPartnerInvitation && (
+              <div
+                role="status"
+                style={{
+                  marginBottom: "24px",
+                  padding: "14px 16px",
+                  borderRadius: "14px",
+                  background: "rgba(99,102,241,0.14)",
+                  border: "1px solid rgba(129,140,248,0.45)",
+                  color: "#c7d2fe",
+                  fontSize: "14px",
+                  lineHeight: 1.55,
+                }}
+              >
+                Partner invitation detected. Your signup will be attributed
+                automatically — no code is needed.
+              </div>
+            )}
 
             <form onSubmit={handleSignup}>
               <div style={{ marginBottom: "18px" }}>
