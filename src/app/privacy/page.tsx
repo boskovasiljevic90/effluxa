@@ -13,7 +13,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
 
-        <p style={{ color: "#64748b", marginBottom: "24px" }}>Last updated: 19 August 2026</p>
+        <p style={{ color: "#64748b", marginBottom: "24px" }}>Last updated: 18 September 2026</p>
 
         <div className="audit-card" style={{ lineHeight: 1.8 }}>
           <p>
@@ -29,10 +29,12 @@ export default function PrivacyPage() {
 
           <h2 style={{ marginTop: "30px" }}>Uploaded Documents</h2>
           <p>
-            Uploaded documents are processed to generate the requested financial leakage analysis. In the
-            current Effluxa deployment, the original file is not stored as a separate downloadable archive;
-            the account stores the filename and generated report data. Users should avoid uploading
-            unnecessary sensitive personal information.
+            Uploaded documents are processed to generate the requested financial leakage analysis. While an
+            audit is queued or processing, the original file may be temporarily stored in the protected
+            application database so a retryable job can finish even if the upload page is closed. The source
+            bytes are removed immediately after a report is created and are also removed by the retention job
+            from terminal failures. Effluxa stores the filename and generated report data for the account.
+            Users should avoid uploading unnecessary sensitive personal information.
           </p>
 
           <h2 style={{ marginTop: "30px" }}>Retention and Deletion</h2>

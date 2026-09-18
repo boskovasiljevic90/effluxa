@@ -15,7 +15,12 @@ export async function deleteAccountData(userId: string) {
     });
 
     if (!user) {
-      return { userDeleted: false, uploadsDeleted: 0, clientsDeleted: 0 };
+      return {
+        userDeleted: false,
+        uploadsDeleted: 0,
+        clientsDeleted: 0,
+        auditJobsDeleted: 0,
+      };
     }
 
     const ownedClients = await tx.client.findMany({
@@ -38,6 +43,18 @@ export async function deleteAccountData(userId: string) {
     });
 
     const ownedUploadIds = ownedUploads.map((upload) => upload.id);
+
+    const auditJobsDeleted = await tx.auditJob.deleteMany({
+      where: {
+        OR: [
+          { workspaceOwnerId: userId },
+          { createdByUserId: userId },
+          ...(ownedClientIds.length > 0
+            ? [{ clientId: { in: ownedClientIds } }]
+            : []),
+        ],
+      },
+    });
 
     const uploadsDeleted = await tx.upload.deleteMany({
       where: {
@@ -84,6 +101,7 @@ export async function deleteAccountData(userId: string) {
       userDeleted: true,
       uploadsDeleted: uploadsDeleted.count,
       clientsDeleted: clientsDeleted.count,
+      auditJobsDeleted: auditJobsDeleted.count,
     };
   });
 }

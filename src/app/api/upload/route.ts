@@ -16,6 +16,8 @@ import { validateUploadFile } from "@/lib/uploadValidation";
 import { extractText } from "@/lib/fileParser";
 import { analyzeAuditV2 } from "@/lib/audit-v2";
 import { analyzeAuditV3 } from "@/lib/audit-v3";
+import { createHash, randomUUID } from "crypto";
+import { Prisma } from "@prisma/client";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -45,6 +47,262 @@ function safeParseAIJson(raw: string) {
     return JSON.parse(jsonString);
   } catch {
     throw new Error("AI returned invalid JSON. Please try again.");
+  }
+}
+
+type PublicAuditJob = {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  status: string;
+  attemptCount: number;
+  maxAttempts: number;
+  reportId: string | null;
+  lastError: string | null;
+  nextAttemptAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function serializeAuditJob(job: PublicAuditJob) {
+  return {
+    id: job.id,
+    fileName: job.fileName,
+    fileSize: job.fileSize,
+    status: job.status,
+    attemptCount: job.attemptCount,
+    maxAttempts: job.maxAttempts,
+    reportId: job.reportId,
+    lastError: job.lastError,
+    nextAttemptAt: job.nextAttemptAt?.toISOString() || null,
+    createdAt: job.createdAt.toISOString(),
+    updatedAt: job.updatedAt.toISOString(),
+  };
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const limited = rateLimit({
+      req,
+      key: "upload",
+      limit: 6,
+      windowMs: 60000,
+    });
+
+    if (limited) return limited;
+
+    const token = req.cookies.get("token")?.value;
+    const decoded = token ? safeVerifyToken(token) : null;
+
+    if (!decoded) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const userLimited = rateLimit({
+      req,
+      key: "upload_user:" + user.id,
+      limit: 3,
+      windowMs: 60000,
+    });
+
+    if (userLimited) return userLimited;
+
+    const now = new Date();
+    const weeklyWindowMs = 7 * 24 * 60 * 60 * 1000;
+    const resetAt = user.weeklyResetDate?.getTime() || 0;
+    const weeklyWindowExpired = now.getTime() - resetAt >= weeklyWindowMs;
+
+    if (weeklyWindowExpired) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          weeklyUploadCount: 0,
+          weeklyResetDate: now,
+        },
+      });
+
+      user.weeklyUploadCount = 0;
+      user.weeklyResetDate = now;
+    }
+
+    const workspace = await getWorkspaceOwner(user);
+    const hasUnlimitedUploads = canUseUnlimitedUploads({ user, workspace });
+
+    if (!hasUnlimitedUploads && user.weeklyUploadCount >= 3) {
+      return NextResponse.json(
+        {
+          error: "You have reached your free audit limit. Upgrade to Effluxa Pro or Agency for unlimited audits.",
+        },
+        { status: 403 }
+      );
+    }
+
+    const formData = await req.formData();
+    const uploadedValue = formData.get("file");
+    const file =
+      uploadedValue &&
+      typeof uploadedValue !== "string" &&
+      typeof uploadedValue.arrayBuffer === "function"
+        ? uploadedValue as File
+        : null;
+    const rawClientId = formData.get("clientId") as string | null;
+    const clientId = rawClientId?.trim() || null;
+
+    if (!file) {
+      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    }
+
+    const client = clientId
+      ? await prisma.client.findFirst({
+          where: {
+            id: clientId,
+            ownerId: workspace.owner.id,
+          },
+        })
+      : null;
+
+    if (clientId && !client) {
+      return NextResponse.json(
+        { error: "Selected client was not found in this workspace." },
+        { status: 400 }
+      );
+    }
+
+    const fileValidation = await validateUploadFile(file);
+
+    if (!fileValidation.valid) {
+      return NextResponse.json(
+        { error: fileValidation.error },
+        { status: 400 }
+      );
+    }
+
+    const sourceBytes = Buffer.from(await file.arrayBuffer());
+    const fileHash = createHash("sha256").update(sourceBytes).digest("hex");
+    const requestedIdempotencyKey =
+      req.headers.get("idempotency-key") ||
+      (formData.get("idempotencyKey") as string | null);
+    const rawIdempotencyKey = (requestedIdempotencyKey || randomUUID()).trim();
+
+    if (!rawIdempotencyKey || rawIdempotencyKey.length > 128) {
+      return NextResponse.json(
+        { error: "Idempotency key must be between 1 and 128 characters." },
+        { status: 400 }
+      );
+    }
+    const idempotencyKey = rawIdempotencyKey;
+
+    const uniqueJobWhere = {
+      workspaceOwnerId_idempotencyKey: {
+        workspaceOwnerId: workspace.owner.id,
+        idempotencyKey,
+      },
+    } as const;
+    const existingJob = await prisma.auditJob.findUnique({
+      where: uniqueJobWhere,
+    });
+
+    if (existingJob) {
+      if (existingJob.fileHash !== fileHash) {
+        return NextResponse.json(
+          { error: "This idempotency key was already used for a different file." },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        job: serializeAuditJob(existingJob),
+      });
+    }
+
+    let job;
+
+    try {
+      job = await prisma.$transaction(async (tx) => {
+        const createdJob = await tx.auditJob.create({
+          data: {
+            workspaceOwnerId: workspace.owner.id,
+            createdByUserId: user.id,
+            clientId: client?.id || null,
+            fileName: file.name.slice(0, 500),
+            fileType: file.type || null,
+            fileSize: file.size,
+            fileHash,
+            idempotencyKey,
+            language: user.preferredLanguage === "sr" ? "Serbian" : "English",
+            status: "QUEUED",
+            sourceBytes,
+          },
+        });
+
+        await tx.user.update({
+          where: { id: user.id },
+          data: {
+            weeklyUploadCount: { increment: 1 },
+          },
+        });
+
+        return createdJob;
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        const racedJob = await prisma.auditJob.findUnique({
+          where: uniqueJobWhere,
+        });
+
+        if (racedJob && racedJob.fileHash === fileHash) {
+          return NextResponse.json({
+            success: true,
+            job: serializeAuditJob(racedJob),
+          });
+        }
+      }
+
+      throw error;
+    }
+
+    await trackEvent({
+      type: "audit_job_created",
+      userId: user.id,
+      metadata: {
+        auditJobId: job.id,
+        fileName: job.fileName,
+        fileSize: job.fileSize,
+        workspaceOwnerId: workspace.owner.id,
+        clientId: client?.id || null,
+      },
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        job: serializeAuditJob(job),
+      },
+      { status: 202 }
+    );
+  } catch (error) {
+    console.error("AUDIT JOB CREATE ERROR:", error);
+    await trackError({
+      type: "audit_job_create_error",
+      error,
+    });
+
+    return NextResponse.json(
+      { error: "We couldn't queue this audit right now. Please try again." },
+      { status: 500 }
+    );
   }
 }
 
@@ -145,7 +403,7 @@ ${financialText ? financialText.slice(0, 30000) : ""}
   return safeParseAIJson(response.output_text || "");
 }
 
-export async function POST(req: NextRequest) {
+async function legacySynchronousUpload(req: NextRequest) {
   try {
     const limited = rateLimit({
       req,

@@ -9,6 +9,12 @@ type Client = {
   name: string;
 };
 
+type AuditJobStatus = "QUEUED" | "PROCESSING" | "RETRYABLE" | "COMPLETE" | "FAILED";
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 export default function UploadClient() {
   const router = useRouter();
 
@@ -35,6 +41,64 @@ export default function UploadClient() {
 
     loadClients();
   }, []);
+
+  async function monitorAuditJob(jobId: string) {
+    void fetch("/api/audit-jobs/" + jobId + "/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({}),
+    }).catch((processError) => {
+      console.error("AUDIT JOB PROCESS REQUEST ERROR:", processError);
+    });
+
+    const deadline = Date.now() + 5 * 60 * 1000;
+
+    while (Date.now() < deadline) {
+      const statusResponse = await fetch(
+        "/api/audit-jobs/" + jobId + "/status",
+        { cache: "no-store" }
+      );
+      const statusData = await statusResponse.json().catch(() => ({}));
+
+      if (!statusResponse.ok) {
+        throw new Error(statusData.error || "Audit status could not be read.");
+      }
+
+      const job = statusData?.job as {
+        status?: AuditJobStatus;
+        reportId?: string | null;
+        lastError?: string | null;
+      } | undefined;
+
+      if (job?.status === "COMPLETE" && job.reportId) {
+        trackClientEvent("upload_completed", {
+          report_id: job.reportId,
+          has_client: Boolean(clientId),
+        });
+        setStatusMessage("Audit ready. Opening your report...");
+        router.push("/dashboard/reports/" + job.reportId);
+        return true;
+      }
+
+      if (job?.status === "FAILED" || job?.status === "RETRYABLE") {
+        setError(job.lastError || "The audit could not be completed. You can retry it from Reports.");
+        setStatusMessage("");
+        return false;
+      }
+
+      if (job?.status === "QUEUED") {
+        setStatusMessage("Audit queued securely. Starting the analysis...");
+      } else {
+        setStatusMessage("Effluxa is processing your audit. You can leave this page safely.");
+      }
+
+      await wait(Math.max(1500, Number(statusData.pollAfterMs) || 2500));
+    }
+
+    setStatusMessage("The audit is still processing in the background. Opening Reports so you can follow its status.");
+    router.push("/dashboard/reports");
+    return true;
+  }
 
   async function handleUpload() {
     setError("");
@@ -79,10 +143,11 @@ export default function UploadClient() {
         formData.append("clientId", clientId);
       }
 
-      setStatusMessage("Analyzing document with Effluxa AI...");
-
       const res = await fetch("/api/upload", {
         method: "POST",
+        headers: {
+          "Idempotency-Key": crypto.randomUUID(),
+        },
         body: formData,
       });
 
@@ -94,26 +159,25 @@ export default function UploadClient() {
         return;
       }
 
-      const uploadId = data?.upload?.id;
+      const jobId = data?.job?.id;
 
-      if (!uploadId) {
-        setError("Audit was created, but the report link was missing. Please open Reports from the dashboard.");
+      if (!jobId) {
+        setError("The audit was not queued. Please try again.");
         setStatusMessage("");
         return;
       }
 
-      trackClientEvent("upload_completed", {
-        report_id: uploadId,
+      trackClientEvent("upload_queued", {
+        audit_job_id: jobId,
         has_client: Boolean(clientId),
       });
 
-      setStatusMessage("Audit ready. Opening your report...");
-      keepLoadingAfterFinally = true;
-      router.push(`/dashboard/reports/${uploadId}`);
+      setStatusMessage("Audit queued securely. Starting the analysis...");
+      keepLoadingAfterFinally = await monitorAuditJob(jobId);
     } catch (uploadError) {
       console.error(uploadError);
-      setError("Network error while uploading. Please check your connection and try again.");
-      setStatusMessage("");
+      setStatusMessage("The connection ended while waiting. Checking Reports for the completed audit...");
+      router.push("/dashboard/reports");
     } finally {
       if (!keepLoadingAfterFinally) {
         setLoading(false);

@@ -209,6 +209,35 @@ export default async function AdminDashboardPage() {
     ? Math.round((findingReviewCounts.TRUE / findingReviewTotal) * 100)
     : 0;
 
+  const auditJobGroups = await prisma.auditJob.groupBy({
+    by: ["status"],
+    _count: { _all: true },
+  });
+  const auditJobCounts = {
+    QUEUED: 0,
+    PROCESSING: 0,
+    RETRYABLE: 0,
+    COMPLETE: 0,
+    FAILED: 0,
+  };
+  for (const group of auditJobGroups) {
+    if (group.status in auditJobCounts) {
+      auditJobCounts[group.status as keyof typeof auditJobCounts] = group._count._all;
+    }
+  }
+  const completedAuditJobsLast30Days = await prisma.auditJob.count({
+    where: {
+      status: "COMPLETE",
+      completedAt: { gte: thirtyDaysAgo },
+    },
+  });
+  const failedAuditJobsLast30Days = await prisma.auditJob.count({
+    where: {
+      status: { in: ["FAILED", "RETRYABLE"] },
+      createdAt: { gte: thirtyDaysAgo },
+    },
+  });
+
   const signupUserIds = await prisma.event.findMany({
     where: { type: "signup", userId: { not: null } },
     select: { userId: true },
@@ -588,6 +617,39 @@ export default async function AdminDashboardPage() {
           <div className="card">
             <div className="card-title">Fallback Reports</div>
             <div className="metric-value">{fallbackTelemetry.length}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: "40px" }}>
+        <div className="card-title">Audit Job Reliability</div>
+        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+          Current durable job state plus completion and failure signals for the last 30 days.
+        </p>
+        <div className="report-grid" style={{ marginTop: "22px" }}>
+          <div className="card">
+            <div className="card-title">Queued</div>
+            <div className="metric-value">{auditJobCounts.QUEUED}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Processing</div>
+            <div className="metric-value">{auditJobCounts.PROCESSING}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Retryable</div>
+            <div className="metric-value">{auditJobCounts.RETRYABLE}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Failed</div>
+            <div className="metric-value">{auditJobCounts.FAILED}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Completed 30d</div>
+            <div className="metric-value green">{completedAuditJobsLast30Days}</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Failed/Retryable 30d</div>
+            <div className="metric-value">{failedAuditJobsLast30Days}</div>
           </div>
         </div>
       </div>

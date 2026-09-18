@@ -31,8 +31,11 @@ export async function GET(req: NextRequest) {
     const contactMessageCutoff = new Date(
       now.getTime() - 730 * 24 * 60 * 60 * 1000
     );
+    const auditJobInputCutoff = new Date(
+      now.getTime() - 24 * 60 * 60 * 1000
+    );
 
-    const [resetTokens, events, contactMessages] = await prisma.$transaction([
+    const [resetTokens, events, contactMessages, auditJobInputs] = await prisma.$transaction([
       prisma.passwordResetToken.deleteMany({
         where: {
           OR: [
@@ -47,6 +50,16 @@ export async function GET(req: NextRequest) {
       prisma.contactMessage.deleteMany({
         where: { createdAt: { lt: contactMessageCutoff } },
       }),
+      prisma.auditJob.updateMany({
+        where: {
+          sourceBytes: { not: null },
+          status: { in: ["COMPLETE", "FAILED"] },
+          updatedAt: { lt: auditJobInputCutoff },
+        },
+        data: {
+          sourceBytes: null,
+        },
+      }),
     ]);
 
     return NextResponse.json({
@@ -55,6 +68,7 @@ export async function GET(req: NextRequest) {
         expiredPasswordResetTokens: resetTokens.count,
         oldEvents: events.count,
         oldContactMessages: contactMessages.count,
+        expiredAuditJobInputs: auditJobInputs.count,
       },
     });
   } catch (error) {

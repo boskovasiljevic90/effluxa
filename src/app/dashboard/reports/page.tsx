@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { isFallbackReport } from "@/lib/reportDisplay";
+import AuditJobCard from "./AuditJobCard";
 
 async function getUser() {
   const token = cookies().get("token")?.value;
@@ -66,6 +67,31 @@ export default async function ReportsPage({
     },
     orderBy: {
       createdAt: "desc",
+    },
+  });
+
+  const auditJobs = await prisma.auditJob.findMany({
+    where: {
+      workspaceOwnerId: workspace.owner.id,
+      status: { in: ["QUEUED", "PROCESSING", "RETRYABLE", "FAILED"] },
+      createdAt: {
+        gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      fileName: true,
+      fileSize: true,
+      status: true,
+      attemptCount: true,
+      maxAttempts: true,
+      reportId: true,
+      lastError: true,
+      nextAttemptAt: true,
+      createdAt: true,
+      updatedAt: true,
     },
   });
 
@@ -230,6 +256,29 @@ export default async function ReportsPage({
           ))}
         </div>
       </div>
+
+      {auditJobs.length > 0 && (
+        <div className="card" style={{ marginTop: "28px", marginBottom: "28px" }}>
+          <div className="card-title">Audit processing</div>
+          <p className="gray" style={{ marginTop: "8px", lineHeight: 1.6 }}>
+            These jobs are durable and can continue through the worker even if you leave the upload page.
+          </p>
+          <div style={{ display: "grid", gap: "12px", marginTop: "16px" }}>
+            {auditJobs.map((job) => (
+              <AuditJobCard
+                key={job.id}
+                initialJob={{
+                  ...job,
+                  status: job.status as "QUEUED" | "PROCESSING" | "RETRYABLE" | "COMPLETE" | "FAILED",
+                  createdAt: job.createdAt.toISOString(),
+                  updatedAt: job.updatedAt.toISOString(),
+                  nextAttemptAt: job.nextAttemptAt?.toISOString() || null,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="card">
         {reports.length === 0 ? (

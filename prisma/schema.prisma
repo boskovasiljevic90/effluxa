@@ -66,6 +66,36 @@ model Upload {
   findingReviews         FindingReview[]
 }
 
+model AuditJob {
+  id               String    @id @default(uuid())
+  workspaceOwnerId String
+  createdByUserId  String
+  clientId         String?
+  fileName         String
+  fileType         String?
+  fileSize         Int
+  fileHash         String
+  idempotencyKey   String
+  language         String    @default("English")
+  status           String    @default("QUEUED")
+  attemptCount     Int       @default(0)
+  maxAttempts      Int       @default(3)
+  sourceBytes      Bytes?
+  reportId         String?
+  lastError        String?
+  nextAttemptAt    DateTime?
+  lockedAt         DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@unique([workspaceOwnerId, idempotencyKey])
+  @@index([workspaceOwnerId, status, createdAt])
+  @@index([status, nextAttemptAt])
+  @@index([reportId])
+}
+
 model ControlAction {
   id                String    @id @default(uuid())
   reportId          String

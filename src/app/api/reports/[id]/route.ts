@@ -30,6 +30,10 @@ export async function DELETE(
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
 
+    await prisma.auditJob.deleteMany({
+      where: { reportId: report.id },
+    });
+
     await prisma.upload.delete({
       where: {
         id: report.id,
