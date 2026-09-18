@@ -23,6 +23,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
+      url: `${baseUrl}/resources`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    ...[
+      "duplicate-invoice-audit",
+      "vendor-price-creep-audit",
+      "recurring-software-spend-audit",
+    ].map((slug) => ({
+      url: `${baseUrl}/resources/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
+    })),
+    {
       url: `${baseUrl}/signup`,
       lastModified: new Date(),
       changeFrequency: "monthly",
