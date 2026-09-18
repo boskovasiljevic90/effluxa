@@ -14,6 +14,7 @@ import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
 import { buildAcquisitionFunnel, buildGrowthCohorts } from "@/lib/growthMetrics";
 import { buildPilotLeadFunnel } from "@/lib/pilotLeadMetrics";
+import { buildPilotLeadTriage } from "@/lib/pilotLeadTriage";
 import { verifiedRecoveredAmount } from "@/lib/controlVerification";
 import { buildRevenueSummary } from "@/lib/revenueMetrics";
 
@@ -1302,6 +1303,38 @@ export default async function AdminDashboardPage() {
                     >
                       Pilot profile: {pilotProfileSummary(message.pilotProfile)}
                     </div>
+                  )}
+
+                  {message.source === "partner_pilot" && (
+                    (() => {
+                      const triage = buildPilotLeadTriage(message.pilotProfile);
+                      const triageColor = triage.tier === "HIGH"
+                        ? "#4ade80"
+                        : triage.tier === "MEDIUM"
+                          ? "#facc15"
+                          : "#cbd5e1";
+
+                      return (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            padding: "12px 14px",
+                            borderRadius: "12px",
+                            background: "rgba(34,197,94,0.06)",
+                            border: "1px solid rgba(148,163,184,0.16)",
+                            fontSize: "13px",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          <div>
+                            Pilot triage: <strong style={{ color: triageColor }}>{triage.tier}</strong> · {triage.score}/{triage.maxScore}
+                          </div>
+                          <div className="gray" style={{ marginTop: "4px" }}>
+                            {triage.rationale.join(" · ")}
+                          </div>
+                        </div>
+                      );
+                    })()
                   )}
 
                   <div className="gray" style={{ marginTop: "10px", fontSize: "13px" }}>

@@ -17,6 +17,7 @@ The Admin dashboard is intended to answer whether Effluxa is becoming a product 
 - **Recurring run-rate proxy** — the monthly equivalent of active Paddle Pro/Agency subscription plans, using the stored Paddle plan (`pro_monthly`, `pro_annual`, `agency_monthly`, or `agency_annual`). Annual plans are divided by 12. This is not recognized revenue and excludes taxes, Paddle fees, refunds, discounts, and complimentary access.
 - **First-touch acquisition** — after analytics consent, the first recognised resource, partner landing page, or UTM source is stored for up to 90 days and attached to the signup event. Partner referral attribution remains a separate, higher-priority channel.
 - **Partner-pilot conversion proxy** — partner-pilot contact messages are deduplicated by normalized email. A same-email account counts only when it was created on or after the first lead; activation is the first audit within seven days of that signup; paid means an active/trialing Paddle subscription within its end date. The signup, activation, and paid rates use the preceding funnel stage as their denominator.
+- **Pilot triage score** — an Admin-only operational priority signal based on the voluntarily submitted firm type, portfolio-size band, selected audit focus and redacted-file readiness. It helps sequence manual follow-up; it is not a lead-quality guarantee, conversion probability, or customer claim.
 
 Recognised organic sources currently include:
 
