@@ -10,6 +10,7 @@ import DeleteContactMessageButton from "./DeleteContactMessageButton";
 import DeleteEventButton from "./DeleteEventButton";
 import PartnerAccessForm from "./PartnerAccessForm";
 import { hasActiveAgencyAccess } from "@/lib/complimentaryAccess";
+import { getReferralLink } from "@/lib/referrals";
 
 export default async function AdminDashboardPage() {
   const adminUser = await getOperationalAdminFromToken(cookies().get("token")?.value);
@@ -234,6 +235,7 @@ export default async function AdminDashboardPage() {
         id: partner.id,
         email: partner.email,
         referralCode,
+        referralUrl: getReferralLink(referralCode),
         referralSignups: referred.length,
         firstAudits: referredWithAudit.length,
         unlockedAudits: referredWithUnlockedAudit.length,
@@ -243,11 +245,6 @@ export default async function AdminDashboardPage() {
         verifiedRecovered,
       };
     })
-    .filter((partner) =>
-      partner.referralSignups > 0 ||
-      partner.controlActions > 0 ||
-      partner.activeAgencyUsers > 0
-    )
     .sort((a, b) =>
       b.activeAgencyUsers - a.activeAgencyUsers ||
       b.referralSignups - a.referralSignups
@@ -273,6 +270,16 @@ export default async function AdminDashboardPage() {
     (sum, partner) => sum + partner.verifiedRecovered,
     0
   );
+
+  const partnerFirstAuditRate = partnerSignupsCount > 0
+    ? Math.round((partnerReferredWithAudit / partnerSignupsCount) * 100)
+    : 0;
+  const partnerPaidUnlockRate = partnerSignupsCount > 0
+    ? Math.round((partnerUnlockedAudits / partnerSignupsCount) * 100)
+    : 0;
+  const partnerAgencyRate = partnerSignupsCount > 0
+    ? Math.round((partnerAgencyConversions / partnerSignupsCount) * 100)
+    : 0;
 
   const businessActivatedEventsCount = await prisma.event.count({
     where: { type: "business_subscription_activated" },
@@ -506,11 +513,23 @@ export default async function AdminDashboardPage() {
             <div className="card-title">Verified Recovered</div>
             <div className="metric-value green">€{partnerVerifiedRecovered.toLocaleString()}</div>
           </div>
+          <div className="card">
+            <div className="card-title">Signup → First Audit</div>
+            <div className="metric-value">{partnerFirstAuditRate}%</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Signup → Paid</div>
+            <div className="metric-value">{partnerPaidUnlockRate}%</div>
+          </div>
+          <div className="card">
+            <div className="card-title">Signup → Agency</div>
+            <div className="metric-value green">{partnerAgencyRate}%</div>
+          </div>
         </div>
 
         {partnerFunnel.length === 0 ? (
           <p className="gray" style={{ marginTop: "22px" }}>
-            No referred account has reached the first measurable funnel stage yet.
+            No referral partner has been provisioned yet.
           </p>
         ) : (
           <div style={{ display: "grid", gap: "14px", marginTop: "22px" }}>
@@ -530,9 +549,20 @@ export default async function AdminDashboardPage() {
                     <div className="gray" style={{ marginTop: "6px", fontSize: "12px" }}>
                       {partner.referralCode}
                     </div>
+                    <a
+                      href={partner.referralUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="gray"
+                      style={{ display: "inline-block", marginTop: "8px", fontSize: "12px", wordBreak: "break-all" }}
+                    >
+                      {partner.referralUrl}
+                    </a>
                   </div>
                   <div className="gray" style={{ fontSize: "13px" }}>
-                    {partner.referralSignups} referred signup{partner.referralSignups === 1 ? "" : "s"}
+                    {partner.referralSignups > 0
+                      ? `${partner.referralSignups} referred signup${partner.referralSignups === 1 ? "" : "s"}`
+                      : "No referred signup yet"}
                   </div>
                 </div>
 

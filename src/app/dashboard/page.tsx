@@ -255,6 +255,38 @@ return (
 
 
       
+      {user.referredByCode && totalAudits === 0 && (
+        <div
+          className="card"
+          style={{
+            marginBottom: "28px",
+            border: "1px solid rgba(129,140,248,0.38)",
+            background: "linear-gradient(135deg, rgba(79,70,229,0.16), rgba(37,99,235,0.08))",
+          }}
+        >
+          <div className="card-title">Partner-guided first audit</div>
+          <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+            You joined through an Effluxa partner invitation. Start with a recent invoice batch,
+            bank statement, CSV export or expense report. You can redact sensitive account numbers
+            before uploading.
+          </p>
+          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "20px" }}>
+            <Link href="/dashboard/upload">
+              <button className="primary-button">Upload first financial file</button>
+            </Link>
+            <Link href="/sample-audit">
+              <button
+                className="primary-button"
+                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)" }}
+              >
+                View sample audit
+              </button>
+            </Link>
+          </div>
+        </div>
+      )}
+
+
 {workspace.hasBusinessAccess && (
         <div
           className="card"
