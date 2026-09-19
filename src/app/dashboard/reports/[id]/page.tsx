@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import UpgradeButton from "./UpgradeButton";
 import DeleteReportButton from "./DeleteReportButton";
 import ShareReportButton from "./ShareReportButton";
@@ -67,6 +68,11 @@ export default async function ReportPage({ params }: Props) {
   const isUnlocked = canAccessFullReport({ report, user, workspace });
   const isLimitedDataReport = isFallbackReport(data);
   const reportQualityReason = getReportQualityReason(data);
+  const nextAuditClient = workspace.hasBusinessAccess ? report.client : null;
+  const nextAuditHref = nextAuditClient
+    ? `/dashboard/upload?clientId=${encodeURIComponent(nextAuditClient.id)}&repeat=1`
+    : null;
+  const nextAuditClientName = nextAuditClient?.name || "this client";
 
   const quickWins = asTextArray(data?.quick_wins, [
     "No quick wins were detected in the uploaded data.",
@@ -790,6 +796,28 @@ export default async function ReportPage({ params }: Props) {
 
               <ShareReportButton reportId={report.id} />
             </div>
+
+            {nextAuditHref && (
+              <div
+                className="audit-card"
+                style={{
+                  marginTop: "28px",
+                  border: "1px solid rgba(129,140,248,0.30)",
+                  background: "rgba(99,102,241,0.08)",
+                }}
+              >
+                <div className="audit-section-kicker">Continue the control loop</div>
+                <h2 style={{ marginTop: "6px" }}>Run the next-period audit</h2>
+                <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
+                  Keep this client&apos;s evidence history together and compare the next reporting period against the current findings.
+                </p>
+                <Link href={nextAuditHref}>
+                  <button className="primary-button" style={{ marginTop: "16px" }}>
+                    Upload next period for {nextAuditClientName}
+                  </button>
+                </Link>
+              </div>
+            )}
           </>
         ) : (
           <div

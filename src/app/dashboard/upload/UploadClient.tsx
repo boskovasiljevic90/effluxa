@@ -15,12 +15,18 @@ function wait(milliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-export default function UploadClient() {
+export default function UploadClient({
+  initialClientId = "",
+  repeatAudit = false,
+}: {
+  initialClientId?: string;
+  repeatAudit?: boolean;
+}) {
   const router = useRouter();
 
   const [file, setFile] = useState<File | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
-  const [clientId, setClientId] = useState("");
+  const [clientId, setClientId] = useState(initialClientId);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
@@ -32,7 +38,11 @@ export default function UploadClient() {
         const data = await res.json();
 
         if (res.ok) {
-          setClients(data.clients || []);
+          const nextClients = data.clients || [];
+          setClients(nextClients);
+          if (initialClientId && nextClients.some((client: Client) => client.id === initialClientId)) {
+            setClientId(initialClientId);
+          }
         }
       } catch (error) {
         console.error(error);
@@ -99,6 +109,8 @@ export default function UploadClient() {
     router.push("/dashboard/reports");
     return true;
   }
+
+  const selectedClient = clients.find((client) => client.id === clientId);
 
   async function handleUpload() {
     setError("");
@@ -197,6 +209,25 @@ export default function UploadClient() {
       </div>
 
       <div className="card">
+        {repeatAudit && (
+          <div
+            style={{
+              marginBottom: "24px",
+              padding: "16px 18px",
+              borderRadius: "14px",
+              border: "1px solid rgba(129,140,248,0.35)",
+              background: "rgba(99,102,241,0.10)",
+            }}
+          >
+            <div style={{ fontWeight: 850 }}>Run the next-period audit</div>
+            <p className="gray" style={{ marginTop: "8px", lineHeight: 1.6 }}>
+              {selectedClient
+                ? `Upload the equivalent file for ${selectedClient.name}. Effluxa has preselected this client so the recurring comparison stays together.`
+                : "Upload the equivalent file for the next reporting period. Choose the same client to keep recurring comparisons together."}
+            </p>
+          </div>
+        )}
+
         <div className="upload-box">
           <h2 style={{ marginBottom: "20px" }}>
             Start New AI Audit

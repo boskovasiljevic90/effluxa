@@ -28,12 +28,24 @@ async function getUser() {
   }
 }
 
-export default async function UploadPage() {
+export default async function UploadPage({
+  searchParams,
+}: {
+  searchParams?: {
+    clientId?: string;
+    repeat?: string;
+  };
+}) {
   const user = await getUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  return <UploadClient />;
+  return (
+    <UploadClient
+      initialClientId={typeof searchParams?.clientId === "string" ? searchParams.clientId : ""}
+      repeatAudit={searchParams?.repeat === "1"}
+    />
+  );
 }
