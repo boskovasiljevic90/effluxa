@@ -109,6 +109,9 @@ export async function GET(req: NextRequest, { params }: Props) {
     const recommendations = asTextArray(data?.recommendations, [
       "No AI recommendations were generated from the uploaded data.",
     ]);
+    const isStructuredAudit = data?.analysisVersion === "2.0" || data?.analysisVersion === "3.0";
+    const auditMetrics = data?.metrics || {};
+    const engineFindings = isStructuredAudit && Array.isArray(data?.findings) ? data.findings : [];
 
     const pdfDoc = await PDFDocument.create();
     let page = pdfDoc.addPage([595, 842]);
@@ -198,6 +201,35 @@ export async function GET(req: NextRequest, { params }: Props) {
 
     section("Risk Level");
     paragraph(`${data?.risk_level || "Insufficient data"} | Confidence: ${data?.confidence_level || "Insufficient data"}`);
+
+    if (isStructuredAudit) {
+      section("Quantified Review Map");
+      paragraph("These figures are exposures and review signals, not confirmed loss or realised savings.");
+      paragraph("- Potential duplicate exposure: EUR " + Number(auditMetrics.potentialDuplicateExposure || 0).toLocaleString());
+      paragraph("- Avoidable-cost run-rate: EUR " + Number(auditMetrics.avoidableCostRunRate || 0).toLocaleString());
+      paragraph("- Working-capital exposure: EUR " + Number(auditMetrics.workingCapitalExposure || 0).toLocaleString());
+      paragraph("- Control-risk exposure: EUR " + Number(auditMetrics.controlRiskExposure || 0).toLocaleString());
+    }
+
+    if (isStructuredAudit) {
+      section("Verified Control Findings");
+      if (engineFindings.length === 0) {
+        paragraph("No deterministic findings were generated from the available data.");
+      } else {
+        engineFindings.slice(0, 40).forEach((finding: any, index: number) => {
+          paragraph((index + 1) + ". [" + String(finding.severity || "MEDIUM") + "] " + String(finding.title || "Untitled finding"));
+          paragraph("Rule: " + String(finding.ruleId || "n/a") + " | Confidence: " + Math.round(Number(finding.confidence || 0) * 100) + "%");
+          paragraph(String(finding.description || "No description available."));
+          if (finding.quantification?.amount !== null && finding.quantification?.amount !== undefined) {
+            paragraph("Quantification: " + String(finding.quantification.currency || "EUR") + " " + Number(finding.quantification.amount || 0).toLocaleString());
+          }
+          paragraph("Action: " + String(finding.recommendedAction || "Validate the underlying evidence."));
+          (Array.isArray(finding.evidence) ? finding.evidence : []).slice(0, 4).forEach((item: any) => {
+            paragraph("Evidence: " + String(item.detail || "Source evidence") + " — " + String(item.source || "uploaded document") + (item.page ? ", page " + item.page : "") + (item.row ? ", row " + item.row : ""));
+          });
+        });
+      }
+    }
 
     section("Quick Wins");
     quickWins.forEach((item: string) => paragraph(`- ${item}`));

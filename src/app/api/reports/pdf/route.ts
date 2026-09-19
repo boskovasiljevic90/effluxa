@@ -49,6 +49,20 @@ export async function GET(req: NextRequest) {
     });
 
     const totalAudits = reports.length;
+    const structuredReports = reports.filter((report) => ["2.0", "3.0"].includes((report.parsedData as any)?.analysisVersion));
+    const structuredMetrics = structuredReports.reduce(
+      (totals, report) => {
+        const metrics = (report.parsedData as any)?.metrics || {};
+        return {
+          duplicate: totals.duplicate + Number(metrics.potentialDuplicateExposure || 0),
+          avoidable: totals.avoidable + Number(metrics.avoidableCostRunRate || 0),
+          workingCapital: totals.workingCapital + Number(metrics.workingCapitalExposure || 0),
+          controlRisk: totals.controlRisk + Number(metrics.controlRiskExposure || 0),
+          findings: totals.findings + Number(metrics.findingCount || 0),
+        };
+      },
+      { duplicate: 0, avoidable: 0, workingCapital: 0, controlRisk: 0, findings: 0 }
+    );
 
     const totalSavings = reports.reduce((sum, report) => {
       const data = report.parsedData as any;
@@ -131,6 +145,16 @@ export async function GET(req: NextRequest) {
     text(`Potential Savings: EUR ${totalSavings.toLocaleString()}`, 12, true, rgb(0, 0.45, 0.15));
     text(`Average Leakage Score: ${averageLeakage}/100`, 12, true);
     text(`Highest Risk Score: ${highestRisk}/100`, 12, true);
+
+    if (structuredReports.length > 0) {
+      section("Structured Audit Engine Metrics");
+      text("Structured Reports: " + structuredReports.length, 12, true);
+      text("Verified Findings: " + structuredMetrics.findings, 12, true);
+      text("Potential Duplicate Exposure: EUR " + structuredMetrics.duplicate.toLocaleString(), 12, true);
+      text("Avoidable-Cost Run-Rate: EUR " + structuredMetrics.avoidable.toLocaleString(), 12, true, rgb(0, 0.45, 0.15));
+      text("Working-Capital Exposure: EUR " + structuredMetrics.workingCapital.toLocaleString(), 12, true);
+      text("Control-Risk Exposure: EUR " + structuredMetrics.controlRisk.toLocaleString(), 12, true);
+    }
 
     section("Recent Audits");
 

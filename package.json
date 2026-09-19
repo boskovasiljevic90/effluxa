@@ -7,6 +7,10 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
+    "audit:v2:smoke": "node scripts/audit-v2-smoke.mjs",
+    "audit:v3:routing-smoke": "node scripts/audit-v3-routing-smoke.mjs",
+    "audit:v3:fast-text-smoke": "node scripts/audit-v3-fast-text-smoke.mjs",
+    "audit:v3:benchmark": "node scripts/audit-v3-benchmark.mjs",
     "qa:production": "bash scripts/production-qa.sh"
   },
   "dependencies": {
@@ -24,6 +28,7 @@
     "openai": "^6.39.0",
     "papaparse": "^5.5.3",
     "pdf-lib": "^1.17.1",
+    "pdf-parse": "^1.1.1",
     "pdfkit": "^0.18.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

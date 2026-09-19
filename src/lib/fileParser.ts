@@ -1,7 +1,23 @@
 import * as XLSX from "xlsx";
 import mammoth from "mammoth";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 
 export async function extractText(buffer: Buffer, fileType: string) {
+  if (fileType === "application/pdf" || fileType === ".pdf") {
+    const result = await pdfParse(buffer, {
+      pagerender: async (pageData: { pageIndex: number; getTextContent: (options: { normalizeWhitespace: boolean; disableCombineTextItems: boolean }) => Promise<{ items: Array<{ str?: string }> }> }) => {
+        const textContent = await pageData.getTextContent({
+          normalizeWhitespace: true,
+          disableCombineTextItems: false,
+        });
+        const pageText = textContent.items.map((item) => item.str || "").join(" ");
+        return `\n[PDF_PAGE ${pageData.pageIndex + 1}]\n${pageText}\n`;
+      },
+    });
+
+    return result.text;
+  }
+
   if (
     fileType ===
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -23,6 +39,6 @@ export async function extractText(buffer: Buffer, fileType: string) {
     return text;
   }
 
-  // For PDF and other types, return raw buffer as string
+  // For other types, return raw buffer as string
   return buffer.toString("utf-8");
 }
