@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import MobileDashboardNav from "./MobileDashboardNav";
 import { displayPlanLabel } from "@/lib/planDisplay";
+import EffluxaAdvisor from "@/components/EffluxaAdvisor";
 
 export const dynamic = "force-dynamic";
 
@@ -169,6 +170,8 @@ export default async function DashboardLayout({
 
         <main className="main-content">{children}</main>
       </div>
+
+      {user && <EffluxaAdvisor preferredLanguage={user.preferredLanguage} />}
     </div>
   );
 }
