@@ -229,6 +229,35 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section style={{ background: "#eef2ff", borderTop: "1px solid #c7d2fe", borderBottom: "1px solid #c7d2fe" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "74px 24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "36px", alignItems: "center" }}>
+            <div>
+              <div className="eyebrow" style={{ color: "#3730a3" }}>For accounting &amp; finance firms</div>
+              <h2 style={{ marginTop: "14px", fontSize: "42px", lineHeight: 1.08, letterSpacing: "-1.5px", fontWeight: 950 }}>
+                One partner workflow. More useful client conversations.
+              </h2>
+              <p style={{ marginTop: "16px", maxWidth: "720px", color: "#3730a3", lineHeight: 1.75, fontSize: "18px" }}>
+                Start with one client-approved, redacted file. Effluxa gives your team a repeatable leakage screening workflow, source evidence and follow-up context without waiting for an integration project.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <Link href="/for-accounting-firms?utm_source=homepage&utm_medium=owned&utm_campaign=partner_channel&utm_content=hero_partner">
+                <button className="primary-button" style={{ width: "100%", padding: "16px 20px" }}>
+                  Explore the partner workflow
+                </button>
+              </Link>
+              <Link href="/contact?subject=Partner%20pilot&source=partner_pilot&utm_source=homepage&utm_medium=owned&utm_campaign=partner_channel&utm_content=hero_pilot">
+                <button className="primary-button" style={{ width: "100%", padding: "16px 20px", background: "white", color: "#0f172a", border: "1px solid #a5b4fc" }}>
+                  Request a partner pilot
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{

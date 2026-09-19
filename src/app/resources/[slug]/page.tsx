@@ -84,16 +84,21 @@ export default function ResourcePage({ params }: { params: { slug: string } }) {
             <p style={{ marginTop: "10px", color: "#3730a3", lineHeight: 1.7 }}>
               Effluxa can screen a supported file, show the evidence and turn a review signal into an assigned control action.
             </p>
-            <Link href="/sample-audit">
+            <Link href={`/sample-audit?utm_source=resource_detail&utm_medium=owned&utm_campaign=organic_content&utm_content=${resource.slug}`}>
               <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px" }}>
                 See a sample audit
               </button>
             </Link>
-            <Link href="/signup" style={{ display: "inline-block", marginLeft: "12px" }}>
+            <Link href={`/signup?utm_source=resource_detail&utm_medium=owned&utm_campaign=organic_content&utm_content=${resource.slug}_start`} style={{ display: "inline-block", marginLeft: "12px" }}>
               <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px", background: "white", color: "#0f172a", border: "1px solid #cbd5e1" }}>
-                Start free
-              </button>
-            </Link>
+              Start free
+            </button>
+          </Link>
+          <Link href={`/for-accounting-firms?utm_source=resource_detail&utm_medium=owned&utm_campaign=partner_channel&utm_content=${resource.slug}_partner`} style={{ display: "inline-block", marginLeft: "12px" }}>
+            <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px", background: "#312e81", color: "white" }}>
+              For accounting firms
+            </button>
+          </Link>
           </div>
         </article>
       </section>

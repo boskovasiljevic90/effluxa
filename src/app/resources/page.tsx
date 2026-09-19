@@ -57,14 +57,19 @@ export default function ResourcesPage() {
           <p style={{ marginTop: "10px", color: "#3730a3", lineHeight: 1.7 }}>
             Use a safe invoice batch, expense export or statement and review the evidence before taking action.
           </p>
-          <Link href="/sample-audit">
+          <Link href="/sample-audit?utm_source=resource_hub&utm_medium=owned&utm_campaign=organic_content&utm_content=resource_hub_sample">
             <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px" }}>
               View a sample audit
             </button>
           </Link>
-          <Link href="/signup" style={{ display: "inline-block", marginLeft: "12px" }}>
+          <Link href="/signup?utm_source=resource_hub&utm_medium=owned&utm_campaign=organic_content&utm_content=resource_hub_start" style={{ display: "inline-block", marginLeft: "12px" }}>
             <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px", background: "white", color: "#0f172a", border: "1px solid #cbd5e1" }}>
               Start free
+            </button>
+          </Link>
+          <Link href="/for-accounting-firms?utm_source=resource_hub&utm_medium=owned&utm_campaign=partner_channel&utm_content=resource_hub_partner" style={{ display: "inline-block", marginLeft: "12px" }}>
+            <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px", background: "#312e81", color: "white" }}>
+              For accounting firms
             </button>
           </Link>
         </div>

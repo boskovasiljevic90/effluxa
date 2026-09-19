@@ -82,12 +82,12 @@ export default function AccountingFirmsPage() {
           </p>
 
           <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", marginTop: "36px" }}>
-            <Link href="/signup">
+            <Link href="/signup?utm_source=partner_landing&utm_medium=owned&utm_campaign=partner_channel&utm_content=hero_free_audit">
               <button className="primary-button" style={{ padding: "16px 24px", fontSize: "16px" }}>
                 Start a free partner audit
               </button>
             </Link>
-            <Link href="/contact?subject=Partner%20pilot&source=partner_pilot">
+            <Link href="/contact?subject=Partner%20pilot&source=partner_pilot&utm_source=partner_landing&utm_medium=owned&utm_campaign=partner_channel&utm_content=hero_pilot">
               <button
                 className="primary-button"
                 style={{ padding: "16px 24px", fontSize: "16px", background: "white", color: "#0f172a", border: "1px solid #cbd5e1" }}
@@ -95,7 +95,7 @@ export default function AccountingFirmsPage() {
                 Request a partner pilot
               </button>
             </Link>
-            <Link href="/sample-audit">
+            <Link href="/sample-audit?utm_source=partner_landing&utm_medium=owned&utm_campaign=partner_channel&utm_content=hero_sample_audit">
               <button
                 className="primary-button"
                 style={{ padding: "16px 24px", fontSize: "16px", background: "transparent", color: "#0f172a", border: "1px solid #cbd5e1" }}
@@ -225,12 +225,12 @@ export default function AccountingFirmsPage() {
           <p style={{ marginTop: "10px", color: "#3730a3", lineHeight: 1.7 }}>
             Validate the workflow on real evidence before asking your team or client to change systems.
           </p>
-          <Link href="/signup">
+          <Link href="/signup?utm_source=partner_landing&utm_medium=owned&utm_campaign=partner_channel&utm_content=workflow_cta">
             <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px" }}>
               Create a free Effluxa account
             </button>
           </Link>
-          <Link href="/contact?subject=Partner%20pilot&source=partner_pilot" style={{ display: "inline-block", marginLeft: "12px" }}>
+          <Link href="/contact?subject=Partner%20pilot&source=partner_pilot&utm_source=partner_landing&utm_medium=owned&utm_campaign=partner_channel&utm_content=workflow_pilot" style={{ display: "inline-block", marginLeft: "12px" }}>
             <button className="primary-button" style={{ marginTop: "22px", padding: "15px 24px", background: "white", color: "#0f172a", border: "1px solid #cbd5e1" }}>
               Request a partner pilot
             </button>
