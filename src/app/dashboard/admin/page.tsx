@@ -248,6 +248,13 @@ export default async function AdminDashboardPage() {
     where: { type: "checkout_created" },
   });
 
+  const subscriptionCheckoutCountLast30Days = await prisma.event.count({
+    where: {
+      type: "subscription_checkout_created",
+      createdAt: { gte: thirtyDaysAgo },
+    },
+  });
+
   const revenueEvents = await prisma.event.count({
     where: { type: "full_audit_unlocked" },
   });
@@ -679,6 +686,14 @@ export default async function AdminDashboardPage() {
           <div className="card">
             <div className="card-title">Checkout Started</div>
             <div className="metric-value">{checkoutCount}</div>
+          </div>
+
+          <div className="card">
+            <div className="card-title">Subscription Checkouts 30d</div>
+            <div className="metric-value green">{subscriptionCheckoutCountLast30Days}</div>
+            <p className="gray" style={{ marginTop: "8px", fontSize: "12px", lineHeight: 1.5 }}>
+              Pro/Agency Paddle transactions created server-side.
+            </p>
           </div>
 
           <div className="card">

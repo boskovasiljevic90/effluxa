@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from "next/server";
 import { safeVerifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { trackEvent } from "@/lib/events";
 import { rateLimit } from "@/lib/rateLimit";
 import { trackError } from "@/lib/errorTracking";
 import {
@@ -126,6 +127,17 @@ export async function POST(req: NextRequest) {
       priceId,
       customerId: user.paddleCustomerId,
       customData,
+    });
+
+    await trackEvent({
+      type: "subscription_checkout_created",
+      userId: user.id,
+      metadata: {
+        transactionId: transaction.id,
+        priceId,
+        plan,
+        product: selectedPlan.product,
+      },
     });
 
     return NextResponse.json({
