@@ -303,6 +303,12 @@ export default async function AdminDashboardPage() {
   const analysisTelemetry = uploadAnalysisEvents
     .map((event) => (event.metadata && typeof event.metadata === "object" ? event.metadata as any : null))
     .filter((metadata): metadata is Record<string, any> => Boolean(metadata?.analysisDurationMs));
+  const repeatAuditEventsCount = uploadAnalysisEvents.filter((event) => {
+    const metadata = event.metadata && typeof event.metadata === "object"
+      ? event.metadata as Record<string, any>
+      : null;
+    return metadata?.repeatAudit === true;
+  }).length;
   const v3Telemetry = analysisTelemetry.filter((metadata) => metadata.auditEngine === "v3");
   const fastPathTelemetry = v3Telemetry.filter((metadata) => metadata.analysisPath === "fast_text");
   const fallbackTelemetry = analysisTelemetry.filter((metadata) => metadata.fallbackUsed === true);
@@ -720,6 +726,14 @@ export default async function AdminDashboardPage() {
             <div className="card">
               <div className="card-title">Upload Events</div>
               <div className="metric-value">{uploadEventsCount}</div>
+            </div>
+
+            <div className="card">
+              <div className="card-title">Repeat Audits 30d</div>
+              <div className="metric-value green">{repeatAuditEventsCount}</div>
+              <p className="gray" style={{ marginTop: "8px", fontSize: "12px", lineHeight: 1.5 }}>
+                A second-or-later audit for the same client workspace.
+              </p>
             </div>
 
             <div className="card">

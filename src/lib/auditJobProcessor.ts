@@ -172,7 +172,18 @@ export async function processAuditJob(jobId: string): Promise<AuditJobResult> {
         ? reportData.report_quality
         : null;
 
+    let clientAuditNumber = 1;
     const upload = await prisma.$transaction(async (tx) => {
+      if (job.clientId) {
+        const previousClientAudits = await tx.upload.count({
+          where: {
+            userId: job.workspaceOwnerId,
+            clientId: job.clientId,
+          },
+        });
+        clientAuditNumber = previousClientAudits + 1;
+      }
+
       const createdUpload = await tx.upload.create({
         data: {
           userId: job.workspaceOwnerId,
@@ -227,6 +238,8 @@ export async function processAuditJob(jobId: string): Promise<AuditJobResult> {
         extractedRecordCount: reportQuality?.extracted_record_count || null,
         workspaceOwnerId: job.workspaceOwnerId,
         clientId: job.clientId,
+        clientAuditNumber,
+        repeatAudit: Boolean(job.clientId && clientAuditNumber > 1),
       },
     });
 
