@@ -1,0 +1,9 @@
+row_id,vendor,invoice_number,invoice_date,amount,currency,document_type,payment_status,payment_ref
+R01,Alder Studio,AS-1042,2026-09-08,480.00,USD,invoice,paid,P-201
+R02,Alder Studio,AS-1042,2026-09-08,480.00,USD,invoice,paid,P-224
+R03,Harbor Hosting,HH-SEP,2026-09-01,120.00,USD,invoice,paid,P-225
+R04,Harbor Hosting,HH-OCT,2026-10-01,120.00,USD,invoice,paid,P-226
+R05,Juniper Supply,JS-330,2026-10-07,240.00,USD,invoice,paid,P-227
+R06,Juniper Supply,CR-330,2026-10-09,-240.00,USD,credit_note,credited,C-228
+R07,Oakline Print,OP-511,2026-10-12,205.00,USD,invoice,unpaid,
+R08,River Paper,RP-981,2026-10-15,85.00,USD,invoice,paid,P-229
