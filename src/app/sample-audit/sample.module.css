@@ -11,6 +11,11 @@
   padding: 30px 24px 72px;
 }
 
+/* The image-based header and footer use a dark wordmark on older layouts. */
+.page img[src$="/effluxa-wordmark-light.svg"] {
+  filter: brightness(0) invert(1);
+}
+
 .report {
   max-width: 810px;
   margin: 0 auto;
