@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+import InvoiceStory from "@/components/InvoiceStory";
+import motion from "@/components/InvoiceStory.module.css";
 
 export const metadata: Metadata = {
   title: "Effluxa | AI Financial Leak Detection for SMEs",
@@ -65,11 +67,11 @@ const faqItems: Array<[string, string]> = [
 
 export default function HomePage() {
   return (
-    <main style={{ minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
+    <main className={motion.home} style={{ minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
       <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px 90px" }}>
         <PublicHeader />
 
-        <div style={{ marginTop: "70px", maxWidth: "980px" }}>
+        <div className={motion.intro}>
           <div style={{
             display: "inline-flex",
             padding: "10px 18px",
@@ -103,7 +105,7 @@ export default function HomePage() {
             duplicate payment risks, vendor concentration, cash flow pressure and hidden savings opportunities.
           </p>
 
-          <div style={{ marginTop: "42px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          <div className={motion.actions} style={{ marginTop: "42px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
             <Link href="/signup">
               <button style={{
                 height: "62px",
@@ -153,6 +155,7 @@ export default function HomePage() {
             </a>
           </div>
 
+          <InvoiceStory />
         </div>
 
         <div style={{
