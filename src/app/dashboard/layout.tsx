@@ -5,8 +5,8 @@ import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import MobileDashboardNav from "./MobileDashboardNav";
+import SidebarMenu, { type SidebarItem } from "./SidebarMenu";
 import { displayPlanLabel } from "@/lib/planDisplay";
-import EffluxaAdvisor from "@/components/EffluxaAdvisor";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +65,27 @@ export default async function DashboardLayout({
     }).length;
   }
 
+  const navItems: SidebarItem[] = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/dashboard/reports", label: "Reports" },
+    ...(workspace?.hasBusinessAccess
+      ? [
+          { href: "/dashboard/clients", label: "Clients" },
+          { href: "/dashboard/portfolio", label: "Portfolio" },
+          { href: "/dashboard/controls", label: "Controls" },
+        ]
+      : []),
+    { href: "/dashboard/upload", label: "Upload Audit" },
+    {
+      href: "/dashboard/notifications",
+      label: unreadNotificationsCount > 0 ? `Notifications (${unreadNotificationsCount})` : "Notifications",
+    },
+    { href: "/dashboard/settings", label: "Settings" },
+    ...(user?.referralCode ? [{ href: "/dashboard/partner", label: "Partner Launchpad" }] : []),
+    ...(workspace?.hasBusinessAccess && workspace?.isOwner ? [{ href: "/dashboard/team", label: "Team" }] : []),
+    ...(isAdmin ? [{ href: "/dashboard/admin", label: "Admin" }] : []),
+  ];
+
   return (
     <div className="page-container">
       <MobileDashboardNav
@@ -90,62 +111,7 @@ export default async function DashboardLayout({
             AI Financial Leak Audit
           </div>
 
-          <div className="sidebar-menu">
-            <Link href="/dashboard" className="sidebar-item">
-              Dashboard
-            </Link>
-
-            <Link href="/dashboard/reports" className="sidebar-item">
-              Reports
-            </Link>
-
-            {workspace?.hasBusinessAccess && (
-              <Link href="/dashboard/clients" className="sidebar-item">
-                Clients
-              </Link>
-            )}
-
-            {workspace?.hasBusinessAccess && (
-              <Link href="/dashboard/portfolio" className="sidebar-item">
-                Portfolio
-              </Link>
-            )}
-
-            {workspace?.hasBusinessAccess && (
-              <Link href="/dashboard/controls" className="sidebar-item">
-                Controls
-              </Link>
-            )}
-
-            <Link href="/dashboard/upload" className="sidebar-item">
-              Upload Audit
-            </Link>
-
-            <Link href="/dashboard/notifications" className="sidebar-item">
-              Notifications{unreadNotificationsCount > 0 ? ` (${unreadNotificationsCount})` : ""}
-            </Link>
-
-            <Link href="/dashboard/settings" className="sidebar-item">
-              Settings
-            </Link>
-
-            {user?.referralCode && (
-              <Link href="/dashboard/partner" className="sidebar-item">
-                Partner Launchpad
-              </Link>
-            )}
-
-            {workspace?.hasBusinessAccess && workspace?.isOwner && (
-              <Link href="/dashboard/team" className="sidebar-item">
-                Team
-              </Link>
-            )}
-
-            {isAdmin && (
-              <Link href="/dashboard/admin" className="sidebar-item">
-                Admin
-              </Link>
-            )}
+          <SidebarMenu items={navItems} />
 
             <div className="sidebar-plan-card">
               <div className="sidebar-plan-title">Current Plan</div>
@@ -165,13 +131,10 @@ export default async function DashboardLayout({
             </div>
 
             <LogoutButton />
-          </div>
         </aside>
 
         <main className="main-content">{children}</main>
       </div>
-
-      {user && <EffluxaAdvisor preferredLanguage={user.preferredLanguage} />}
     </div>
   );
 }

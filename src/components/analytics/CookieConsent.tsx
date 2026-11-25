@@ -23,58 +23,18 @@ export default function CookieConsent() {
   if (!visible) return null;
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        left: "20px",
-        right: "20px",
-        bottom: "20px",
-        zIndex: 9999,
-        maxWidth: "720px",
-        margin: "0 auto",
-        padding: "18px",
-        borderRadius: "18px",
-        background: "#0f172a",
-        color: "white",
-        boxShadow: "0 20px 60px rgba(15,23,42,0.35)",
-      }}
-    >
-      <div style={{ fontWeight: 900, fontSize: "18px" }}>
-        Privacy preferences
+    <div className="cookie-consent" role="dialog" aria-label="Privacy preferences">
+      <div>
+        <div className="cookie-consent-title">Privacy preferences</div>
+        <p className="cookie-consent-text">
+          Effluxa uses analytics cookies to understand product usage and improve the service.
+        </p>
       </div>
-
-      <p style={{ marginTop: "8px", color: "#cbd5e1", lineHeight: 1.6 }}>
-        Effluxa uses analytics cookies to understand product usage and improve the service.
-      </p>
-
-      <div style={{ display: "flex", gap: "12px", marginTop: "16px", flexWrap: "wrap" }}>
-        <button
-          onClick={accept}
-          style={{
-            padding: "11px 16px",
-            borderRadius: "12px",
-            border: "none",
-            background: "white",
-            color: "#0f172a",
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          Accept analytics
+      <div className="cookie-consent-actions">
+        <button type="button" className="cookie-consent-accept" onClick={accept}>
+          Accept
         </button>
-
-        <button
-          onClick={reject}
-          style={{
-            padding: "11px 16px",
-            borderRadius: "12px",
-            border: "1px solid rgba(255,255,255,0.25)",
-            background: "transparent",
-            color: "white",
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
+        <button type="button" className="cookie-consent-reject" onClick={reject}>
           Reject
         </button>
       </div>

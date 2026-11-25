@@ -9,6 +9,8 @@ type Props = {
   currentRole?: string | null;
   hasBusinessAccess?: boolean;
   preferredPlan?: SubscriptionPlan | null;
+  /** "compact" renders one primary upgrade action instead of four buttons. */
+  variant?: "full" | "compact";
 };
 
 const plans = [
@@ -38,6 +40,7 @@ export default function BusinessUpgradeButton({
   currentRole,
   hasBusinessAccess = false,
   preferredPlan = null,
+  variant = "full",
 }: Props) {
   const role = currentRole || "FREE";
 
@@ -54,6 +57,23 @@ export default function BusinessUpgradeButton({
       >
         Agency workspace access is active. Manage billing from Settings.
       </p>
+    );
+  }
+
+  if (variant === "compact") {
+    return (
+      <div style={{ display: "grid", gap: "10px" }}>
+        <SubscriptionButton
+          plan="pro_monthly"
+          label={`Upgrade to Pro ${perMonth(DISPLAY_PRICE.proMonthly)}`}
+        />
+        <a
+          href="/#pricing"
+          style={{ fontSize: "13px", color: "#93c5fd", fontWeight: 700, textAlign: "center" }}
+        >
+          Compare Pro and Agency
+        </a>
+      </div>
     );
   }
 

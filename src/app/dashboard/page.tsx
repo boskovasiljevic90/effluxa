@@ -258,584 +258,273 @@ export default async function DashboardPage({
 
 
   
-return (
-    <>
-      <div className="topbar">
+
+  const planLabel = workspace.hasBusinessAccess
+    ? "Agency"
+    : user.role === "BUSINESS"
+      ? "Agency inactive"
+      : user.role === "PRO"
+        ? "Pro"
+        : "Free";
+
+  const unlimited = workspace.hasBusinessAccess || user.role === "PRO";
+  const weeklyUsed = Math.min(3, user.weeklyUploadCount || 0);
+  const recentReports = reports.slice(0, 6);
+
+  function friendlyFileName(report: (typeof reports)[number]) {
+    const data = report.parsedData as any;
+    const raw = typeof data?.source_file === "string" ? data.source_file : "";
+    const base = raw.split(/[\\/]/).pop()?.trim() || "";
+    if (base && !/^(instant|seed):/i.test(base) && base.length <= 64) return base;
+    return "Financial audit";
+  }
+
+  function formatDate(value: Date) {
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(value));
+  }
+
+  return (
+    <div className="dash">
+      <div className="dash-head">
         <div>
-          <div className="page-title">AI Financial Intelligence</div>
-          <p className="gray" style={{ marginTop: "10px" }}>
-            Detect financial leakage and optimize operational spending.
+          <p className="dash-eyebrow">Workspace overview</p>
+          <h1 className="dash-title">Welcome back</h1>
+          <p className="dash-sub">
+            Run a leakage review, see what changed since the last period, and keep every file in one place.
           </p>
         </div>
-
-        <div className="plan-badge plan-free">
-          {workspace.hasBusinessAccess
-            ? "AGENCY"
-            : user.role === "BUSINESS"
-              ? "AGENCY INACTIVE"
-              : displayPlanLabel(user.role)}
+        <div className="dash-head-actions">
+          <span className="dash-plan">{planLabel}</span>
+          <Link href="/dashboard/upload" className="dash-btn dash-btn-primary">
+            New audit
+          </Link>
         </div>
       </div>
 
-
-      
       {user.referredByCode && totalAudits === 0 && (
-        <div
-          className="card"
-          style={{
-            marginBottom: "28px",
-            border: "1px solid rgba(129,140,248,0.38)",
-            background: "linear-gradient(135deg, rgba(79,70,229,0.16), rgba(37,99,235,0.08))",
-          }}
-        >
-          <div className="card-title">Partner-guided first audit</div>
-          <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
-            You joined through an Effluxa partner invitation. Start with a recent invoice batch,
-            bank statement, CSV export or expense report. You can redact sensitive account numbers
-            before uploading.
-          </p>
-          <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginTop: "20px" }}>
-            <Link href="/dashboard/upload">
-              <button className="primary-button">Upload first financial file</button>
-            </Link>
-            <Link href="/sample-audit">
-              <button
-                className="primary-button"
-                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.14)" }}
-              >
-                View sample audit
-              </button>
-            </Link>
-          </div>
-        </div>
-      )}
-
-
-{workspace.hasBusinessAccess && (
-        <div
-          className="card"
-          style={{
-            marginBottom: "28px",
-            border: "1px solid rgba(34,197,94,0.18)",
-            background:
-              "linear-gradient(135deg, rgba(34,197,94,0.10), rgba(37,99,235,0.08))",
-          }}
-        >
-          <div className="card-title">Workspace Health Score</div>
-
-          <div
-            style={{
-              marginTop: "18px",
-              display: "flex",
-              justifyContent: "space-between",
-              gap: "24px",
-              alignItems: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: "64px",
-                  fontWeight: 950,
-                  color: workspaceHealthColor,
-                  lineHeight: 1,
-                }}
-              >
-                {workspaceHealthScore}/100
-              </div>
-
-              <div
-                style={{
-                  marginTop: "12px",
-                  fontSize: "22px",
-                  fontWeight: 900,
-                }}
-              >
-                {workspaceHealthStatus}
-              </div>
-
-              <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
-                Based on average leakage, highest risk, identified savings,
-                audit activity, and trend improvement across this workspace.
-              </p>
-            </div>
-
-            <div
-              style={{
-                minWidth: "240px",
-                padding: "18px",
-                borderRadius: "18px",
-                background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <div className="gray">Trend</div>
-              <div
-                style={{
-                  marginTop: "8px",
-                  fontSize: "30px",
-                  fontWeight: 900,
-                  color: improvementTrend >= 0 ? "#4ade80" : "#f87171",
-                }}
-              >
-                {improvementTrend > 0 ? "+" : ""}
-                {improvementTrend}%
-              </div>
-
-              <div className="gray" style={{ marginTop: "12px" }}>
-                Avg Leakage: {averageLeakageScore}/100
-              </div>
-
-              <div className="gray" style={{ marginTop: "8px" }}>
-                Highest Risk: {highestRiskAudit}/100
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {workspace.hasBusinessAccess && (
-        <div
-          className="card"
-          style={{
-            marginBottom: "28px",
-            border: "1px solid rgba(96,165,250,0.18)",
-          }}
-        >
-          <div className="card-title">Priority Action Plan</div>
-
-          <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
-            The most repeated AI recommendations and quick wins across your workspace audits.
-          </p>
-
-          {priorityActions.length === 0 ? (
-            <p className="gray" style={{ marginTop: "18px" }}>
-              No priority actions yet. Upload more financial documents to generate repeated recommendations.
+        <div className="dash-banner">
+          <div>
+            <div style={{ fontWeight: 900 }}>Partner-guided first audit</div>
+            <p style={{ color: "#cbd5e1", fontSize: "13px", marginTop: "4px", lineHeight: 1.55 }}>
+              Start with one invoice batch, bank statement or export. Redact account numbers before uploading.
             </p>
-          ) : (
-            <div style={{ display: "grid", gap: "12px", marginTop: "18px" }}>
-              {priorityActions.map((action, index) => (
-                <div
-                  key={action.text}
-                  style={{
-                    padding: "16px",
-                    borderRadius: "14px",
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
-                  <div style={{ fontWeight: 900 }}>
-                    {index + 1}. {action.text}
-                  </div>
+          </div>
+          <Link href="/dashboard/upload" className="dash-btn dash-btn-ghost">
+            Upload first file
+          </Link>
+        </div>
+      )}
 
-                  <div className="gray" style={{ marginTop: "8px", fontSize: "13px" }}>
-                    Seen across {action.count} audit{action.count === 1 ? "" : "s"}
+      <div className="dash-metrics">
+        <div className="dash-metric">
+          <div className="dash-metric-label">Audits</div>
+          <div className="dash-metric-value">{totalAudits}</div>
+          <div className="dash-metric-hint">{unlockedAudits} unlocked</div>
+        </div>
+        <div className="dash-metric">
+          <div className="dash-metric-label">Average score</div>
+          <div className="dash-metric-value">
+            {reports.length > 0 ? `${averageLeakageScore}/100` : "—"}
+          </div>
+          <div className="dash-metric-hint">
+            {reports.length > 0 ? "Across all files" : "No audits yet"}
+          </div>
+        </div>
+        <div className="dash-metric">
+          <div className="dash-metric-label">Savings identified</div>
+          <div className="dash-metric-value">
+            {totalEstimatedSavings > 0 ? eur(Math.round(totalEstimatedSavings)) : "—"}
+          </div>
+          <div className="dash-metric-hint">Review estimates, not recovered cash</div>
+        </div>
+        <div className="dash-metric">
+          <div className="dash-metric-label">Plan usage</div>
+          <div className="dash-metric-value">{unlimited ? "Unlimited" : `${weeklyUsed}/3`}</div>
+          <div className="dash-metric-hint">
+            {unlimited ? planLabel : "Free audits this week"}
+          </div>
+        </div>
+      </div>
+
+      <div className="dash-layout">
+        <div className="dash-main">
+          <section className="dash-card">
+            <div className="dash-card-head">
+              <h2 className="dash-card-title">Recent audits</h2>
+              <Link href="/dashboard/reports" className="dash-link">
+                View all
+              </Link>
+            </div>
+
+            {recentReports.length === 0 ? (
+              <div className="dash-empty">
+                No audits yet. Start with one financial file and Effluxa will rank what to review first.
+                <div style={{ marginTop: "16px" }}>
+                  <Link href="/dashboard/upload" className="dash-btn dash-btn-primary">
+                    Start a free audit
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Date</th>
+                    <th>Score</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentReports.map((report) => {
+                    const data = report.parsedData as any;
+                    const score = Number(data?.leakage_score);
+                    const unlocked =
+                      report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess;
+                    return (
+                      <tr key={report.id}>
+                        <td>
+                          <Link href={`/dashboard/reports/${report.id}`} style={{ textDecoration: "none" }}>
+                            <div className="dash-file">{friendlyFileName(report)}</div>
+                            <div className="dash-meta">{report.clientId ? "Client file" : "Own file"}</div>
+                          </Link>
+                        </td>
+                        <td>{formatDate(report.createdAt)}</td>
+                        <td>
+                          <span className="dash-score">
+                            {Number.isFinite(score) && score > 0 ? `${Math.round(score)}/100` : "—"}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`dash-badge ${unlocked ? "dash-badge-ok" : "dash-badge-wait"}`}>
+                            {unlocked ? "Unlocked" : "Preview"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </section>
+
+          {priorityActions.length > 0 && (
+            <section className="dash-card">
+              <div className="dash-card-head">
+                <h2 className="dash-card-title">Review next</h2>
+                <span className="dash-meta">Actions repeated across your audits</span>
+              </div>
+              <div>
+                {priorityActions.slice(0, 5).map((action) => (
+                  <div key={action.text} className="dash-action">
+                    <span>{action.text}</span>
+                    <span className="dash-count">{action.count}x</span>
                   </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {workspace.hasBusinessAccess && (
+            <section className="dash-card">
+              <div className="dash-card-head">
+                <h2 className="dash-card-title">Workspace health</h2>
+                <span className="dash-meta">{workspaceHealthStatus}</span>
+              </div>
+              <div className="dash-health">
+                <div className="dash-health-value" style={{ color: workspaceHealthColor }}>
+                  {workspaceHealthScore}
+                </div>
+                <div className="dash-health-bar">
+                  <div className="dash-meta" style={{ marginTop: 0 }}>
+                    Based on audit activity, savings found and open risk
+                  </div>
+                  <div className="dash-progress">
+                    <span style={{ width: `${workspaceHealthScore}%` }} />
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+
+        <aside className="dash-side">
+          {!unlimited && (
+            <section className="dash-card">
+              <div className="dash-card-head">
+                <h2 className="dash-card-title">Plan</h2>
+              </div>
+              <div className="dash-upgrade-price">
+                {eur(DISPLAY_PRICE.proMonthly)}
+                <span style={{ fontSize: "13px", fontWeight: 600, color: "#94a3b8" }}> /month</span>
+              </div>
+              <p className="dash-upgrade-note">
+                Unlimited audits, full reports, period comparison and exports.
+              </p>
+              <div style={{ marginTop: "16px" }}>
+                <BusinessUpgradeButton
+                  currentRole={user.role}
+                  hasBusinessAccess={workspace.hasBusinessAccess}
+                  preferredPlan={selectedPlan}
+                  variant="compact"
+                />
+              </div>
+            </section>
+          )}
+
+          <section className="dash-card">
+            <div className="dash-card-head">
+              <h2 className="dash-card-title">Getting started</h2>
+              <span className="dash-meta">
+                {onboardingCompleted}/{onboardingSteps.length}
+              </span>
+            </div>
+            <div>
+              {onboardingSteps.map((step) => (
+                <div
+                  key={step.label}
+                  className={`dash-step ${step.done ? "dash-step-done" : ""}`}
+                >
+                  <div className="dash-step-dot">{step.done ? "\u2713" : ""}</div>
+                  <Link href={step.href}>{step.label}</Link>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-      )}
-
-      <div className="report-grid" style={{ marginBottom: "28px" }}>
-        <div className="card">
-          <div className="card-title">Total Audits</div>
-          <div className="metric-value">{totalAudits}</div>
-        </div>
-
-        <div className="card">
-          <div className="card-title">Potential Savings Found</div>
-          <div className="metric-value green">
-            €{totalEstimatedSavings.toLocaleString()}
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-title">Average Leakage Score</div>
-          <div className="metric-value">{averageLeakageScore}/100</div>
-        </div>
-
-        <div className="card">
-          <div className="card-title">Unlocked Reports</div>
-          <div className="metric-value green">{unlockedAudits}</div>
-        </div>
-
-        <div className="card">
-          <div className="card-title">Latest Audit Score</div>
-          <div className="metric-value">{latestAuditScore}/100</div>
-        </div>
-
-        <div className="card">
-          <div className="card-title">Improvement Trend</div>
-          <div
-            className="metric-value"
-            style={{
-              color: improvementTrend >= 0 ? "#4ade80" : "#f87171",
-            }}
-          >
-            {improvementTrend > 0 ? "+" : ""}
-            {improvementTrend}%
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-title">Best Savings Opportunity</div>
-          <div className="metric-value green">
-            €{bestSavingsOpportunity.toLocaleString()}
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="card-title">Highest Risk Audit</div>
-          <div className="metric-value">{highestRiskAudit}/100</div>
-        </div>
-      </div>
-
-        <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">
-          {workspace.hasBusinessAccess
-            ? "Agency Workspace"
-            : user.role === "BUSINESS"
-              ? "Agency Access"
-              : "Free Plan Usage"}
-          </div>
-
-        {workspace.hasBusinessAccess ? (
-          <p className="gray" style={{ marginTop: "12px" }}>
-            Agency workspace enabled{workspace.isTeamMember ? " through your team workspace." : "."}
-          </p>
-        ) : user.role === "PRO" ? (
-          <p className="gray" style={{ marginTop: "12px" }}>
-            Pro is active. Unlimited personal AI audits are enabled.
-          </p>
-        ) : user.role === "BUSINESS" ? (
-          <p className="gray" style={{ marginTop: "12px" }}>
-            Agency access is inactive. Reactivate an Agency plan to restore workspace features.
-          </p>
-        ) : (
-          <p className="gray" style={{ marginTop: "12px" }}>
-            You used {`${user.weeklyUploadCount}/3`} free AI audits.
-          </p>
-        )}
-      </div>
-
-      {!workspace.hasBusinessAccess && (
-        <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">
-            {user.role === "PRO"
-              ? "Upgrade To Agency"
-              : user.role === "BUSINESS"
-                ? "Reactivate Agency"
-                : "Upgrade Effluxa"}
-          </div>
-
-          <p className="gray" style={{ marginTop: "12px" }}>
-            Unlimited AI audits, unlimited reports,
-            5 team seats and priority processing.
-          </p>
-
-          {selectedPlan && (
-            <div
-              role="status"
-              style={{
-                marginTop: "16px",
-                padding: "13px 15px",
-                borderRadius: "12px",
-                background: "rgba(99,102,241,0.14)",
-                border: "1px solid rgba(129,140,248,0.35)",
-                color: "#c7d2fe",
-                lineHeight: 1.55,
-                fontSize: "14px",
-              }}
-            >
-              You selected {subscriptionPlanLabels[selectedPlan]} on the pricing page. Continue below to open secure Paddle checkout.
-            </div>
-          )}
-
-          <div
-            style={{
-              marginTop: "20px",
-              fontSize: "28px",
-              fontWeight: 900,
-            }}
-          >
-            {user.role === "PRO" || user.role === "BUSINESS"
-              ? `Agency starts at ${eur(DISPLAY_PRICE.agencyMonthly)}/month`
-              : `Pro starts at ${eur(DISPLAY_PRICE.proMonthly)}/month`}
-          </div>
-
-          <BusinessUpgradeButton
-            currentRole={user.role}
-            hasBusinessAccess={workspace.hasBusinessAccess}
-            preferredPlan={selectedPlan}
-          />
-        </div>
-      )}
-
-      <div className="card" style={{ marginBottom: "28px" }}>
-        <div className="card-title">Getting Started</div>
-
-        <p className="gray" style={{ marginTop: "10px", lineHeight: 1.7 }}>
-          Complete these steps to unlock the full value of Effluxa.
-        </p>
-
-        <div style={{ marginTop: "18px", display: "grid", gap: "12px" }}>
-          {onboardingSteps.map((step) => (
-            <Link key={step.label} href={step.href}>
-              <div
+            <div className="dash-progress">
+              <span
                 style={{
-                  padding: "15px",
-                  borderRadius: "14px",
-                  background: step.done
-                    ? "rgba(34,197,94,0.10)"
-                    : "rgba(255,255,255,0.04)",
-                  border: step.done
-                    ? "1px solid rgba(34,197,94,0.20)"
-                    : "1px solid rgba(255,255,255,0.06)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "14px",
-                  alignItems: "center",
+                  width: `${Math.round((onboardingCompleted / onboardingSteps.length) * 100)}%`,
                 }}
-              >
-                <strong>{step.label}</strong>
-                <span style={{ color: step.done ? "#4ade80" : "#cbd5e1", fontWeight: 900 }}>
-                  {step.done ? "Done" : "Start"}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        <p className="gray" style={{ marginTop: "14px" }}>
-          Progress: {onboardingCompleted}/{onboardingSteps.length}
-        </p>
-      </div>
-
-      <div className="card" style={{ marginBottom: "28px" }}>
-        <div className="card-title">Start New AI Audit</div>
-        <p className="gray">
-          Upload invoices, statements, CSV exports, Excel reports, or accounting documents.
-        </p>
-
-        <Link href="/dashboard/upload">
-          <button className="primary-button" style={{ marginTop: "24px" }}>
-            Upload Financial Document
-          </button>
-        </Link>
-      </div>
-
-      {workspace.hasBusinessAccess && (
-        <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Executive Insights</div>
-
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
-              gap: "18px",
-              marginTop: "18px",
-            }}
-          >
-            <div
-              style={{
-                padding: "18px",
-                borderRadius: "16px",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <div style={{ fontWeight: "bold", marginBottom: "14px" }}>
-                Top Vendors Across Audits
-              </div>
-
-              {topVendorsAcrossAudits.length === 0 ? (
-                <p className="gray">No vendor data yet.</p>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {topVendorsAcrossAudits.map((vendor) => (
-                    <div
-                      key={vendor.name}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "14px",
-                      }}
-                    >
-                      <span className="gray">{vendor.name}</span>
-                      <strong>€{vendor.amount.toLocaleString()}</strong>
-                    </div>
-                  ))}
-                </div>
-              )}
+              />
             </div>
-
-            <div
-              style={{
-                padding: "18px",
-                borderRadius: "16px",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <div style={{ fontWeight: "bold", marginBottom: "14px" }}>
-                Top Cost Categories
-              </div>
-
-              {topCostCategoriesAcrossAudits.length === 0 ? (
-                <p className="gray">No category data yet.</p>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                  {topCostCategoriesAcrossAudits.map((category) => (
-                    <div
-                      key={category.name}
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: "14px",
-                      }}
-                    >
-                      <span className="gray">{category.name}</span>
-                      <strong>€{category.amount.toLocaleString()}</strong>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="dash-progress-text">
+              {Math.round((onboardingCompleted / onboardingSteps.length) * 100)}% complete
             </div>
-          </div>
-        </div>
-      )}
+          </section>
 
-      {workspace.hasBusinessAccess && (
-        <div className="card" style={{ marginBottom: "28px" }}>
-          <div className="card-title">Workspace Activity</div>
-
-          {activityEvents.length === 0 ? (
-            <p className="gray" style={{ marginTop: "12px" }}>
-              No workspace activity yet.
+          <section className="dash-card">
+            <div className="dash-card-head">
+              <h2 className="dash-card-title">New audit</h2>
+            </div>
+            <p className="dash-upgrade-note" style={{ marginTop: 0 }}>
+              Upload an invoice batch, statement, CSV or Excel export. Every finding carries source evidence.
             </p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "14px", marginTop: "18px" }}>
-              {activityEvents.map((event) => {
-                const metadata = event.metadata as any;
-
-                const actor =
-                  metadata?.uploadedBy ||
-                  metadata?.email ||
-                  "Workspace user";
-
-                const label =
-                  event.type === "upload_created"
-                    ? `${actor} uploaded ${metadata?.fileName || "a financial document"}`
-                    : event.type === "business_subscription_activated"
-                      ? "Agency subscription activated"
-                      : event.type === "business_subscription_cancelled"
-                        ? "Agency subscription cancelled"
-                        : event.type === "business_subscription_payment_failed"
-                          ? "Agency subscription payment failed"
-                          : event.type === "report_unlocked"
-                            ? "Audit report unlocked"
-                            : event.type === "checkout_created"
-                              ? "Checkout started"
-                              : event.type.replaceAll("_", " ");
-
-                return (
-                  <div
-                    key={event.id}
-                    style={{
-                      padding: "16px",
-                      borderRadius: "14px",
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                    }}
-                  >
-                    <div style={{ fontWeight: "bold" }}>
-                      {label}
-                    </div>
-
-                    <div className="gray" style={{ marginTop: "6px", fontSize: "13px" }}>
-                      {new Date(event.createdAt).toLocaleString()}
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{ marginTop: "14px" }}>
+              <Link
+                href="/dashboard/upload"
+                className="dash-btn dash-btn-primary"
+                style={{ width: "100%" }}
+              >
+                Upload financial file
+              </Link>
             </div>
-          )}
-        </div>
-      )}
-
-      <div className="card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
-          <div className="card-title">Recent AI Audits</div>
-
-          <Link href="/dashboard/reports">
-            <button className="primary-button" style={{ padding: "10px 16px", fontSize: "14px" }}>
-              View All Reports
-            </button>
-          </Link>
-        </div>
-
-        {reports.length === 0 ? (
-          <p className="gray">No audits yet.</p>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {reports.slice(0, 6).map((report) => {
-              const data = report.parsedData as any;
-
-              return (
-                <Link key={report.id} href={`/dashboard/reports/${report.id}`}>
-                  <div
-                    style={{
-                      padding: "20px",
-                      borderRadius: "16px",
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
-                      <div>
-                        <div style={{ fontWeight: "bold", fontSize: "18px" }}>
-                          {report.fileUrl}
-                        </div>
-                        <div className="gray" style={{ marginTop: "8px" }}>
-                          Leakage Score: {data?.leakage_score ?? "N/A"}/100
-                        </div>
-
-                        {report.internalNote && (
-                          <div className="gray" style={{ marginTop: "8px", color: "#4ade80" }}>
-                            Internal note saved
-                          </div>
-                        )}
-                        <div className="gray" style={{ marginTop: "8px" }}>
-                          {new Date(report.createdAt).toLocaleString()}
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          padding: "8px 14px",
-                          borderRadius: "999px",
-                          height: "fit-content",
-                          background: report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess
-                            ? "rgba(34,197,94,0.15)"
-                            : "rgba(255,255,255,0.08)",
-                          color: report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess ? "#4ade80" : "#cbd5e1",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {report.unlocked || user.role === "PRO" || workspace.hasBusinessAccess ? "UNLOCKED" : "PREVIEW"}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+          </section>
+        </aside>
       </div>
-    </>
+    </div>
   );
 }

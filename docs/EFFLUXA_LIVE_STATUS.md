@@ -110,6 +110,21 @@ Verifikovano na živom dashboardu sa privremenim FREE nalogom: **Pro €99/month
 
 Posle izmena test paket i dalje daje 43 nalaza, bez regresije; sva ciljana pravila (price increase, covenant, hotel limit, bank change, software overlap) se aktiviraju.
 
+## Redizajn prijavljenog dela (25.11.2026)
+
+Dashboard je preuređen iz „8 velikih kartica + 4 dugmeta za nadogradnju" u minimalistički layout:
+
+- **jedan KPI pojas** sa 4 metrike i vertikalnim separatorima (Audits, Average score, Savings identified, Plan usage),
+- **dve kolone**: levo tabela „Recent audits" i „Review next", desno Plan, Getting started, New audit,
+- **sidebar bez kutija**: obična lista sa aktivnim stanjem (ljubičasti akcenat), plan i nalog odvojeni linijom,
+- **tabela izveštaja** prikazuje ime fajla i datum umesto internih ID-jeva (`instant:…`, `seed:…`),
+- **kompaktan cookie bar** umesto velikog modala preko sadržaja,
+- fiksni elementi (Advisor, cookie bar) više ne prekrivaju sadržaj zbog donjeg paddinga.
+
+Provereno snimkama na 1440px i 390px: bez horizontalnog prelivanja, tabela čitljiva na mobilnom (datum se skriva, ostaju fajl, skor, status).
+
+Stranice Reports, Settings, Upload i Clients još koriste stari vizuelni jezik i sledeće su na redu.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
