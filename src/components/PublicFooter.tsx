@@ -52,6 +52,8 @@ export default function PublicFooter() {
 
       <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
         <Link href="/tools">Free tools</Link>
+        <Link href="/compare">Comparisons</Link>
+        <Link href="/use-cases">Use cases</Link>
         <Link href="/security">Security &amp; DPA</Link>
         <Link href="/privacy">Privacy Policy</Link>
         <Link href="/terms">Terms of Service</Link>

@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { SEO_PAGES } from "@/content/seoPages";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
 
@@ -88,6 +90,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.6,
     },
+    {
+      url: `${baseUrl}/compare`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/use-cases`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    ...SEO_PAGES.map((page) => ({
+      url: `${baseUrl}/${page.type === "comparison" ? "compare" : "use-cases"}/${page.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.82,
+    })),
     {
       url: `${baseUrl}/privacy`,
       lastModified: new Date(),
