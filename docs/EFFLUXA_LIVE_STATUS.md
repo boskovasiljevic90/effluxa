@@ -55,6 +55,20 @@ Tok: `free check` → token → `signup?instant=TOKEN` → izveštaj u dashboard
 - Nurture sekvenca šalje 5 mejlova (2h, 24h, 72h, 7d, 14d) ali na Hobby planu sa dnevnim cron-om tajming je pomeren na „jednom dnevno".
 - Enterprise voice/chat endpointi još nisu zaštićeni auth-om (poznat troškovni rizik).
 
+## BLOKER: checkout ne radi (nađeno testom 25.11.2026)
+
+Testirani su realni checkout pozivi bez naplate karticom:
+- `POST /api/paddle/create-checkout-session` (149 €) → **500**
+- `POST /api/paddle/create-subscription` (Pro 99 €/mo) → **500**
+
+Uzrok iz baze događaja: Paddle vraća `forbidden — You aren't permitted to perform this request.`
+Paddle API ključ koji je u Vercelu ima dozvolu samo za `products` i `prices` (provereno direktnim pozivom: `/transactions`, `/customers`, `/subscriptions` vraćaju 403).
+
+**Popravka:** napraviti novi Paddle API ključ sa dozvolama za transakcije, kupce i pretplate, upisati ga u Vercel `PADDLE_API_KEY`, pa redeploy. Kod je ispravan; problem je isključivo u dozvolama ključa.
+
+Do tada: besplatna provera, SEO, partner stranica i nurture rade; **nijedna naplata ne može da prođe**.
+Dodato je i alarmiranje: kad Paddle odbije zahtev zbog dozvole, beleži se `paddle_transaction_error` i šalje admin mejl (ako je `ADMIN_EMAIL` postavljen).
+
 ## Obavezno pre marketinga
 
 1. Rotirati Paddle API ključ koji je korišćen za kreiranje cena (bio je u razgovoru).
