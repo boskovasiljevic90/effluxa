@@ -1,5 +1,7 @@
 "use client";
 
+import { DISPLAY_PRICE, eur } from "@/lib/pricingDisplay";
+
 import { useState } from "react";
 import { trackClientEvent } from "@/lib/clientAnalytics";
 
@@ -49,7 +51,7 @@ export default function UpgradeButton({ reportId }: { reportId: string }) {
         marginTop: "15px",
       }}
     >
-      {loading ? "Redirecting..." : "Unlock Full AI Financial Audit — €99"}
+      {loading ? "Redirecting..." : `Unlock Full AI Financial Audit — ${eur(DISPLAY_PRICE.fullAudit)}`}
     </button>
   );
 }

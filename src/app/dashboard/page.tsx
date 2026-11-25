@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { DISPLAY_PRICE, eur } from "@/lib/pricingDisplay";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { redirect } from "next/navigation";
@@ -562,8 +563,8 @@ return (
             }}
           >
             {user.role === "PRO" || user.role === "BUSINESS"
-              ? "Agency starts at €299/month"
-              : "Pro starts at €79/month"}
+              ? `Agency starts at ${eur(DISPLAY_PRICE.agencyMonthly)}/month`
+              : `Pro starts at ${eur(DISPLAY_PRICE.proMonthly)}/month`}
           </div>
 
           <BusinessUpgradeButton

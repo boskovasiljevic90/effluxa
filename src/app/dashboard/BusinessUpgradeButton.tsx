@@ -1,5 +1,7 @@
 "use client";
 
+import { DISPLAY_PRICE, eur, perMonth, perYear } from "@/lib/pricingDisplay";
+
 import SubscriptionButton from "@/components/subscription/SubscriptionButton";
 import type { SubscriptionPlan } from "@/components/subscription/SubscriptionButton";
 
@@ -12,22 +14,22 @@ type Props = {
 const plans = [
   {
     plan: "pro_monthly",
-    label: "Upgrade to Pro €79/month",
+    label: `Upgrade to Pro ${perMonth(DISPLAY_PRICE.proMonthly)}`,
     tier: "pro",
   },
   {
     plan: "pro_annual",
-    label: "Upgrade to Pro €790/year",
+    label: `Upgrade to Pro ${perYear(DISPLAY_PRICE.proAnnual)}`,
     tier: "pro",
   },
   {
     plan: "agency_monthly",
-    label: "Agency €299/month",
+    label: `Agency ${perMonth(DISPLAY_PRICE.agencyMonthly)}`,
     tier: "agency",
   },
   {
     plan: "agency_annual",
-    label: "Agency €2,990/year",
+    label: `Agency ${perYear(DISPLAY_PRICE.agencyAnnual)}`,
     tier: "agency",
   },
 ] as const;

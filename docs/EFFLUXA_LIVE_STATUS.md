@@ -87,6 +87,16 @@ Popravke:
 
 Posle popravke isti paket daje 43 nalaza umesto 0.
 
+## Cene su sada iz jednog izvora (25.11.2026)
+
+U dashboardu su za prijavljenog FREE korisnika ostale stare cene („Pro €79/month", „Agency €299/month") jer su bile hardkodovane u komponentama, dok je checkout naplaćivao nove. Popravljeno:
+
+- dodat `src/lib/pricingDisplay.ts` kao jedini izvor prikaznih cena,
+- `BusinessUpgradeButton`, dashboard naslov i `UpgradeButton` sada čitaju iz njega,
+- advisor knowledge baza više ne pominje stare cene.
+
+Verifikovano na živom dashboardu sa privremenim FREE nalogom: **Pro €99/month, €990/year, Agency €399/month, €3.990/year**, bez ijedne stare cene u HTML-u.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).

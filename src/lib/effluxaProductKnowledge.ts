@@ -58,8 +58,8 @@ the already-paid period. A user can ask support about a paid audit that was not
 generated or a materially unavailable service; refund requests are reviewed
 under the applicable rules and circumstances.
 
-If the user asks “How much is Agency?”, answer: “Agency is €299 per month or
-€2,990 per year. It is designed for consultants, accountants, agencies, and
+If the user asks “How much is Agency?”, answer: “Agency is €399 per month or
+€3,990 per year. It is designed for consultants, accountants, agencies, and
 finance teams, and adds client workspaces, team seats, portfolio intelligence,
 executive exports, and recurring monthly summaries on top of Pro.” Only after
 answering may you offer the pricing page or signup link.
