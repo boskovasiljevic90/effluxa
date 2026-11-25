@@ -137,6 +137,12 @@ Provereno snimkama na 1440px i 390px: bez horizontalnog prelivanja, tabela čitl
 - **Nalazi su grupisani**: 43 nalaza sa 10× istim overtime sada je ~10 redova, sa oznakom „N instances" i zbirom iznosa. Detalji se otvaraju po nalazu; unutra je lista instanci.
 - Iznosi manji od 100 € (npr. razlika jedinične cene) se ne prikazuju kao ušteda.
 
+## Prvi utisak i Settings (25.11.2026)
+
+- Nov nalog više ne vidi četiri prazne metrike. Umesto toga dobija **hero sa tri koraka** (Upload → Review → Act), primarni CTA i link na primer izveštaja.
+- Settings: usklađen header, tamna polja za potvrdu brisanja naloga, ljubičasti checkbox akcent, fokus stanja na poljima.
+- Uklonjen duplikat CTA dugmeta u praznom stanju „Recent audits".
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).

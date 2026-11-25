@@ -12,7 +12,7 @@ import EmailPreferencesForm from "./EmailPreferencesForm";
 import DeleteAccountForm from "./DeleteAccountForm";
 import ReferralLinkActions from "./ReferralLinkActions";
 import { displayPlanLabel } from "@/lib/planDisplay";
-import { hasComplimentaryAgencyAccess } from "@/lib/complimentaryAccess";
+import { hasComplimentaryAgencyAccess, isPermanentAgencyAccount } from "@/lib/complimentaryAccess";
 import { getReferralLink } from "@/lib/referrals";
 import { getWorkspaceOwner } from "@/lib/workspace";
 
@@ -41,6 +41,7 @@ export default async function SettingsPage() {
   const workspace = await getWorkspaceOwner(user);
   const hasBusinessAccess = workspace.hasBusinessAccess;
   const complimentaryAgencyAccess = hasComplimentaryAgencyAccess(user);
+  const permanentAgencyAccount = isPermanentAgencyAccount(user);
   const displayPlan = hasBusinessAccess
     ? "AGENCY"
     : user.role === "BUSINESS"
@@ -49,13 +50,16 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <h1 style={{ fontSize: "42px" }}>Account Settings</h1>
+      <div className="topbar">
+        <div>
+          <div className="page-title">Account settings</div>
+          <p className="gray" style={{ marginTop: "8px" }}>
+            Manage your Effluxa account, plan, and support access.
+          </p>
+        </div>
+      </div>
 
-      <p className="gray" style={{ marginTop: "10px" }}>
-        Manage your Effluxa account, plan, and support access.
-      </p>
-
-      <div className="report-grid" style={{ marginTop: "34px" }}>
+      <div className="report-grid" style={{ marginTop: "0" }}>
         <div className="card">
           <div className="card-title">Account Email</div>
           <p className="gray">{user.email}</p>
@@ -68,6 +72,12 @@ export default async function SettingsPage() {
           {complimentaryAgencyAccess && user.complimentaryAgencyAccessUntil && (
             <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
               Complimentary partner access active until {new Date(user.complimentaryAgencyAccessUntil).toLocaleDateString()}.
+            </p>
+          )}
+
+          {permanentAgencyAccount && (
+            <p className="gray" style={{ marginTop: "12px", lineHeight: 1.7 }}>
+              Permanent free Agency access for the Effluxa support account.
             </p>
           )}
 
@@ -132,7 +142,7 @@ export default async function SettingsPage() {
           </Link>
         </div>
 
-        {hasBusinessAccess && user.role === "BUSINESS" && (
+        {hasBusinessAccess && (user.role === "BUSINESS" || permanentAgencyAccount) && (
           <div className="card full-width">
             <div className="card-title">Report Branding</div>
             <p className="gray" style={{ lineHeight: 1.7 }}>

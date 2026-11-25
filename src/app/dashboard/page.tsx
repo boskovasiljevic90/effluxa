@@ -319,6 +319,43 @@ export default async function DashboardPage({
         </div>
       )}
 
+      {totalAudits === 0 && (
+        <section className="dash-hero">
+          <p className="dash-eyebrow">First audit</p>
+          <h2>Run your first audit in about two minutes</h2>
+          <p>
+            Upload one financial file. Effluxa extracts the records, applies 32 control rules and returns a ranked
+            list of what to review first, with source evidence for each finding.
+          </p>
+          <div className="dash-hero-steps">
+            <div className="dash-hero-step">
+              <div className="dash-hero-step-index">01</div>
+              <div className="dash-hero-step-title">Upload</div>
+              <p>PDF invoices, bank statement, CSV or Excel export.</p>
+            </div>
+            <div className="dash-hero-step">
+              <div className="dash-hero-step-index">02</div>
+              <div className="dash-hero-step-title">Review</div>
+              <p>Start with the top findings. Every one carries evidence and confidence.</p>
+            </div>
+            <div className="dash-hero-step">
+              <div className="dash-hero-step-index">03</div>
+              <div className="dash-hero-step-title">Act</div>
+              <p>Assign an owner, then compare the next period to see what changed.</p>
+            </div>
+          </div>
+          <div style={{ marginTop: "20px", display: "flex", gap: "12px", flexWrap: "wrap" }}>
+            <Link href="/dashboard/upload" className="dash-btn dash-btn-primary">
+              Start a free audit
+            </Link>
+            <Link href="/sample-audit" className="dash-btn dash-btn-ghost">
+              See a sample report
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {totalAudits > 0 && (
       <div className="dash-metrics">
         <div className="dash-metric">
           <div className="dash-metric-label">Audits</div>
@@ -349,6 +386,7 @@ export default async function DashboardPage({
           </div>
         </div>
       </div>
+      )}
 
       <div className="dash-layout">
         <div className="dash-main">
@@ -362,12 +400,7 @@ export default async function DashboardPage({
 
             {recentReports.length === 0 ? (
               <div className="dash-empty">
-                No audits yet. Start with one financial file and Effluxa will rank what to review first.
-                <div style={{ marginTop: "16px" }}>
-                  <Link href="/dashboard/upload" className="dash-btn dash-btn-primary">
-                    Start a free audit
-                  </Link>
-                </div>
+                No audits yet. Upload one financial file and Effluxa will rank what to review first.
               </div>
             ) : (
               <table className="dash-table">

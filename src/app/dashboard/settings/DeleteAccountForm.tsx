@@ -67,10 +67,10 @@ export default function DeleteAccountForm({ email }: { email: string }) {
           marginTop: "8px",
           padding: "14px 16px",
           borderRadius: "12px",
-          border: "1px solid #cbd5e1",
-          fontSize: "16px",
-          color: "#0f172a",
-          background: "#ffffff",
+          border: "1px solid rgba(148,163,184,0.28)",
+          fontSize: "15px",
+          color: "#f8fafc",
+          background: "rgba(255,255,255,0.05)",
         }}
       />
 
