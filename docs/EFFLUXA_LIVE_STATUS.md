@@ -35,10 +35,23 @@ Sve vrednosti su upisane u Vercel Production environment. Stare cene su ostale u
 
 Rezultat na test fajlu: 5 od 5 duplikata detektovano (3 tačna, 2 skoro), skor 27 uz stvarni rizik, bez lažnog 100/100.
 
+## Dodato posle prvog dana (perzistencija i troškovna zaštita)
+
+| Šta | Stanje | Testirano |
+|---|---|---|
+| Besplatan check se čuva 14 dana pod privatnim tokenom | živo | `GET /instant/{token}` = 200 |
+| Rezultat se prenosi u nalog pri registraciji, bez drugog uploada | živo | signup vratio `reportId`, izveštaj u dashboardu, `unlocked=false` |
+| Sirovi redovi se ne čuvaju (samo findings + metrics) | živo | `reportHasExtractedData: false` |
+| Automatsko brisanje isteklih zapisa | živo | cron `data-retention` |
+| Voice/advisor sesija traži prijavu | živo | anonimni poziv = 401 |
+| Tekstualni Advisor ostaje dostupan posetiocima | živo | limit 40 / 10 min po IP |
+
+Tok: `free check` → token → `signup?instant=TOKEN` → izveštaj u dashboardu → plaćanje otključava. Cena se ne menja.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je **Hobby** plan: cron može najviše 1× dnevno. Oporavak zapetih audit jobova i nurture mejlovi se zato izvršavaju jednom dnevno. Prelazak na Pro (20 $/mo) vraća interval na 2 minuta.
-- Besplatna provera ne čuva rezultat posle zatvaranja taba; korisnik posle registracije ponovo uploaduje fajl. Sledeći korak je perzistencija rezultata po tokenu.
+- Besplatan check se čuva 14 dana; posle isteka se briše i korisnik mora ponovo da uploaduje.
 - Nurture sekvenca šalje 5 mejlova (2h, 24h, 72h, 7d, 14d) ali na Hobby planu sa dnevnim cron-om tajming je pomeren na „jednom dnevno".
 - Enterprise voice/chat endpointi još nisu zaštićeni auth-om (poznat troškovni rizik).
 

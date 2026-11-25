@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+import AuthSignalPanel from "@/components/AuthSignalPanel";
 import { trackClientEvent } from "@/lib/clientAnalytics";
 import { normalizeReferralCode } from "@/lib/referrals";
 import type { SubscriptionPlan } from "@/components/subscription/SubscriptionButton";
@@ -30,6 +31,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [hasPartnerInvitation, setHasPartnerInvitation] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlan | null>(null);
+  const [instantToken, setInstantToken] = useState<string | null>(null);
 
   useEffect(() => {
     const referralCode = normalizeReferralCode(
@@ -42,6 +44,11 @@ export default function SignupPage() {
     trackClientEvent("referral_signup_started", {
       acquisition_channel: "partner_referral",
     });
+  }, []);
+
+  useEffect(() => {
+    const rawInstant = new URLSearchParams(window.location.search).get("instant");
+    if (rawInstant && rawInstant.length <= 200) setInstantToken(rawInstant);
   }, []);
 
   useEffect(() => {
@@ -70,6 +77,7 @@ export default function SignupPage() {
           password,
           termsAccepted,
           planIntent: selectedPlan,
+          instantToken,
         }),
       });
 
@@ -82,9 +90,11 @@ export default function SignupPage() {
       }
 
       trackClientEvent("signup_completed");
-      const destination = selectedPlan
-        ? `/dashboard?plan=${encodeURIComponent(selectedPlan)}`
-        : "/dashboard";
+      const destination = data.reportId
+        ? `/dashboard/reports/${encodeURIComponent(data.reportId)}`
+        : selectedPlan
+          ? `/dashboard?plan=${encodeURIComponent(selectedPlan)}`
+          : "/dashboard";
       window.location.href = destination;
     } catch (err) {
       console.error(err);
@@ -104,43 +114,8 @@ export default function SignupPage() {
           gridTemplateColumns: "1fr 520px",
         }}
       >
-        <div
-          className="auth-hero"
-          style={{
-            padding: "80px",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-        >
-          <div className="logo" style={{ marginBottom: "40px" }}>
-            <img src="/brand/effluxa-wordmark.svg" alt="Effluxa" />
-          </div>
-
-          <div
-            className="auth-title"
-            style={{
-              fontSize: "64px",
-              lineHeight: 1.05,
-              fontWeight: 800,
-              maxWidth: "720px",
-            }}
-          >
-            Start Your First AI Financial Leak Audit
-          </div>
-
-          <p
-            className="gray"
-            style={{
-              fontSize: "22px",
-              lineHeight: 1.7,
-              marginTop: "30px",
-              maxWidth: "720px",
-            }}
-          >
-            Create a free Effluxa account, upload a financial PDF, CSV, or Excel file,
-            and discover hidden leakage opportunities in minutes.
-          </p>
+        <div className="auth-hero">
+          <AuthSignalPanel mode="signup" />
         </div>
 
         <div

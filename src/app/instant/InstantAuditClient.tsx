@@ -22,6 +22,7 @@ export default function InstantAuditClient() {
   const [stage, setStage] = useState(0);
   const [error, setError] = useState("");
   const [teaser, setTeaser] = useState<InstantTeaser | null>(null);
+  const [instantToken, setInstantToken] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [captureEmail, setCaptureEmail] = useState("");
   const [captureState, setCaptureState] = useState<"idle" | "sending" | "sent" | "error">("idle");
@@ -54,6 +55,7 @@ export default function InstantAuditClient() {
       }
 
       setTeaser(data.teaser as InstantTeaser);
+      setInstantToken(typeof data.token === "string" ? data.token : null);
       trackClientEvent("instant_audit_result_viewed", {
         totalFindings: data.teaser?.totalFindings ?? 0,
         limitedData: Boolean(data.teaser?.limitedData),
@@ -112,6 +114,7 @@ export default function InstantAuditClient() {
   function reset() {
     setFile(null);
     setTeaser(null);
+    setInstantToken(null);
     setError("");
     setStage(0);
     setCaptureState("idle");
@@ -217,12 +220,12 @@ export default function InstantAuditClient() {
           </div>
 
           <div className="instant-paywall-actions">
-            <Link href="/signup?plan=full_audit&utm_source=instant_audit&utm_medium=owned&utm_campaign=free_check">
+            <Link href={`/signup?plan=full_audit${instantToken ? `&instant=${encodeURIComponent(instantToken)}` : ""}&utm_source=instant_audit&utm_medium=owned&utm_campaign=free_check`}>
               <button className="primary-button" style={{ width: "100%", padding: "16px 22px" }}>
                 Unlock the full report — €149
               </button>
             </Link>
-            <Link href="/signup?plan=pro_monthly&utm_source=instant_audit&utm_medium=owned&utm_campaign=free_check">
+            <Link href={`/signup?plan=pro_monthly${instantToken ? `&instant=${encodeURIComponent(instantToken)}` : ""}&utm_source=instant_audit&utm_medium=owned&utm_campaign=free_check`}>
               <button
                 className="primary-button"
                 style={{

@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
       now.getTime() - 24 * 60 * 60 * 1000
     );
 
-    const [resetTokens, events, contactMessages, auditJobInputs] = await prisma.$transaction([
+    const [resetTokens, events, contactMessages, auditJobInputs, instantAudits] = await prisma.$transaction([
       prisma.passwordResetToken.deleteMany({
         where: {
           OR: [
@@ -49,6 +49,9 @@ export async function GET(req: NextRequest) {
       }),
       prisma.contactMessage.deleteMany({
         where: { createdAt: { lt: contactMessageCutoff } },
+      }),
+      prisma.instantAudit.deleteMany({
+        where: { expiresAt: { lt: now } },
       }),
       prisma.auditJob.updateMany({
         where: {
@@ -68,6 +71,7 @@ export async function GET(req: NextRequest) {
         expiredPasswordResetTokens: resetTokens.count,
         oldEvents: events.count,
         oldContactMessages: contactMessages.count,
+        expiredInstantAudits: instantAudits.count,
         expiredAuditJobInputs: auditJobInputs.count,
       },
     });

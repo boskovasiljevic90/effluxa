@@ -5,6 +5,8 @@ import { processAuditFile } from "@/lib/auditProcessing";
 import { buildInstantTeaser, INSTANT_AUDIT_MAX_BYTES } from "@/lib/instantAudit";
 import { trackEvent } from "@/lib/events";
 import { trackError } from "@/lib/errorTracking";
+import { createHash } from "crypto";
+import { compactReport, newInstantToken, saveInstantAudit, hashIp } from "@/lib/instantStore";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -90,6 +92,28 @@ export async function POST(req: NextRequest) {
       analysisDurationMs: result.analysisDurationMs,
     });
 
+    // Keep the report so the visitor can reopen it and so a signup can carry it
+    // into the dashboard without a second upload. Storage failure must never
+    // break the result that is already computed.
+    let instantToken: string | null = null;
+    try {
+      const fileHash = createHash("sha256")
+        .update(Buffer.from(await file.arrayBuffer()))
+        .digest("hex");
+      const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+      const saved = await saveInstantAudit({
+        token: newInstantToken(),
+        fileHash,
+        fileName: file.name,
+        report: compactReport(result.parsedData),
+        teaser: teaser as unknown as Record<string, unknown>,
+        ipHash: hashIp(ip),
+      });
+      instantToken = saved.token;
+    } catch (storageError) {
+      console.error("INSTANT AUDIT STORAGE ERROR:", storageError);
+    }
+
     // No file contents, no file name, no IP are stored on this event.
     await trackEvent({
       type: "instant_audit_completed",
@@ -107,7 +131,7 @@ export async function POST(req: NextRequest) {
       ? (result.parsedData as Record<string, unknown>)?.deterministicScan ?? null
       : undefined;
 
-    return NextResponse.json({ teaser, ...(debug ? { debug } : {}) }, { status: 200 });
+    return NextResponse.json({ teaser, token: instantToken, ...(debug ? { debug } : {}) }, { status: 200 });
   } catch (error) {
     console.error("INSTANT AUDIT ERROR:", error);
     await trackError({ type: "instant_audit_error", error });

@@ -9,6 +9,7 @@ import { sendWelcomeEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 import { normalizeReferralCode, REFERRAL_COOKIE } from "@/lib/referrals";
 import { ACQUISITION_COOKIE, parseAcquisitionCookie } from "@/lib/acquisition";
+import { claimInstantAudit } from "@/lib/instantStore";
 
 const subscriptionPlanIntents = new Set([
   "pro_monthly",
@@ -36,6 +37,9 @@ export async function POST(req: NextRequest) {
     const termsAccepted = body?.termsAccepted === true;
     const planIntent = typeof body?.planIntent === "string" && subscriptionPlanIntents.has(body.planIntent)
       ? body.planIntent
+      : null;
+    const instantToken = typeof body?.instantToken === "string" && body.instantToken.trim().length <= 200
+      ? body.instantToken.trim()
       : null;
 
     if (!email || !password) {
@@ -140,6 +144,25 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Carry a completed free check into the new account so the customer does
+    // not have to upload the same file twice.
+    let instantReportId: string | null = null;
+    if (instantToken) {
+      try {
+        const claimed = await claimInstantAudit({ token: instantToken, userId: user.id });
+        if ("reportId" in claimed) {
+          instantReportId = claimed.reportId;
+          await trackEvent({
+            type: "instant_check_claimed",
+            userId: user.id,
+            metadata: { reportId: claimed.reportId },
+          });
+        }
+      } catch (claimError) {
+        console.error("INSTANT CLAIM ERROR:", claimError);
+      }
+    }
+
     if (referringPartner?.referralCode) {
       await trackEvent({
         type: "referral_signup",
@@ -166,6 +189,7 @@ export async function POST(req: NextRequest) {
 
     const res = NextResponse.json({
       success: true,
+      reportId: instantReportId,
       user: {
         id: user.id,
         email: user.email,

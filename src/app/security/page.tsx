@@ -24,7 +24,8 @@ const sections: Array<[string, string[]]> = [
     "Anonymous free checks",
     [
       "A free check on /instant is processed to produce the result shown on screen.",
-      "The result is not saved as a customer record and the file is not attached to an account.",
+      "The result is kept for up to 14 days under an unguessable link so you can reopen it or move it into an account after signing up. After that it is deleted automatically.",
+      "The uploaded file itself is not stored for an anonymous check. Only the generated findings, which already contain the evidence they cite, are retained.",
       "Operational metrics record counts and timing only — never file contents, file names or vendor names.",
     ],
   ],

@@ -208,3 +208,23 @@ model Client {
 
   @@unique([ownerId, name])
 }
+
+model InstantAudit {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  fileHash  String
+  fileName  String
+  report    Json
+  teaser    Json
+  ipHash    String?
+  email     String?
+  userId    String?
+  status    String   @default("NEW")
+  reportId  String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([ipHash, createdAt])
+  @@index([expiresAt])
+  @@index([userId])
+}

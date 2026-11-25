@@ -34,7 +34,7 @@ const faqs: Array<[string, string]> = [
   ],
   [
     "Is my file stored?",
-    "Anonymous checks are processed to produce the result and are not kept as a customer record. When you create an account, your reports are stored in your workspace so you can review history and delete them at any time.",
+    "The uploaded file is not stored for an anonymous check. The generated result is kept for up to 14 days under a private link so you can reopen it or move it into an account, then it is deleted automatically. When you create an account, reports are stored in your workspace so you can review history and delete them at any time.",
   ],
 ];
 
