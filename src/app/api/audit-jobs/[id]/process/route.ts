@@ -59,6 +59,18 @@ export async function POST(
     const manualRetry = body?.retry === true;
 
     if (manualRetry && (job.status === "FAILED" || job.status === "RETRYABLE")) {
+      // One-click retries used to reset the attempt counter with no ceiling,
+      // which allowed an unlimited number of paid AI runs. A manual retry now
+      // has its own small daily budget per account.
+      const retryLimited = rateLimit({
+        req,
+        key: "audit_job_retry:" + user.id,
+        limit: 3,
+        windowMs: 24 * 60 * 60 * 1000,
+      });
+
+      if (retryLimited) return retryLimited;
+
       await prisma.auditJob.updateMany({
         where: {
           id: job.id,

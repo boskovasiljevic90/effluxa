@@ -385,3 +385,36 @@ export async function sendAdminNotificationEmail({
     text: body,
   });
 }
+
+
+export async function sendContactAutoReplyEmail({
+  to,
+  name,
+}: {
+  to: string;
+  name?: string;
+}) {
+  const resend = getResendClient();
+  if (!resend) return;
+
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "Effluxa <support@effluxa.com>";
+  const greeting = name ? `Hi ${escapeHtml(name)},` : "Hi,";
+
+  await resend.emails.send({
+    from: fromEmail,
+    to,
+    subject: "We received your Effluxa message",
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.65; color: #0f172a; max-width: 560px;">
+        <p>${greeting}</p>
+        <p>Your message reached Effluxa. A reply is sent within one business day.</p>
+        <p>While you wait, two things usually answer the most common questions:</p>
+        <ul>
+          <li><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com"}/instant">Run a free check on one financial file</a> — no account required.</li>
+          <li><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com"}/security">Security and data processing</a> — sub-processors, retention and the data-processing agreement.</li>
+        </ul>
+        <p>Effluxa by NeedAIHelp</p>
+      </div>
+    `,
+  });
+}

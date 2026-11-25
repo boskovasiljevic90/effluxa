@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { sendContactNotificationEmail } from "@/lib/email";
+import { sendContactAutoReplyEmail, sendContactNotificationEmail } from "@/lib/email";
 import { trackError } from "@/lib/errorTracking";
 import { trackEvent } from "@/lib/events";
 import { rateLimit } from "@/lib/rateLimit";
@@ -134,6 +134,11 @@ export async function POST(req: NextRequest) {
       email,
       subject,
       message,
+    });
+
+    // Immediate acknowledgement so nobody has to wait for a human reply.
+    await sendContactAutoReplyEmail({ to: email, name }).catch((replyError) => {
+      console.error("CONTACT AUTO REPLY ERROR:", replyError);
     });
 
     return NextResponse.json({

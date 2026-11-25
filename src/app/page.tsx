@@ -5,9 +5,9 @@ import PublicFooter from "@/components/PublicFooter";
 import ReferralExperience from "@/components/ReferralExperience";
 
 export const metadata: Metadata = {
-  title: "Effluxa | AI Financial Leak Detection for SMEs",
+  title: "Effluxa | Find duplicate payments, vendor overcharging and wasted spend",
   description:
-    "Effluxa helps SMEs, CFOs and consultants detect financial leakage, overspending, duplicate payment risks, vendor concentration and hidden savings opportunities using AI.",
+    "Effluxa checks your invoice ledger, payment run or management pack and returns a ranked, evidence-linked leakage report: duplicate payments, vendor overcharging, wasted software spend and cash-flow pressure. No integration required.",
   alternates: {
     canonical: "https://www.effluxa.com",
   },
@@ -66,7 +66,7 @@ const faqItems: Array<[string, string]> = [
 
 export default function HomePage() {
   return (
-    <main style={{ minHeight: "100vh", background: "#f8fafc", color: "#0f172a" }}>
+    <main className="public-dark-page" style={{ minHeight: "100vh", background: "#0b1020", color: "#f8fafc" }}>
       <section style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 24px 90px" }}>
         <PublicHeader />
 
@@ -92,50 +92,51 @@ export default function HomePage() {
             letterSpacing: "-4px",
             fontWeight: 950,
           }} className="landing-hero-title">
-            Find financial leakage before it becomes profit loss.
+            Find the money leaking out of your business.
           </h1>
 
           <p style={{
             marginTop: "30px",
             fontSize: "23px",
             lineHeight: 1.6,
-            color: "#334155",
+            color: "#e2e8f0",
             maxWidth: "820px",
           }}>
-            Effluxa analyzes invoices, statements, CSV exports and Excel files to detect overspending,
-            duplicate payment risks, vendor concentration, cash flow pressure and hidden savings opportunities.
+            Upload an invoice ledger, payment run, bank statement or management pack. Effluxa ranks duplicate
+            payments, vendor overcharging, wasted software spend, vendor concentration and cash-flow pressure —
+            each with source evidence and a confidence level.
           </p>
 
           <div style={{ marginTop: "42px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
-            <Link href="/signup">
+            <Link href="/instant">
               <button style={{
                 height: "62px",
                 padding: "0 34px",
                 borderRadius: "18px",
                 border: "none",
-                background: "#0f172a",
-                color: "white",
+                background: "linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)",
+                color: "#ffffff",
                 fontSize: "18px",
                 fontWeight: 900,
                 cursor: "pointer",
               }}>
-                Start Free Audit
+                Check a file free — no account
               </button>
             </Link>
 
-            <Link href="/sample-audit">
+            <Link href="/signup">
               <button style={{
                 height: "62px",
                 padding: "0 34px",
                 borderRadius: "18px",
-                border: "1px solid #cbd5e1",
-                background: "white",
-                color: "#0f172a",
+                border: "1px solid rgba(148,163,184,0.28)",
+                background: "rgba(255,255,255,0.055)",
+                color: "#f8fafc",
                 fontSize: "18px",
                 fontWeight: 900,
                 cursor: "pointer",
               }}>
-                View Sample Audit
+                Create a free account
               </button>
             </Link>
 
@@ -144,9 +145,9 @@ export default function HomePage() {
                 height: "62px",
                 padding: "0 34px",
                 borderRadius: "18px",
-                border: "1px solid #cbd5e1",
-                background: "white",
-                color: "#0f172a",
+                border: "1px solid rgba(148,163,184,0.28)",
+                background: "rgba(255,255,255,0.055)",
+                color: "#f8fafc",
                 fontSize: "18px",
                 fontWeight: 900,
                 cursor: "pointer",
@@ -165,31 +166,31 @@ export default function HomePage() {
           gap: "20px",
         }}>
           {[
-            ["Example Leakage Score", "78/100", "Illustrative financial-risk signal"],
-            ["Example Opportunity", "€18,420", "Illustrative potential optimization"],
-            ["Client Portfolio", "12 clients", "Agency-ready tracking"],
-            ["Executive Reports", "PDF + CSV", "Exportable intelligence"],
+            ["32 control rules", "Deterministic", "Duplicates, price creep, cash, payroll, tax"],
+            ["File-first", "No integration", "PDF, CSV, XLSX or XLS as you already have it"],
+            ["Evidence-linked", "Every finding", "Source page or row, confidence, calculation basis"],
+            ["Recurring", "Next period", "What is new, recurring or no longer detected"],
           ].map(([title, value, desc]) => (
             <div key={title} style={{
-              background: "white",
-              border: "1px solid #e2e8f0",
+              background: "rgba(255,255,255,0.055)",
+              border: "1px solid rgba(148,163,184,0.2)",
               borderRadius: "24px",
               padding: "28px",
-              boxShadow: "0 12px 35px rgba(15,23,42,0.06)",
+              boxShadow: "0 20px 50px rgba(2,6,23,0.22)",
             }}>
-              <div style={{ color: "#64748b", fontWeight: 800 }}>{title}</div>
+              <div style={{ color: "#cbd5e1", fontWeight: 800 }}>{title}</div>
               <div style={{ marginTop: "14px", fontSize: "40px", fontWeight: 950 }}>{value}</div>
-              <div style={{ marginTop: "10px", color: "#475569", lineHeight: 1.6 }}>{desc}</div>
+              <div style={{ marginTop: "10px", color: "#e2e8f0", lineHeight: 1.6 }}>{desc}</div>
             </div>
           ))}
         </div>
 
-        <p style={{ marginTop: "18px", color: "#64748b", textAlign: "center", lineHeight: 1.6, fontSize: "13px" }}>
-          The numeric examples above are illustrative sample values, not customer results or a savings guarantee.
+        <p style={{ marginTop: "18px", color: "#94a3b8", textAlign: "center", lineHeight: 1.6, fontSize: "13px" }}>
+          Every finding is a review signal, not a confirmed loss. Effluxa does not guarantee savings.
         </p>
       </section>
 
-      <section id="how-it-works" style={{ background: "white", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0" }}>
+      <section id="how-it-works" style={{ background: "rgba(255,255,255,0.035)", borderTop: "1px solid rgba(148,163,184,0.2)", borderBottom: "1px solid rgba(148,163,184,0.2)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "90px 24px" }}>
           <h2 style={{ fontSize: "48px", fontWeight: 950, letterSpacing: "-2px", textAlign: "center" }}>
             Built for recurring financial intelligence
@@ -207,13 +208,13 @@ export default function HomePage() {
               ["Track clients", "Assign audits to clients and monitor savings, risk and leakage trends."],
               ["Export executive reports", "Download branded PDFs, CSVs and share client portfolios with stakeholders."],
             ].map(([title, desc], i) => (
-              <div key={title} style={{ border: "1px solid #e2e8f0", borderRadius: "24px", padding: "32px" }}>
+              <div key={title} style={{ border: "1px solid rgba(148,163,184,0.2)", borderRadius: "24px", padding: "32px", background: "rgba(255,255,255,0.055)" }}>
                 <div style={{
                   width: "48px",
                   height: "48px",
                   borderRadius: "16px",
-                  background: "#0f172a",
-                  color: "white",
+                  background: "#111a35",
+                  color: "#f8fafc",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -222,22 +223,22 @@ export default function HomePage() {
                   {i + 1}
                 </div>
                 <h3 style={{ marginTop: "22px", fontSize: "24px", fontWeight: 900 }}>{title}</h3>
-                <p style={{ marginTop: "12px", color: "#475569", lineHeight: 1.7 }}>{desc}</p>
+                <p style={{ marginTop: "12px", color: "#e2e8f0", lineHeight: 1.7 }}>{desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={{ background: "#eef2ff", borderTop: "1px solid #c7d2fe", borderBottom: "1px solid #c7d2fe" }}>
+      <section style={{ background: "linear-gradient(135deg, rgba(37,99,235,0.2), rgba(124,58,237,0.18))", borderTop: "1px solid rgba(129,140,248,0.36)", borderBottom: "1px solid rgba(129,140,248,0.36)" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "74px 24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "36px", alignItems: "center" }}>
             <div>
-              <div className="eyebrow" style={{ color: "#3730a3" }}>For accounting &amp; finance firms</div>
+              <div className="eyebrow" style={{ color: "#c7d2fe" }}>For accounting &amp; finance firms</div>
               <h2 style={{ marginTop: "14px", fontSize: "42px", lineHeight: 1.08, letterSpacing: "-1.5px", fontWeight: 950 }}>
                 One partner workflow. More useful client conversations.
               </h2>
-              <p style={{ marginTop: "16px", maxWidth: "720px", color: "#3730a3", lineHeight: 1.75, fontSize: "18px" }}>
+              <p style={{ marginTop: "16px", maxWidth: "720px", color: "#e2e8f0", lineHeight: 1.75, fontSize: "18px" }}>
                 Start with one client-approved, redacted file. Effluxa gives your team a repeatable leakage screening workflow, source evidence and follow-up context without waiting for an integration project.
               </p>
             </div>
@@ -248,9 +249,9 @@ export default function HomePage() {
                   Explore the partner workflow
                 </button>
               </Link>
-              <Link href="/contact?subject=Partner%20pilot&source=partner_pilot&utm_source=homepage&utm_medium=owned&utm_campaign=partner_channel&utm_content=hero_pilot">
-                <button className="primary-button" style={{ width: "100%", padding: "16px 20px", background: "white", color: "#0f172a", border: "1px solid #a5b4fc" }}>
-                  Request a partner pilot
+              <Link href="/signup?plan=agency_monthly&utm_source=homepage&utm_medium=owned&utm_campaign=partner_channel&utm_content=self_serve_agency">
+                <button className="primary-button" style={{ width: "100%", padding: "16px 20px", background: "rgba(255,255,255,0.055)", color: "#f8fafc", border: "1px solid rgba(148,163,184,0.28)" }}>
+                  Start self-serve — no call needed
                 </button>
               </Link>
             </div>
@@ -278,19 +279,19 @@ export default function HomePage() {
               },
               {
                 "@type": "Offer",
-                price: "99",
+                price: "149",
                 priceCurrency: "EUR",
                 name: "Full AI Audit",
               },
               {
                 "@type": "Offer",
-                price: "79",
+                price: "99",
                 priceCurrency: "EUR",
                 name: "Pro Plan",
               },
               {
                 "@type": "Offer",
-                price: "299",
+                price: "399",
                 priceCurrency: "EUR",
                 name: "Agency Plan",
               },
@@ -304,11 +305,11 @@ export default function HomePage() {
           <div className="eyebrow">Pricing</div>
 
           <h2 style={{ fontSize: "42px", lineHeight: 1.1, marginTop: "14px" }}>
-            Simple pricing for audits, professionals and agencies
+            Pay for the audit, not for a consultant
           </h2>
 
           <p className="gray" style={{ marginTop: "16px", fontSize: "18px" }}>
-            Start with a free preview, unlock one full audit, or upgrade to Pro or Agency.
+            Start with a free check on your own file. Unlock the full audit when the evidence is worth it. Move to Pro or Agency when you want it every month.
           </p>
 
         </div>
@@ -323,8 +324,8 @@ export default function HomePage() {
         >
           <div
             style={{
-              background: "white",
-              border: "1px solid #e2e8f0",
+              background: "rgba(255,255,255,0.055)",
+              border: "1px solid rgba(148,163,184,0.2)",
               borderRadius: "24px",
               padding: "30px",
             }}
@@ -332,11 +333,11 @@ export default function HomePage() {
             <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Full AI Audit</h3>
 
             <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>
-              €99
+              €149
             </div>
 
             <p className="gray" style={{ marginTop: "12px" }}>
-              One-time complete AI financial leakage analysis.
+              One-time complete audit of one financial pack.
             </p>
 
             <ul style={{ marginTop: "22px", lineHeight: 1.9 }}>
@@ -346,30 +347,30 @@ export default function HomePage() {
               <li>✓ No subscription required</li>
             </ul>
 
-            <a href="/signup?utm_source=pricing&utm_medium=owned&utm_campaign=plans&utm_content=full_audit">
+            <a href="/instant?utm_source=pricing&utm_medium=owned&utm_campaign=plans&utm_content=full_audit">
               <button className="primary-button" style={{ marginTop: "24px", width: "100%" }}>
-                Start Free Preview
+                Check a file free first
               </button>
             </a>
           </div>
 
           <div
             style={{
-              background: "white",
-              border: "2px solid #111827",
+              background: "rgba(255,255,255,0.07)",
+              border: "2px solid rgba(129,140,248,0.55)",
               borderRadius: "24px",
               padding: "30px",
-              boxShadow: "0 24px 60px rgba(15,23,42,0.12)",
+              boxShadow: "0 24px 60px rgba(2,6,23,0.28)",
             }}
           >
             <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Pro</h3>
 
             <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>
-              €79
+              €99
             </div>
 
             <p className="gray" style={{ marginTop: "4px" }}>
-              per month · €790/year
+              per month · €990/year
             </p>
 
             <p className="gray" style={{ marginTop: "12px" }}>
@@ -392,8 +393,8 @@ export default function HomePage() {
 
           <div
             style={{
-              background: "white",
-              border: "1px solid #e2e8f0",
+              background: "rgba(255,255,255,0.055)",
+              border: "1px solid rgba(148,163,184,0.2)",
               borderRadius: "24px",
               padding: "30px",
             }}
@@ -401,11 +402,11 @@ export default function HomePage() {
             <h3 style={{ fontSize: "24px", fontWeight: 900 }}>Agency</h3>
 
             <div style={{ marginTop: "16px", fontSize: "52px", fontWeight: 950 }}>
-              €299
+              €399
             </div>
 
             <p className="gray" style={{ marginTop: "4px" }}>
-              per month · €2,990/year
+              per month · €3,990/year
             </p>
 
             <p className="gray" style={{ marginTop: "12px" }}>
@@ -453,9 +454,9 @@ export default function HomePage() {
 
         <div style={{ display: "grid", gap: "18px", marginTop: "42px" }}>
           {faqItems.map(([question, answer]) => (
-            <div key={question} style={{ background: "white", border: "1px solid #e2e8f0", borderRadius: "22px", padding: "28px" }}>
+            <div key={question} style={{ background: "rgba(255,255,255,0.055)", border: "1px solid rgba(148,163,184,0.2)", borderRadius: "22px", padding: "28px" }}>
               <h3 style={{ fontSize: "22px", fontWeight: 900 }}>{question}</h3>
-              <p style={{ marginTop: "12px", color: "#475569", lineHeight: 1.7 }}>{answer}</p>
+              <p style={{ marginTop: "12px", color: "#e2e8f0", lineHeight: 1.7 }}>{answer}</p>
             </div>
           ))}
         </div>

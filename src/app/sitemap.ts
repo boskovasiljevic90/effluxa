@@ -23,6 +23,36 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
+      url: `${baseUrl}/partners`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.88,
+    },
+    {
+      url: `${baseUrl}/instant`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.98,
+    },
+    {
+      url: `${baseUrl}/tools`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tools/duplicate-invoice-finder`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.92,
+    },
+    {
+      url: `${baseUrl}/security`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.4,
+    },
+    {
       url: `${baseUrl}/resources`,
       lastModified: new Date(),
       changeFrequency: "weekly",

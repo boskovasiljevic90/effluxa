@@ -1,4 +1,6 @@
-const MAX_UPLOAD_SIZE = 10 * 1024 * 1024;
+// Vercel caps function request bodies at ~4.5 MB, so a larger advertised
+// limit only produces an unexplained edge failure.
+const MAX_UPLOAD_SIZE = 4 * 1024 * 1024;
 
 const SUPPORTED_EXTENSIONS = [".pdf", ".csv", ".xlsx", ".xls"] as const;
 
@@ -29,7 +31,7 @@ export async function validateUploadFile(file: File) {
   if (file.size > MAX_UPLOAD_SIZE) {
     return {
       valid: false,
-      error: "File too large. Maximum size is 10MB.",
+      error: "File too large. Maximum size is 4MB. Split the export or upload a CSV/XLSX of the same data.",
     };
   }
 

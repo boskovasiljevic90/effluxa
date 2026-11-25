@@ -132,7 +132,7 @@ export default function UploadClient({
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum size is 10MB.");
+      setError("File is too large. Maximum size is 4MB. Upload a CSV or XLSX of the same data, or split the export.");
       setStatusMessage("");
       return;
     }
@@ -238,7 +238,7 @@ export default function UploadClient({
           </p>
 
           <p className="gray" style={{ marginTop: "10px" }}>
-            Maximum file size: 10MB.
+            Maximum file size: 4MB. Use a CSV or XLSX export for larger ledgers.
           </p>
 
           {clients.length > 0 && (

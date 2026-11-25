@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { normalizeReferralCode } from "@/lib/referrals";
+import EffluxaBrand from "@/components/EffluxaBrand";
 
 export default function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -25,29 +26,20 @@ export default function PublicHeader() {
   return (
     <header className="public-header">
       <Link href="/" className="public-brand" onClick={closeMenu} aria-label="Effluxa home">
-        <img src="/brand/effluxa-wordmark-light.svg" alt="Effluxa" />
+        <EffluxaBrand />
       </Link>
 
       <nav className="public-desktop-nav">
+        <Link href="/instant">Free check</Link>
         <Link href="/#how-it-works">How it works</Link>
-        <Link href="/for-accounting-firms">For firms</Link>
+        <Link href="/for-accounting-firms">For Companies</Link>
         <Link href="/resources">Resources</Link>
         <Link href="/#pricing">Pricing</Link>
         <Link href="/contact">Contact</Link>
         <Link href="/login">Login</Link>
         <Link href={signupHref}>
-          <button
-            style={{
-              padding: "12px 20px",
-              borderRadius: "14px",
-              border: "none",
-              background: "#0f172a",
-              color: "white",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            Start Free
+          <button className="public-primary-cta">
+            Free check
           </button>
         </Link>
       </nav>
@@ -66,8 +58,9 @@ export default function PublicHeader() {
 
       {menuOpen && (
         <nav id="public-mobile-menu" className="public-mobile-menu" aria-label="Mobile navigation">
+          <Link href="/instant" onClick={closeMenu}>Free check</Link>
           <Link href="/#how-it-works" onClick={closeMenu}>How it works</Link>
-          <Link href="/for-accounting-firms" onClick={closeMenu}>For firms</Link>
+          <Link href="/for-accounting-firms" onClick={closeMenu}>For Companies</Link>
           <Link href="/resources" onClick={closeMenu}>Resources</Link>
           <Link href="/#pricing" onClick={closeMenu}>Pricing</Link>
           <Link href="/contact" onClick={closeMenu}>Contact</Link>
