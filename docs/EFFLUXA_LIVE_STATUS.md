@@ -159,6 +159,31 @@ Spremno za slanje 50 mejlova bez ručnog rada:
 - `.env.outreach` (gitignored) drži kredencijale i identitet pošiljaoca; `.env.outreach.example` pokazuje strukturu.
 - Nijedan mejl nije poslat.
 
+## Outreach: prvi talas poslat (25.11.2026)
+
+Brevo je povezan i verifikovan: domen `effluxa.com` authenticated + verified, pošiljalac `outreach@effluxa.com`, reply-to `support@effluxa.com`, free plan 300/dan.
+
+**Talas 1 — 8 firmi (Britanska Kolumbija i Alberta), poslato 23:19–23:27:**
+
+| Metrika | Rezultat |
+|---|---|
+| Poslato | 8 |
+| Delivered | **8** |
+| Hard/soft bounce | **0** |
+| Spam prijave | **0** |
+| Otvoreno | 4 |
+| Deferred | 1 |
+
+Svaki mejl je imao potpisan one-click unsubscribe, `List-Unsubscribe` header, ime i funkciju pošiljaoca i poštansku adresu (CASL/PECR usklađenost).
+
+Preostala 42 mejla su zakazana:
+- talas 2 (20 firmi, istok Kanade + Karibi) — 26.11. 15:30
+- talas 3 (12 firmi, UK + Irska) — 27.11. 10:00
+- talas 4 (7 firmi, AU + NZ) — 27.11. 22:30
+- talas 5 (3 firme, Singapur + Perth) — 28.11. 08:00
+
+Raspoređeno namerno: 8 → 20 → 19, da novi domen ne uđe u spam zbog naglog volumena.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
