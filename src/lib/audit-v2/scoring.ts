@@ -66,7 +66,13 @@ export function leakageScore(findings: AuditFinding[]) {
     return sum + Math.min(10, Math.log10(Math.max(1, amount)) * 1.5);
   }, 0);
 
-  return Math.max(0, Math.min(100, Math.round(confidenceAdjusted + amountSignal)));
+  const raw = confidenceAdjusted + amountSignal;
+  // A handful of findings on a small file must not read as a 100/100 verdict.
+  // The score reaches full weight only once there is enough evidence density.
+  const density = Math.min(1, findings.length / 10);
+  const damped = raw * (0.4 + 0.6 * density);
+
+  return Math.max(0, Math.min(100, Math.round(damped)));
 }
 
 export function riskLevel(score: number) {

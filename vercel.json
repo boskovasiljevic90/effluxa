@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/cron/audit-jobs",
-      "schedule": "*/2 * * * *"
+      "schedule": "0 4 * * *"
     },
     {
       "path": "/api/cron/nurture",
-      "schedule": "0 * * * *"
+      "schedule": "30 9 * * *"
     },
     {
       "path": "/api/cron/monthly-executive-summary",

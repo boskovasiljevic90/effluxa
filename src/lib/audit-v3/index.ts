@@ -4,6 +4,7 @@ import { runReasoningCrossCheck } from "../audit-v2/reasoning";
 import { runDeterministicRules } from "../audit-v2/rules";
 import { scoreFindings } from "../audit-v2/scoring";
 import { verifyFindings } from "../audit-v2/verifier";
+import { mergeLedgerFindings, scanLedgerRows } from "../ledgerScan";
 import type { AuditV2Result } from "../audit-v2/types";
 import { buildFastTextData, hasFastTextCoverage } from "./fast-text";
 import { createV3ExtractionOptions } from "./routing";
@@ -44,7 +45,18 @@ export async function runAuditV3({
     language,
     options: extractionOptions,
   });
-  const findings = verifyFindings(runDeterministicRules(extractedData));
+  const engineFindings = verifyFindings(runDeterministicRules(extractedData));
+  // Deterministic re-check of the raw rows catches duplicate invoices that the
+  // extraction pass may have collapsed into a single record.
+  const scannedFindings = scanLedgerRows({ financialText: financialText || "", fileName });
+  const mergedFindings = mergeLedgerFindings(engineFindings, scannedFindings);
+  const findings = verifyFindings(mergedFindings);
+  const deterministicScan = {
+    scanFound: scannedFindings.length,
+    mergedIn: mergedFindings.length - engineFindings.length,
+    engineFound: engineFindings.length,
+    finalCount: findings.length,
+  };
   const metrics = scoreFindings(findings);
   const reasoning = await runReasoningCrossCheck({
     data: extractedData,
@@ -54,6 +66,7 @@ export async function runAuditV3({
   });
 
   return {
+    deterministicScan,
     analysisVersion: "3.0",
     analysisPath: fastTextPath ? "fast_text" : "routed_ai",
     extractedData,

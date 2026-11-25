@@ -398,6 +398,12 @@ export type AuditMetrics = {
 };
 
 export type AuditV2Result = {
+  deterministicScan?: {
+    scanFound: number;
+    mergedIn: number;
+    engineFound: number;
+    finalCount: number;
+  };
   analysisVersion: "2.0" | "3.0";
   analysisPath?: "fast_text" | "routed_ai" | "legacy_ai";
   extractedData: ExtractedFinancialData;

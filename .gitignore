@@ -47,3 +47,6 @@ lighthouse-reports/
 lighthouse-auth-reports/
 production-qa-reports/
 .pricing-v2-next.log
+
+# Local secrets
+.paddle-api-key

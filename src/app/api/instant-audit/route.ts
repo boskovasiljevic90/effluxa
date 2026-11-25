@@ -102,7 +102,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ teaser }, { status: 200 });
+    const wantsDebug = req.headers.get("x-effluxa-debug") === "1";
+    const debug = wantsDebug
+      ? (result.parsedData as Record<string, unknown>)?.deterministicScan ?? null
+      : undefined;
+
+    return NextResponse.json({ teaser, ...(debug ? { debug } : {}) }, { status: 200 });
   } catch (error) {
     console.error("INSTANT AUDIT ERROR:", error);
     await trackError({ type: "instant_audit_error", error });
