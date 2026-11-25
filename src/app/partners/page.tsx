@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
+import PartnerCalculator from "@/components/PartnerCalculator";
+import { DISPLAY_PRICE, eur } from "@/lib/pricingDisplay";
 
 export const metadata: Metadata = {
   title: "Partner programme for accounting and CFO firms | Effluxa",
@@ -87,6 +89,101 @@ export default function PartnersPage() {
               </ul>
             </div>
           ))}
+        </div>
+
+        <div style={{ marginTop: "44px", maxWidth: "940px" }}>
+          <h2 style={{ fontSize: "30px", fontWeight: 950 }}>What the revenue share is worth</h2>
+          <p style={{ marginTop: "10px", color: "#cbd5e1", lineHeight: 1.7 }}>
+            Change the numbers to match your book of business. The share is 25% of the subscription for the first
+            twelve months, plus 25% of any one-off audit a client buys.
+          </p>
+          <PartnerCalculator />
+        </div>
+
+        <div style={{ marginTop: "44px", maxWidth: "940px" }}>
+          <h2 style={{ fontSize: "30px", fontWeight: 950 }}>Three ways firms use Effluxa</h2>
+          <div style={{ marginTop: "18px", overflowX: "auto" }}>
+            <table className="partner-table">
+              <thead>
+                <tr>
+                  <th>Arrangement</th>
+                  <th>What the firm pays</th>
+                  <th>What the firm earns</th>
+                  <th>Best for</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Referral</td>
+                  <td>{eur(DISPLAY_PRICE.proMonthly)}/month per client (billed to the client)</td>
+                  <td>25% recurring for 12 months</td>
+                  <td>Firms that want no extra work and no new tooling</td>
+                </tr>
+                <tr>
+                  <td>Wholesale</td>
+                  <td>From {eur(199)}/month for Agency</td>
+                  <td>Rebill at {eur(DISPLAY_PRICE.agencyMonthly)}+ and keep the margin</td>
+                  <td>Firms that want the client relationship and their own branding</td>
+                </tr>
+                <tr>
+                  <td>Direct Agency</td>
+                  <td>{eur(DISPLAY_PRICE.agencyMonthly)}/month</td>
+                  <td>Better client conversations, no commission</td>
+                  <td>Firms reviewing 20 or more client files a month</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style={{ marginTop: "14px", color: "#64748b", fontSize: "13px", lineHeight: 1.6 }}>
+            Agency includes up to 100 client files per month, white-label PDFs, team access and a portfolio view.
+            Prices exclude taxes.
+          </p>
+        </div>
+
+        <div style={{ marginTop: "44px", maxWidth: "940px" }}>
+          <h2 style={{ fontSize: "30px", fontWeight: 950 }}>How payout works</h2>
+          <div className="partner-payouts">
+            {[
+              ["Attribution", "Your referral link is stored for 90 days and attached to the signup, so a client who registers later still counts."],
+              ["Payout window", "Earned share is paid monthly by bank transfer or Wise, with a statement of referred accounts."],
+              ["Duration", "25% of each referred subscription for its first 12 months. Annual plans pay the same rate up front."],
+              ["No minimum", "There is no minimum volume and no contract to sign. Stop whenever you want."],
+            ].map(([title, body]) => (
+              <div key={title} className="partner-payout">
+                <div className="partner-payout-title">{title}</div>
+                <p>{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ marginTop: "44px", maxWidth: "940px" }}>
+          <h2 style={{ fontSize: "30px", fontWeight: 950 }}>Partner questions</h2>
+          <div style={{ marginTop: "18px", display: "grid", gap: "14px" }}>
+            {[
+              [
+                "Do I need to sit on calls with Effluxa?",
+                "No. You send the referral link or upload the file yourself. There is no partner call, no certification and no onboarding project.",
+              ],
+              [
+                "Can I put my own brand on the report?",
+                "Yes, on Agency. The PDF carries your firm footer and you can share a controlled client link instead of sending the file.",
+              ],
+              [
+                "What happens to my client's data?",
+                "Client files stay in your workspace. A data-processing agreement is available before the first client file, and your client can be deleted at any time.",
+              ],
+              [
+                "What if the client cancels?",
+                "The share stops with the subscription. There is no clawback on months already paid.",
+              ],
+            ].map(([q, a]) => (
+              <div key={q}>
+                <div style={{ fontWeight: 900, fontSize: "16px" }}>{q}</div>
+                <p style={{ marginTop: "6px", color: "#cbd5e1", lineHeight: 1.7 }}>{a}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div style={{ marginTop: "44px", maxWidth: "820px" }}>

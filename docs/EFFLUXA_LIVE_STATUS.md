@@ -143,6 +143,12 @@ Provereno snimkama na 1440px i 390px: bez horizontalnog prelivanja, tabela čitl
 - Settings: usklađen header, tamna polja za potvrdu brisanja naloga, ljubičasti checkbox akcent, fokus stanja na poljima.
 - Uklonjen duplikat CTA dugmeta u praznom stanju „Recent audits".
 
+## Partner program i prvi outreach (25.11.2026)
+
+- `/partners` je proširen: **kalkulator zarade** (broj klijenata + plan + jednokratni auditi → mesečna i godišnja zarada), tabela tri modela (referral / wholesale / direktni Agency), uslovi isplate i FAQ.
+- Napravljena lista od **50 firmi** za prvi outreach, poređana po vremenskoj zoni: prvih 28 su firme ≥5h iza Beograda (Kanada + karipski offshore), bez ijedne firme iz SAD. Zatim UK/Irska, pa AZIJA-Pacifik.
+- Za svaku firmu postoji personalizovana prva rečenica izvučena sa njenog sajta; 46 firmi ima javni mejl, 4 samo kontakt formu.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
