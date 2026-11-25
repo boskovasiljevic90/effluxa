@@ -97,6 +97,19 @@ U dashboardu su za prijavljenog FREE korisnika ostale stare cene („Pro €79/m
 
 Verifikovano na živom dashboardu sa privremenim FREE nalogom: **Pro €99/month, €990/year, Agency €399/month, €3.990/year**, bez ijedne stare cene u HTML-u.
 
+## Normalizacija rečnika i zaštita cena (25.11.2026)
+
+**Normalizacija u ekstrakciji** (`src/lib/audit-v2/normalizer.ts`):
+- kategorije troškova se mapiraju na kanonske: `accommodation/lodging/overnight → Hotel`, `taxi/rail/flight/fuel → Transport`, `restaurant/dinner → Meals`, `saas/licence → Software`, `laptop/hardware → Equipment`;
+- status kovenante se prepoznaje i iz slobodnog teksta: reči `breach/default/fail/exception` **ili** numeričko poređenje `3.60x` vs `3.25x` sada daju `Breach:` status;
+- limiti iz policy liste se izvode iz naziva politike kad eksplicitno polje nedostaje (hotel, FX, overtime, inventory, credit limit).
+
+**Prag rasta cene** spušten sa 20% na 10% (`rules/index.ts`), pa se hvata i realan price creep od 10–15%.
+
+**Zaštita od razilaženja cena**: dodat `scripts/validate-price-copy.mjs` i uvezan u `npm run build`. Build pada ako bilo koja prikazna cena u dashboardu, alatima, partner stranici ili advisor bazi nije u dozvoljenom skupu iz `pricingDisplay.ts`. Provera trenutno prolazi na 75 fajlova.
+
+Posle izmena test paket i dalje daje 43 nalaza, bez regresije; sva ciljana pravila (price increase, covenant, hotel limit, bank change, software overlap) se aktiviraju.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).

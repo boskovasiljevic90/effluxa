@@ -299,7 +299,7 @@ function priceChanges(data: ExtractedFinancialData) {
       const previousPrice = previous.unitPrice ?? previous.amount;
       const currentPrice = current.unitPrice ?? current.amount;
       const increase = currentPrice - previousPrice;
-      if (increase <= 0 || increase / previousPrice < 0.2) continue;
+      if (increase <= 0 || increase / previousPrice < 0.1) continue;
       const quantity = data.inventory.find((item) => {
         const itemKey = normalizeName(item.sku || item.item);
         const priceKey = normalizeName(current.item);

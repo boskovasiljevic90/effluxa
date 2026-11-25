@@ -4,16 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "node scripts/validate-price-copy.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "audit:v2:smoke": "node scripts/audit-v2-smoke.mjs",
     "audit:v3:routing-smoke": "node scripts/audit-v3-routing-smoke.mjs",
     "audit:v3:fast-text-smoke": "node scripts/audit-v3-fast-text-smoke.mjs",
     "audit:v3:benchmark": "node scripts/audit-v3-benchmark.mjs",
-    "qa:production": "bash scripts/production-qa.sh"
+    "qa:production": "bash scripts/production-qa.sh",
+    "validate:prices": "node scripts/validate-price-copy.mjs"
   },
   "dependencies": {
+    "@d-id/client-sdk": "^3.0.2",
     "@paddle/paddle-node-sdk": "^3.9.0",
     "@prisma/client": "^5.22.0",
     "@vercel/blob": "^2.3.0",

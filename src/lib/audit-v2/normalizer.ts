@@ -342,6 +342,74 @@ function normalizeCustomerMetrics(value: unknown, fileName: string): CustomerMet
   }));
 }
 
+
+// ---------------------------------------------------------------- vocabulary normalisation
+// Source documents describe the same control with different words. Rules should
+// not depend on the exact label a customer used, so map synonyms here.
+
+const EXPENSE_CATEGORY_SYNONYMS: Array<[RegExp, string]> = [
+  [/hotel|accommodat|lodging|overnight|guest\s*house|stay/i, "Hotel"],
+  [/taxi|uber|bolt|ride|rail|train|flight|airfare|mileage|fuel|parking|transport|toll/i, "Transport"],
+  [/restaurant|dinner|lunch|meal|food|catering|breakfast|coffee/i, "Meals"],
+  [/software|saas|subscription|licen[cs]e|hosting|cloud/i, "Software"],
+  [/laptop|hardware|device|equipment|phone/i, "Equipment"],
+];
+
+function canonicalExpenseCategory(value: string) {
+  if (!value) return value;
+  for (const [pattern, label] of EXPENSE_CATEGORY_SYNONYMS) {
+    if (pattern.test(value)) return label;
+  }
+  return value;
+}
+
+function normalizeExpenseClaim(claim: ExpenseClaim): ExpenseClaim {
+  return { ...claim, category: canonicalExpenseCategory(claim.category) };
+}
+
+const COVENANT_FLAG = /breach|default|fail|exception|non[\s-]?complian|covenant.{0,24}(exceed|over|above)/i;
+
+function normalizeDebtFacility(facility: DebtFacility): DebtFacility {
+  const existingStatus = facility.covenantStatus || "";
+  const combined = `${existingStatus} ${facility.covenant || ""}`.trim();
+  if (!combined) return facility;
+
+  // Free text such as "3.60x versus 3.25x covenant" is already a breach even
+  // without the word "breach" in the cell.
+  const ratios = Array.from(combined.matchAll(/(\d+(?:\.\d+)?)\s*x/gi)).map((match) => Number(match[1]));
+  const ratioBreach = ratios.length >= 2 && ratios[0] > ratios[1];
+
+  if (COVENANT_FLAG.test(combined) || ratioBreach) {
+    if (/breach|default|fail/i.test(existingStatus)) return facility;
+    return { ...facility, covenantStatus: `Breach: ${combined}` };
+  }
+
+  return facility;
+}
+
+function inferPolicyCaps(policy: Policy): Policy {
+  const name = (policy.name || "").toLowerCase();
+  const next = { ...policy };
+
+  if (!next.hotelNightlyCap && /hotel|accommodat/.test(name) && next.approvalThreshold) {
+    next.hotelNightlyCap = next.approvalThreshold;
+  }
+  if (!next.fxHedgeThreshold && /(fx|currency|hedg)/.test(name) && next.approvalThreshold) {
+    next.fxHedgeThreshold = next.approvalThreshold;
+  }
+  if (!next.overtimeThresholdHours && /overtime/.test(name) && next.approvalThreshold) {
+    next.overtimeThresholdHours = next.approvalThreshold;
+  }
+  if (!next.slowMovingInventoryDays && /(inventory|slow.?moving|stock)/.test(name) && next.approvalThreshold) {
+    next.slowMovingInventoryDays = next.approvalThreshold;
+  }
+  if (!next.creditLimit && /credit/.test(name) && next.approvalThreshold) {
+    next.creditLimit = next.approvalThreshold;
+  }
+
+  return next;
+}
+
 export function normalizeExtractedData(input: unknown, fileName: string): ExtractedFinancialData {
   const record = isRecord(input) ? input : {};
 
@@ -362,8 +430,8 @@ export function normalizeExtractedData(input: unknown, fileName: string): Extrac
     softwareLicenses: normalizeLicenses(pick(record, "softwareLicenses", "licenses", "software"), fileName),
     overtime: normalizeOvertime(pick(record, "overtime", "overtimeEntries"), fileName),
     inventory: normalizeInventory(pick(record, "inventory", "inventoryItems", "stock"), fileName),
-    debtFacilities: normalizeDebt(pick(record, "debtFacilities", "debt", "financing"), fileName),
-    expenses: normalizeExpenses(pick(record, "expenses", "expenseClaims", "travelExpenses", "tAndE"), fileName),
+    debtFacilities: normalizeDebt(pick(record, "debtFacilities", "debt", "financing"), fileName).map(normalizeDebtFacility),
+    expenses: normalizeExpenses(pick(record, "expenses", "expenseClaims", "travelExpenses", "tAndE"), fileName).map(normalizeExpenseClaim),
     unappliedItems: normalizeUnappliedItems(pick(record, "unappliedItems", "customerCredits", "unappliedCash", "credits"), fileName),
     financialMetrics: normalizeFinancialMetrics(pick(record, "financialMetrics", "metrics", "kpis", "financialKpis"), fileName),
     financialCostItems: normalizeFinancialCostItems(pick(record, "financialCostItems", "financingCosts", "costItems", "leakageCosts"), fileName),
@@ -372,7 +440,7 @@ export function normalizeExtractedData(input: unknown, fileName: string): Extrac
     fxCommitments: normalizeFxCommitments(pick(record, "fxCommitments", "foreignCurrencyCommitments", "hedging"), fileName),
     apAging: normalizeAgingSummary(pick(record, "apAging", "accountsPayableAging", "payablesAging"), fileName),
     customerMetrics: normalizeCustomerMetrics(pick(record, "customerMetrics", "customerConcentration", "customers"), fileName),
-    policies: normalizePolicies(pick(record, "policies", "controls"), fileName),
+    policies: normalizePolicies(pick(record, "policies", "controls"), fileName).map(inferPolicyCaps),
     notes: Array.isArray(pick(record, "notes", "observations"))
       ? (pick(record, "notes", "observations") as unknown[]).map((item) => text(item)).filter(Boolean)
       : [],
