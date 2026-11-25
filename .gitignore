@@ -50,3 +50,6 @@ production-qa-reports/
 
 # Local secrets
 .paddle-api-key
+
+# Outreach credentials
+.env.outreach

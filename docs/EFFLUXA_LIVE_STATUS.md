@@ -149,6 +149,16 @@ Provereno snimkama na 1440px i 390px: bez horizontalnog prelivanja, tabela čitl
 - Napravljena lista od **50 firmi** za prvi outreach, poređana po vremenskoj zoni: prvih 28 su firme ≥5h iza Beograda (Kanada + karipski offshore), bez ijedne firme iz SAD. Zatim UK/Irska, pa AZIJA-Pacifik.
 - Za svaku firmu postoji personalizovana prva rečenica izvučena sa njenog sajta; 46 firmi ima javni mejl, 4 samo kontakt formu.
 
+## Outreach infrastruktura (25.11.2026)
+
+Spremno za slanje 50 mejlova bez ručnog rada:
+
+- `scripts/outreach/send.py` (u workspace-u) — personalizovano slanje kroz SMTP ili Brevo API, rate limit 55–110 s, upis statusa u CSV, log, suppression provera, `--dry-run` i `--preview` režim.
+- `GET /api/leads/unsubscribe` — potpisan one-click unsubscribe (HMAC, `LEAD_UNSUBSCRIBE_SECRET`), upisuje `cold_outreach/UNSUBSCRIBED` u bazu. Verifikovano u produkciji.
+- `scripts/outreach-export-suppression.mjs` — izvozi listu odjavljenih adresa koju sender poštuje pre svakog slanja.
+- `.env.outreach` (gitignored) drži kredencijale i identitet pošiljaoca; `.env.outreach.example` pokazuje strukturu.
+- Nijedan mejl nije poslat.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
