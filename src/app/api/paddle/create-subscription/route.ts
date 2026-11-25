@@ -5,6 +5,7 @@ import { safeVerifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { trackEvent } from "@/lib/events";
 import { rateLimit } from "@/lib/rateLimit";
+import { sendAdminNotificationEmail } from "@/lib/email";
 import { trackError } from "@/lib/errorTracking";
 import {
   createPaddleCheckoutTransaction,
@@ -151,6 +152,14 @@ export async function POST(req: NextRequest) {
       type: "paddle_subscription_checkout_error",
       error,
     });
+
+    const code = String((error as any)?.code || "");
+    if (["forbidden", "authentication", "unauthorized"].includes(code)) {
+      await sendAdminNotificationEmail({
+        subject: "Effluxa subscription checkout is failing",
+        body: `Paddle rejected a subscription checkout: ${(error as any)?.message || "unknown error"}. Check the Paddle API key permissions.`,
+      }).catch(() => undefined);
+    }
 
     return NextResponse.json(
       {

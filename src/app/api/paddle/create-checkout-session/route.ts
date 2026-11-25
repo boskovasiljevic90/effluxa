@@ -10,6 +10,25 @@ import {
   createPaddleCheckoutTransaction,
   getPaddlePriceId,
 } from "@/lib/paddle";
+import { sendAdminNotificationEmail } from "@/lib/email";
+
+let checkoutAlertSentAt = 0;
+
+/**
+ * A broken checkout is a silent revenue outage. Notify once per hour when the
+ * billing provider rejects the request because of permissions or credentials.
+ */
+async function alertCheckoutOutage(error: any) {
+  const code = String(error?.code || error?.type || "");
+  if (!["forbidden", "authentication", "unauthorized"].includes(code)) return;
+  if (Date.now() - checkoutAlertSentAt < 60 * 60 * 1000) return;
+  checkoutAlertSentAt = Date.now();
+
+  await sendAdminNotificationEmail({
+    subject: "Effluxa checkout is failing",
+    body: `Paddle rejected a checkout request: ${error?.message || "unknown error"}. Check the Paddle API key permissions for transactions.`,
+  }).catch(() => undefined);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -109,7 +128,7 @@ export async function POST(req: NextRequest) {
       reportId: report.id,
       metadata: {
         transactionId: transaction.id,
-        amount: 9900,
+        amount: 14900,
         currency: "eur",
         priceId,
         product: "full_audit_unlock",
@@ -127,6 +146,7 @@ export async function POST(req: NextRequest) {
       type: "paddle_transaction_error",
       error,
     });
+    await alertCheckoutOutage(error);
 
     return NextResponse.json(
       {
