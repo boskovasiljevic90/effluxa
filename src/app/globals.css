@@ -4357,3 +4357,270 @@ select {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+/* ------------------------------------------------------------------ */
+/* Report detail — aligned with the workspace design system            */
+/* ------------------------------------------------------------------ */
+
+.audit-report-shell {
+  max-width: 100%;
+}
+
+.audit-report-header {
+  align-items: flex-start;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.audit-eyebrow,
+.audit-section-kicker {
+  color: #818cf8;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+}
+
+.audit-report-title {
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-weight: 950;
+}
+
+.audit-report-meta {
+  font-size: 13px;
+  color: #94a3b8;
+  gap: 6px 16px;
+  margin-top: 10px;
+}
+
+.audit-status-badge {
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.audit-report-actions {
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.audit-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.audit-metric-card {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.audit-metric-card > span {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.audit-metric-card > strong {
+  margin-top: 8px;
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  font-weight: 900;
+}
+
+.audit-metric-card > p {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+.audit-card {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  padding: 22px;
+  margin-top: 22px;
+}
+
+.audit-card h2 {
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  font-weight: 900;
+  margin-top: 6px;
+}
+
+.audit-card h3 {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.audit-card p,
+.audit-card li {
+  color: #cbd5e1;
+  line-height: 1.7;
+}
+
+.audit-report-shell button:not(.primary-button) {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.045);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.audit-report-shell button:not(.primary-button):hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 900px) {
+  .audit-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .audit-report-header {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .audit-report-actions {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .audit-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-report-title {
+    font-size: 24px;
+  }
+
+  .audit-card {
+    padding: 18px;
+  }
+}
+
+/* Report detail: the legacy page used white cards, so headings and body text
+   still carry dark colours. Force the dark-theme palette inside audit cards. */
+.audit-card,
+.savings-card {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: #f8fafc;
+}
+
+.audit-card h1,
+.audit-card h2,
+.audit-card h3,
+.audit-card h4,
+.audit-card strong,
+.audit-card b,
+.savings-card h1,
+.savings-card h2,
+.savings-card h3 {
+  color: #f8fafc;
+}
+
+.audit-card p,
+.audit-card li,
+.audit-card span,
+.audit-card td,
+.savings-card p,
+.savings-card li {
+  color: #cbd5e1;
+}
+
+.audit-card a {
+  color: #93c5fd;
+}
+
+.audit-card + .audit-card {
+  margin-top: 18px;
+}
+
+.savings-card {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(255, 255, 255, 0.03));
+}
+
+.savings-value {
+  color: #86efac;
+}
+
+.audit-metric-card > strong,
+.audit-metric-score > strong {
+  color: #f8fafc;
+}
+
+.audit-metric-savings > strong {
+  color: #86efac;
+}
+
+/* Grouped findings inside the report */
+.finding-count {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(99, 102, 241, 0.16);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  color: #c7d2fe;
+  white-space: nowrap;
+}
+
+.finding-amount {
+  font-size: 13px;
+  font-weight: 800;
+  color: #f8fafc;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.audit-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.subsection-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.finding-instance-list {
+  display: grid;
+  gap: 6px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.finding-instance {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  font-size: 13px;
+  color: #cbd5e1;
+}

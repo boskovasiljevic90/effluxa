@@ -12,6 +12,7 @@ import ChangeReportClientForm from "./ChangeReportClientForm";
 import InternalNoteForm from "./InternalNoteForm";
 import ControlActionPanel from "./ControlActionPanel";
 import FindingReview from "./FindingReview";
+import CompanyResearchButton from "./CompanyResearchButton";
 import { getWorkspaceOwner } from "@/lib/workspace";
 import { canAccessFullReport } from "@/lib/access";
 import { asCategoryItems, asRiskItems, asTextArray, asVendorItems, displayNumber, getReportQualityReason, isFallbackReport } from "@/lib/reportDisplay";
@@ -231,6 +232,42 @@ export default async function ReportPage({ params }: Props) {
     currency: String(finding.quantification?.currency || "EUR"),
   })).filter((finding: any) => finding.id);
 
+  // The engine can return the same rule dozens of times (for example one
+  // overtime exception per employee). Group identical findings so the report is
+  // a review queue, not a wall of repeating rows.
+  const engineFindingsView = (() => {
+    const groups = new Map<string, any>();
+    for (const finding of engineFindings as any[]) {
+      const key = `${String(finding.title || "").toLowerCase()}|${String(finding.severity || "MEDIUM").toUpperCase()}`;
+      const amount = Number(finding.quantification?.amount) || 0;
+      const existing = groups.get(key);
+      if (!existing) {
+        groups.set(key, {
+          ...finding,
+          _count: 1,
+          _totalAmount: amount,
+          _instances: [finding],
+        });
+        continue;
+      }
+      existing._count += 1;
+      existing._totalAmount += amount;
+      existing._instances.push(finding);
+    }
+    return Array.from(groups.values());
+  })();
+
+  const reportFileName = (() => {
+    const data = report.parsedData as any;
+    const raw = typeof data?.source_file === "string" ? data.source_file : "";
+    const base = raw.split(/[\\/]/).pop()?.trim() || "";
+    if (base && !/^(instant|seed):/i.test(base) && base.length <= 64) return base;
+    if (report.fileUrl && !/^(instant|seed):/i.test(report.fileUrl)) {
+      return report.fileUrl.split(/[\\/]/).pop() || "Financial audit";
+    }
+    return "Financial audit";
+  })();
+
   return (
     <>
       <div className="audit-report-shell">
@@ -239,7 +276,7 @@ export default async function ReportPage({ params }: Props) {
             <div className="audit-eyebrow">Financial leakage audit</div>
             <h1 className="audit-report-title">Effluxa AI Financial Leak Audit</h1>
             <div className="audit-report-meta">
-              <span>{report.fileUrl}</span>
+              <span>{reportFileName}</span>
               <span>{new Date(report.createdAt).toLocaleString()}</span>
               {report.client && <span>Client: {report.client.name}</span>}
             </div>
@@ -382,7 +419,7 @@ export default async function ReportPage({ params }: Props) {
               {engineFindings.length === 0 && (
                 <p className="gray">No deterministic findings were generated from the available data.</p>
               )}
-              {engineFindings.map((finding: any, index: number) => {
+              {engineFindingsView.map((finding: any, index: number) => {
                 const findingId = String(finding.id || "");
                 const severity = String(finding.severity || "MEDIUM").toUpperCase();
                 const severityColor =
@@ -392,6 +429,28 @@ export default async function ReportPage({ params }: Props) {
                 const evidence = Array.isArray(finding.evidence) ? finding.evidence : [];
                 const amount = finding.quantification?.amount;
                 const currency = finding.quantification?.currency || "EUR";
+                const linkedCompany = String(
+                  finding.vendor ||
+                  finding.supplier ||
+                  finding.counterparty ||
+                  evidence.find((item: any) =>
+                    item && typeof item === "object" &&
+                    (item.vendor || item.supplier || item.counterparty || item.merchant)
+                  )?.vendor ||
+                  evidence.find((item: any) =>
+                    item && typeof item === "object" &&
+                    (item.vendor || item.supplier || item.counterparty || item.merchant)
+                  )?.supplier ||
+                  evidence.find((item: any) =>
+                    item && typeof item === "object" &&
+                    (item.vendor || item.supplier || item.counterparty || item.merchant)
+                  )?.counterparty ||
+                  evidence.find((item: any) =>
+                    item && typeof item === "object" &&
+                    (item.vendor || item.supplier || item.counterparty || item.merchant)
+                  )?.merchant ||
+                  ""
+                ).trim();
 
                 return (
                   <details
@@ -403,11 +462,19 @@ export default async function ReportPage({ params }: Props) {
                       background: "rgba(255,255,255,0.035)",
                     }}
                   >
-                    <summary style={{ cursor: "pointer", listStyle: "none" }}>
-                      <span style={{ color: severityColor, fontWeight: 900, marginRight: "10px" }}>
+                    <summary style={{ cursor: "pointer", listStyle: "none", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                      <span style={{ color: severityColor, fontWeight: 900 }}>
                         {severity}
                       </span>
-                      <strong>{finding.title || "Untitled finding"}</strong>
+                      <strong style={{ flex: "1 1 auto" }}>{finding.title || "Untitled finding"}</strong>
+                      {finding._count > 1 && (
+                        <span className="finding-count">{finding._count} instances</span>
+                      )}
+                      {finding._totalAmount >= 100 && (
+                        <span className="finding-amount">
+                          {new Intl.NumberFormat("en-GB", { style: "currency", currency: String(finding.quantification?.currency || "EUR"), maximumFractionDigits: 0 }).format(finding._totalAmount)}
+                        </span>
+                      )}
                     </summary>
                     <div style={{ marginTop: "14px", lineHeight: 1.7 }}>
                       <p>{finding.description || "No description available."}</p>
@@ -418,6 +485,34 @@ export default async function ReportPage({ params }: Props) {
                       <p style={{ marginTop: "10px" }}>
                         <strong>Action:</strong> {finding.recommendedAction || "Validate the underlying evidence."}
                       </p>
+                      {Array.isArray(finding._instances) && finding._instances.length > 1 && (
+                        <div style={{ marginTop: "12px" }}>
+                          <div className="subsection-label">Instances</div>
+                          <div className="finding-instance-list">
+                            {finding._instances.map((instance: any, instanceIndex: number) => {
+                              const firstEvidence = Array.isArray(instance.evidence) ? instance.evidence[0] : null;
+                              const label =
+                                firstEvidence?.vendor ||
+                                firstEvidence?.invoice ||
+                                instance.item ||
+                                instance.ruleId ||
+                                "Instance";
+                              const instanceAmount = Number(instance.quantification?.amount) || 0;
+                              return (
+                                <div key={instanceIndex} className="finding-instance">
+                                  <span>{label}</span>
+                                  <span>
+                                    {instanceAmount > 0
+                                      ? new Intl.NumberFormat("en-GB", { style: "currency", currency: String(instance.quantification?.currency || "EUR"), maximumFractionDigits: 0 }).format(instanceAmount)
+                                      : ""}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {evidence.length > 0 && (
                         <ul style={{ marginTop: "10px", paddingLeft: "20px" }}>
                           {evidence.map((item: any, evidenceIndex: number) => (
@@ -429,6 +524,13 @@ export default async function ReportPage({ params }: Props) {
                             </li>
                           ))}
                         </ul>
+                      )}
+                      {findingId && (
+                        <CompanyResearchButton
+                          reportId={report.id}
+                          findingId={findingId}
+                          companyName={linkedCompany || null}
+                        />
                       )}
                       {findingId && (
                         <FindingReview

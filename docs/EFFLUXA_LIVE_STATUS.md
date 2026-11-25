@@ -129,6 +129,14 @@ Provereno snimkama na 1440px i 390px: bez horizontalnog prelivanja, tabela čitl
 - Settings, Clients, Portfolio, Team, Controls, Partner i Admin automatski prelaze na isti sistem preko zajedničkih klasa (`.card`, `.page-title`, `.metric-value`, `.report-grid`, forme).
 - Zajednički shell: maksimalna širina 1180px, isti padding, isti radijusi i tipografija na svim prijavljenim stranicama.
 
+## Report detail stranica (25.11.2026)
+
+- Stari dizajn je koristio **bele kartice** (`background: #ffffff`), pa su naslovi bili nevidljivi na tamnoj temi. Paleta je prebačena u tamnu.
+- Zaglavlje prikazuje **stvarno ime fajla** umesto internog ključa (`instant:…`, `seed:…`).
+- Metrike (skor, uštede, rizik, pristup) su usklađene sa dashboard stripom.
+- **Nalazi su grupisani**: 43 nalaza sa 10× istim overtime sada je ~10 redova, sa oznakom „N instances" i zbirom iznosa. Detalji se otvaraju po nalazu; unutra je lista instanci.
+- Iznosi manji od 100 € (npr. razlika jedinične cene) se ne prikazuju kao ušteda.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
