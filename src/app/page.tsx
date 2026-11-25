@@ -159,33 +159,22 @@ export default function HomePage() {
 
         </div>
 
-        <div style={{
-          marginTop: "70px",
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit,minmax(240px,1fr))",
-          gap: "20px",
-        }}>
+        <div className="home-facts">
           {[
-            ["32 control rules", "Deterministic", "Duplicates, price creep, cash, payroll, tax"],
-            ["File-first", "No integration", "PDF, CSV, XLSX or XLS as you already have it"],
-            ["Evidence-linked", "Every finding", "Source page or row, confidence, calculation basis"],
-            ["Recurring", "Next period", "What is new, recurring or no longer detected"],
+            ["Control rules", "32", "Duplicate payments, price creep, cash, payroll, tax and more"],
+            ["File-first", "No setup", "PDF, CSV, XLSX or XLS exactly as you already have it"],
+            ["Evidence-linked", "Per finding", "Source page or row, confidence and calculation basis"],
+            ["Recurring", "Monthly", "What is new, recurring or no longer detected"],
           ].map(([title, value, desc]) => (
-            <div key={title} style={{
-              background: "rgba(255,255,255,0.055)",
-              border: "1px solid rgba(148,163,184,0.2)",
-              borderRadius: "24px",
-              padding: "28px",
-              boxShadow: "0 20px 50px rgba(2,6,23,0.22)",
-            }}>
-              <div style={{ color: "#cbd5e1", fontWeight: 800 }}>{title}</div>
-              <div style={{ marginTop: "14px", fontSize: "40px", fontWeight: 950 }}>{value}</div>
-              <div style={{ marginTop: "10px", color: "#e2e8f0", lineHeight: 1.6 }}>{desc}</div>
+            <div key={title} className="home-fact">
+              <div className="home-fact-title">{title}</div>
+              <div className="home-fact-value">{value}</div>
+              <div className="home-fact-desc">{desc}</div>
             </div>
           ))}
         </div>
 
-        <p style={{ marginTop: "18px", color: "#94a3b8", textAlign: "center", lineHeight: 1.6, fontSize: "13px" }}>
+        <p className="home-facts-note">
           Every finding is a review signal, not a confirmed loss. Effluxa does not guarantee savings.
         </p>
       </section>
