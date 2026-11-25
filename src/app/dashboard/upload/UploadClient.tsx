@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { trackClientEvent } from "@/lib/clientAnalytics";
 
@@ -198,138 +199,103 @@ export default function UploadClient({
   }
 
   return (
-    <>
-      <div className="topbar">
+    <div className="dash">
+      <div className="dash-head">
         <div>
-          <div className="page-title">Upload Financial File</div>
-          <p className="gray" style={{ marginTop: "10px" }}>
-            Upload PDF, CSV, or Excel files and generate an AI Financial Leak Audit.
+          <p className="dash-eyebrow">New audit</p>
+          <h1 className="dash-title">Upload a financial file</h1>
+          <p className="dash-sub">
+            PDF invoices, bank statements, CSV or Excel exports. Every finding arrives with source evidence.
           </p>
+        </div>
+        <div className="dash-head-actions">
+          <Link href="/dashboard/reports" className="dash-btn dash-btn-ghost">
+            View reports
+          </Link>
         </div>
       </div>
 
-      <div className="card">
-        {repeatAudit && (
-          <div
-            style={{
-              marginBottom: "24px",
-              padding: "16px 18px",
-              borderRadius: "14px",
-              border: "1px solid rgba(129,140,248,0.35)",
-              background: "rgba(99,102,241,0.10)",
-            }}
-          >
-            <div style={{ fontWeight: 850 }}>Run the next-period audit</div>
-            <p className="gray" style={{ marginTop: "8px", lineHeight: 1.6 }}>
+      {repeatAudit && (
+        <div className="dash-banner">
+          <div>
+            <div style={{ fontWeight: 900 }}>Run the next-period audit</div>
+            <p style={{ color: "#cbd5e1", fontSize: "13px", marginTop: "4px", lineHeight: 1.55 }}>
               {selectedClient
-                ? `Upload the equivalent file for ${selectedClient.name}. Effluxa has preselected this client so the recurring comparison stays together.`
-                : "Upload the equivalent file for the next reporting period. Choose the same client to keep recurring comparisons together."}
+                ? `Upload the equivalent file for ${selectedClient.name} so the recurring comparison stays together.`
+                : "Upload the equivalent file for the next period and choose the same client to keep comparisons together."}
             </p>
           </div>
-        )}
-
-        <div className="upload-box">
-          <h2 style={{ marginBottom: "20px" }}>
-            Start New AI Audit
-          </h2>
-
-          <p className="gray">
-            Supported files: PDF invoices, bank statements, CSV exports, Excel reports, and expense files.
-          </p>
-
-          <p className="gray" style={{ marginTop: "10px" }}>
-            Maximum file size: 4MB. Use a CSV or XLSX export for larger ledgers.
-          </p>
-
-          {clients.length > 0 && (
-            <div style={{ marginTop: "28px" }}>
-              <label
-                className="gray"
-                style={{
-                  display: "block",
-                  marginBottom: "10px",
-                  fontWeight: 700,
-                }}
-              >
-                Attach audit to client
-              </label>
-
-              <select
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "14px 16px",
-                  borderRadius: "14px",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "white",
-                  fontSize: "15px",
-                }}
-              >
-                <option value="">No client</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <input
-            type="file"
-            accept=".pdf,.csv,.xlsx,.xls"
-            onChange={(e) => setFile(e.target.files?.[0] || null)}
-            style={{
-              marginTop: "30px",
-              marginBottom: "24px",
-              color: "white",
-            }}
-          />
-
-          {file && (
-            <div
-              style={{
-                marginBottom: "24px",
-                padding: "14px 18px",
-                borderRadius: "14px",
-                background: "rgba(255,255,255,0.06)",
-                color: "#cbd5e1",
-              }}
-            >
-              Selected: {file.name}
-            </div>
-          )}
-
-
-          {(error || statusMessage) && (
-            <div
-              role={error ? "alert" : "status"}
-              style={{
-                marginTop: "18px",
-                padding: "14px 16px",
-                borderRadius: "14px",
-                border: error ? "1px solid #fecaca" : "1px solid #bae6fd",
-                background: error ? "#fef2f2" : "#f0f9ff",
-                color: error ? "#991b1b" : "#075985",
-                lineHeight: 1.6,
-                fontWeight: 600,
-              }}
-            >
-              {error || statusMessage}
-            </div>
-          )}
-
-          <button
-            onClick={handleUpload}
-            disabled={loading}
-            className="primary-button"
-          >
-            {loading ? statusMessage || "Analyzing..." : "Analyze with Effluxa AI"}
-          </button>
         </div>
-      </div>
-    </>
+      )}
+
+      <section className="dash-card">
+        <div className="dash-upload-grid">
+          <div>
+            <label htmlFor="audit-file" className="upload-drop">
+              <div className="upload-drop-icon" aria-hidden="true">+</div>
+              <div className="upload-drop-title">
+                {file ? file.name : "Choose a financial file"}
+              </div>
+              <div className="upload-drop-hint">
+                {file
+                  ? `${Math.max(1, Math.round(file.size / 1024))} KB - click to replace`
+                  : "PDF, CSV, XLSX or XLS - up to 4 MB"}
+              </div>
+            </label>
+            <input
+              id="audit-file"
+              type="file"
+              accept=".pdf,.csv,.xlsx,.xls"
+              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              style={{ display: "none" }}
+            />
+          </div>
+
+          <div>
+            {clients.length > 0 && (
+              <div style={{ marginBottom: "16px" }}>
+                <label htmlFor="audit-client" className="tool-label">
+                  Attach to client
+                </label>
+                <select
+                  id="audit-client"
+                  value={clientId}
+                  onChange={(e) => setClientId(e.target.value)}
+                >
+                  <option value="">No client</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {(error || statusMessage) && (
+              <div
+                role={error ? "alert" : "status"}
+                className={`dash-note ${error ? "dash-note-error" : "dash-note-info"}`}
+              >
+                {error || statusMessage}
+              </div>
+            )}
+
+            <button
+              onClick={handleUpload}
+              disabled={loading || !file}
+              className="dash-btn dash-btn-primary"
+              style={{ width: "100%", marginTop: "16px" }}
+            >
+              {loading ? statusMessage || "Analysing..." : "Analyse with Effluxa AI"}
+            </button>
+
+            <p className="dash-meta" style={{ marginTop: "10px" }}>
+              The audit runs in the background. You can leave this page.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

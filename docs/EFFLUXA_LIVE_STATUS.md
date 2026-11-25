@@ -123,7 +123,11 @@ Dashboard je preuređen iz „8 velikih kartica + 4 dugmeta za nadogradnju" u mi
 
 Provereno snimkama na 1440px i 390px: bez horizontalnog prelivanja, tabela čitljiva na mobilnom (datum se skriva, ostaju fajl, skor, status).
 
-Stranice Reports, Settings, Upload i Clients još koriste stari vizuelni jezik i sledeće su na redu.
+**Ujednačeno i na ostalim stranicama:**
+- Reports: nova zaglavlja, filter kartica i tabela sa imenom fajla, datumom, skorom i statusom (umesto sirovih `seed:`/`instant:` ID-jeva i kartica po izveštaju).
+- Upload: pravi dropzone sa imenom fajla i veličinom, umesto native „Choose file" kontrole; jasno stanje dugmeta.
+- Settings, Clients, Portfolio, Team, Controls, Partner i Admin automatski prelaze na isti sistem preko zajedničkih klasa (`.card`, `.page-title`, `.metric-value`, `.report-grid`, forme).
+- Zajednički shell: maksimalna širina 1180px, isti padding, isti radijusi i tipografija na svim prijavljenim stranicama.
 
 ## Ograničenja trenutnog stanja
 
