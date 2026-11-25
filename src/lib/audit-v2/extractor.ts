@@ -72,11 +72,11 @@ function schemaForPass(collectionList: string, passName: string) {
 }
 
 const EXTRACTION_MAX_OUTPUT_TOKENS = IS_PRODUCTION
-  ? 6000
+  ? 12000
   : Number(runtimeEnv("EFFLUXA_AUDIT_V2_MAX_OUTPUT_TOKENS", "12000"));
 const TRANSACTION_EXTRACTION_MAX_OUTPUT_TOKENS = IS_PRODUCTION
-  ? 12000
-  : Number(runtimeEnv("EFFLUXA_AUDIT_V2_TRANSACTION_MAX_OUTPUT_TOKENS", "12000"));
+  ? 16000
+  : Number(runtimeEnv("EFFLUXA_AUDIT_V2_TRANSACTION_MAX_OUTPUT_TOKENS", "16000"));
 const EXTRACTION_CONCURRENCY = IS_PRODUCTION
   ? 2
   : Math.max(1, Number(runtimeEnv("EFFLUXA_AUDIT_V2_CONCURRENCY", "1")));
@@ -220,29 +220,44 @@ ${routedPassText ? `Spreadsheet/text input:\n${routedPassText.slice(0, passInput
 `,
     });
 
-    const response = await openai.responses.create({
-      model: extractionModel,
-      input: [{ role: "user", content }],
-      max_output_tokens:
-        pass.name === "invoice-ledger"
-          ? TRANSACTION_EXTRACTION_MAX_OUTPUT_TOKENS
-          : EXTRACTION_MAX_OUTPUT_TOKENS,
-      // GPT-5 family models do not accept the legacy temperature control;
-      // their default extraction behavior is deterministic enough for the
-      // strict schema and downstream rules to validate.
-      ...(!extractionModel.startsWith("gpt-5") ? { temperature: 0 } : {}),
-      text: {
-        format: {
-          type: "json_schema",
-          name: `effluxa_financial_extraction_${pass.name.replace(/[^a-z0-9]/gi, "_")}`,
-          strict: true,
-          schema: schemaForPass(pass.collections, pass.name),
-        },
-      },
-      ...(options?.serviceTier ? { service_tier: options.serviceTier } : {}),
-    } as unknown as Parameters<typeof openai.responses.create>[0]) as unknown;
+    const baseMaxTokens =
+      pass.name === "invoice-ledger"
+        ? TRANSACTION_EXTRACTION_MAX_OUTPUT_TOKENS
+        : EXTRACTION_MAX_OUTPUT_TOKENS;
 
-    const outputText = extractResponseText(response);
+    const requestPass = async (maxOutputTokens: number) =>
+      (await openai.responses.create({
+        model: extractionModel,
+        input: [{ role: "user", content }],
+        max_output_tokens: maxOutputTokens,
+        // GPT-5 family models do not accept the legacy temperature control;
+        // their default extraction behavior is deterministic enough for the
+        // strict schema and downstream rules to validate.
+        ...(!extractionModel.startsWith("gpt-5") ? { temperature: 0 } : {}),
+        text: {
+          format: {
+            type: "json_schema",
+            name: `effluxa_financial_extraction_${pass.name.replace(/[^a-z0-9]/gi, "_")}`,
+            strict: true,
+            schema: schemaForPass(pass.collections, pass.name),
+          },
+        },
+        ...(options?.serviceTier ? { service_tier: options.serviceTier } : {}),
+      } as unknown as Parameters<typeof openai.responses.create>[0])) as unknown;
+
+    let response = await requestPass(baseMaxTokens);
+    let outputText = extractResponseText(response);
+
+    const incompleteReason = (response as { incomplete_details?: { reason?: string } })
+      ?.incomplete_details?.reason;
+
+    if (!outputText.trim() || incompleteReason === "max_output_tokens") {
+      // A truncated structured response used to abort the whole audit and hand
+      // the customer an empty fallback report. Retry the pass once with a
+      // larger output budget before giving up.
+      response = await requestPass(Math.round(baseMaxTokens * 1.75));
+      outputText = extractResponseText(response);
+    }
     try {
       const normalized = normalizeExtractedData(parseStructuredOutput(outputText), fileName);
       if (process.env.EFFLUXA_AUDIT_V2_DEBUG === "true") {

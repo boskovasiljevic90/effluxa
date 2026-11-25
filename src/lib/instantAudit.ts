@@ -132,7 +132,9 @@ export function buildInstantTeaser({
     leakageScore,
     riskLevel,
     confidenceLevel: toText(report.confidence_level, priority.total > 0 ? "Medium" : "Low"),
-    verdict: buildVerdict(priority),
+    verdict: fallbackUsed
+      ? "We could not complete the analysis of this file. It is not a clean result. Try uploading a CSV or Excel export of the same data, or run a full audit from your account."
+      : buildVerdict(priority),
     currency: priority.currency,
     totalFindings: priority.total,
     criticalCount: priority.criticalCount,

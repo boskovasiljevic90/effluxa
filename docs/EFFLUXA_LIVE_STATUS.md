@@ -68,9 +68,28 @@ Popravka: grupisanje sada koristi stvarni subjekt nalaza (dobavljač + faktura +
 - 18 use-case stranica + 6 comparison stranica + 5 vodiča.
 - 46 URL-ova u sitemapu; sitemap predat u Google Search Console.
 
+## Prvi plaćeni tok verifikovan (25.11.2026)
+
+Vlasnik je prošao ceo tok na živom sajtu sa Paddle 100% kuponom: besplatan check → registracija → checkout → webhook → **otključan pun izveštaj**. Jednokratna naplata (Full Audit) je time potvrđena end-to-end, uključujući Paddle webhook i provision.
+
+Posle prelaska na Vercel Pro vraćeni su pravi cron rasporedi:
+- oporavak audit jobova: **svaka 2 minuta**
+- nurture mejlovi: **svakih sat**
+
+## Defekt nađen i popravljen posle testa
+
+Ekstrakcioni prolaz `working-capital-and-kpis` je prekoračio limit izlaznih tokena (6.000), vratio nepotpun JSON i **ceo audit je pao na fallback sa 0 nalaza** — takav izveštaj je kupac mogao da plati.
+
+Popravke:
+- izlazni budžet podignut na 12.000 (transakcije 16.000),
+- automatski retry prolaza sa 1,75× većim budžetom kad odgovor bude odsečen,
+- kad analiza ipak padne, kupcu se više ne piše „nema curenja" nego „analiza nije završena".
+
+Posle popravke isti paket daje 43 nalaza umesto 0.
+
 ## Ograničenja trenutnog stanja
 
-- Vercel je **Hobby** plan: cron može najviše 1× dnevno. Oporavak zapetih audit jobova i nurture mejlovi se zato izvršavaju jednom dnevno. Prelazak na Pro (20 $/mo) vraća interval na 2 minuta.
+- Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
 - Besplatan check se čuva 14 dana; posle isteka se briše i korisnik mora ponovo da uploaduje.
 - Nurture sekvenca šalje 5 mejlova (2h, 24h, 72h, 7d, 14d) ali na Hobby planu sa dnevnim cron-om tajming je pomeren na „jednom dnevno".
 - Enterprise voice/chat endpointi još nisu zaštićeni auth-om (poznat troškovni rizik).
