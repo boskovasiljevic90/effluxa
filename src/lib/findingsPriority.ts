@@ -37,6 +37,8 @@ export type RankedFinding = {
   amount: number | null;
   currency: string;
   evidenceCount: number;
+  /** Identifies the subject rows so distinct duplicates are not collapsed. */
+  subject: string;
   score: number;
 };
 
@@ -139,6 +141,7 @@ export function rankFinding(finding: RawFinding, index: number): RankedFinding {
       ? Math.max(0.3, Math.min(1, finding.confidence))
       : 0.6;
   const actionability = CATEGORY_ACTIONABILITY[category] ?? 0.9;
+  const subject = buildSubject(finding);
 
   const score =
     SEVERITY_WEIGHT[severity] *
@@ -158,14 +161,33 @@ export function rankFinding(finding: RawFinding, index: number): RankedFinding {
     amount,
     currency: toText(finding.quantification?.currency, "EUR").toUpperCase(),
     evidenceCount: Array.isArray(finding.evidence) ? finding.evidence.length : 0,
+    subject,
     score,
   };
 }
 
+/**
+ * Two exact duplicates for different vendors are two separate actions. Grouping
+ * by rule title collapsed them into one entry, which also made the paid report
+ * look empty ("0 remaining findings"). The subject key keeps distinct rows.
+ */
+function buildSubject(finding: RawFinding) {
+  const evidence = Array.isArray(finding.evidence) ? finding.evidence : [];
+  for (const item of evidence) {
+    if (!item || typeof item !== "object") continue;
+    const record = item as Record<string, unknown>;
+    const vendor = typeof record.vendor === "string" ? record.vendor.trim().toLowerCase() : "";
+    const invoice = typeof record.invoice === "string" ? record.invoice.trim().toLowerCase() : "";
+    const amount = typeof record.amount === "number" ? record.amount.toFixed(2) : "";
+    if (vendor || invoice || amount) return `${vendor}|${invoice}|${amount}`;
+  }
+  return "";
+}
+
 function dedupeKey(finding: RankedFinding) {
-  // Collapse repeated instances of the same rule on the same subject so the
-  // action list does not repeat the same recommendation five times.
-  return `${finding.ruleId}|${finding.title.toLowerCase().slice(0, 48)}`;
+  // Collapse only true repeats of the same subject. Findings without evidence
+  // identity fall back to the rule title.
+  return `${finding.ruleId}|${finding.subject || finding.title.toLowerCase().slice(0, 48)}`;
 }
 
 export function prioritizeFindings(rawFindings: unknown): PrioritizedFindings {

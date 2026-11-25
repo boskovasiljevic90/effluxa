@@ -48,6 +48,19 @@ Rezultat na test fajlu: 5 od 5 duplikata detektovano (3 tačna, 2 skoro), skor 2
 
 Tok: `free check` → token → `signup?instant=TOKEN` → izveštaj u dashboardu → plaćanje otključava. Cena se ne menja.
 
+## Kvalitet izveštaja: popravljeno posle testa na velikom ledgeru
+
+Test na fajlu od 53 reda (5 stvarnih duplikata) otkrio je da prioritizacija spaja različite duplikate u jedan nalaz, jer je grupisala po `ruleId + naslov`. Posledica: paywall je prikazivao „0 preostalih nalaza", pa kupac nije imao šta da plati.
+
+Popravka: grupisanje sada koristi stvarni subjekt nalaza (dobavljač + faktura + iznos). Rezultat posle popravke na istom fajlu:
+
+| Pre | Posle |
+|---|---|
+| 3 nalaza, 0 zaključanih | **6 nalaza, 3 zaključana** |
+| duplikati 2 od 5 | **5 od 5 duplikata** |
+| duplikat izloženost 3.200 € | **4.839 €** |
+| paywall bez sadržaja | paywall sa 3 nalaza i 6.819 € kvantifikacije |
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je **Hobby** plan: cron može najviše 1× dnevno. Oporavak zapetih audit jobova i nurture mejlovi se zato izvršavaju jednom dnevno. Prelazak na Pro (20 $/mo) vraća interval na 2 minuta.
