@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { SEO_PAGES } from "@/content/seoPages";
+import { SEO_PAGES_EXTRA } from "@/content/seoPagesExtra";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.effluxa.com";
@@ -44,6 +45,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/tools/duplicate-invoice-finder`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.92,
+    },
+    {
+      url: `${baseUrl}/tools/vendor-price-creep-checker`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.92,
@@ -102,7 +109,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    ...SEO_PAGES.map((page) => ({
+    ...[...SEO_PAGES, ...SEO_PAGES_EXTRA].map((page) => ({
       url: `${baseUrl}/${page.type === "comparison" ? "compare" : "use-cases"}/${page.slug}`,
       lastModified: new Date(),
       changeFrequency: "monthly" as const,

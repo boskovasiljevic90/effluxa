@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SeoPageView from "@/components/SeoPageView";
 import { SEO_PAGES } from "@/content/seoPages";
+import { SEO_PAGES_EXTRA } from "@/content/seoPagesExtra";
 
-const pages = SEO_PAGES.filter((page) => page.type === "use-case");
+const pages = [...SEO_PAGES, ...SEO_PAGES_EXTRA].filter((page) => page.type === "use-case");
 
 export function generateStaticParams() {
   return pages.map((page) => ({ slug: page.slug }));

@@ -18,6 +18,12 @@ const tools = [
     tag: "Live · free",
   },
   {
+    href: "/tools/vendor-price-creep-checker",
+    name: "Vendor price increase checker",
+    body: "Compare two exports and see which vendor unit prices increased, ranked by estimated impact. Runs locally in your browser.",
+    tag: "Live · free",
+  },
+  {
     href: "/instant",
     name: "Financial file leakage check",
     body: "Upload one PDF, CSV or Excel pack and get a real, evidence-linked screen across 32 financial-control rules.",

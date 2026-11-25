@@ -3,6 +3,7 @@ import Link from "next/link";
 import PublicHeader from "@/components/PublicHeader";
 import PublicFooter from "@/components/PublicFooter";
 import { SEO_PAGES } from "@/content/seoPages";
+import { SEO_PAGES_EXTRA } from "@/content/seoPagesExtra";
 
 export const metadata: Metadata = {
   title: "Financial leakage audits by industry and file type | Effluxa",
@@ -11,7 +12,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://www.effluxa.com/use-cases" },
 };
 
-const pages = SEO_PAGES.filter((page) => page.type === "use-case");
+const pages = [...SEO_PAGES, ...SEO_PAGES_EXTRA].filter((page) => page.type === "use-case");
 
 export default function CompareHub() {
   return (

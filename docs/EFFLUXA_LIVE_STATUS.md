@@ -11,9 +11,10 @@ Datum: 25.11.2026. Ovaj dokument opisuje šta je stvarno živo na `www.effluxa.c
 | Sigurnost, DPA, sub-procesori | `/security` | živo |
 | Partner program | `/partners` | živo |
 | 6 comparison stranica | `/compare` | živo |
-| 10 use-case stranica | `/use-cases` | živo |
+| 18 use-case stranica | `/use-cases` | živo |
+| Free alat: price creep checker | `/tools/vendor-price-creep-checker` | živo |
 | Odjava sa mejling liste | `/unsubscribe` | živo |
-| Sitemap | `/sitemap.xml` | 37 URL-ova |
+| Sitemap | `/sitemap.xml` | **46 URL-ova** |
 
 ## Cene (žive u Paddle, live mode)
 
@@ -60,6 +61,12 @@ Popravka: grupisanje sada koristi stvarni subjekt nalaza (dobavljač + faktura +
 | duplikati 2 od 5 | **5 od 5 duplikata** |
 | duplikat izloženost 3.200 € | **4.839 €** |
 | paywall bez sadržaja | paywall sa 3 nalaza i 6.819 € kvantifikacije |
+
+## Akvizicioni sadržaj (stanje 25.11.2026)
+
+- 2 besplatna alata koja rade u browseru: duplikati faktura i rast cena dobavljača. Nula AI troška, nula uploada, koriste se kao SEO magnet i dokaz vrednosti.
+- 18 use-case stranica + 6 comparison stranica + 5 vodiča.
+- 46 URL-ova u sitemapu; sitemap predat u Google Search Console.
 
 ## Ograničenja trenutnog stanja
 
