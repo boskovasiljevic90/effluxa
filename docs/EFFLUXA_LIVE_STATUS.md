@@ -196,6 +196,22 @@ Objavljeno:
 
 Detaljna mapa odluka: `docs/INFLUENCE_MASSES_ADAPTATION.md`.
 
+## Outreach: talas 2 poslat (26.11.2026)
+
+| Metrika | Rezultat |
+|---|---|
+| Planirano | 20 firmi (Ontario, Quebec, Atlantik Kanada, Karibi) |
+| Poslato | **17** |
+| Preskočeno | 3 — firme objavljuju samo kontakt formu (`Tula CPA`, `Vistance Accounting`, `Bogle and Company`) |
+| Soft bounce | 1 — `info@zhannacpa.ca` (njihov server odbija relay) |
+| Deferred / retry | 2 — `info@ramandmcrae.com`, `support@truenorthaccounting.com` |
+| Hard bounce | 0 |
+| Spam prijave | 0 |
+| Otvaranja (ukupno, oba talasa) | 13 različitih adresa |
+| Klikovi na link | 0 od prospecta (2 klika su naši testovi) |
+
+Kumulativno: **25 mejlova poslato, 0 hard bounce, 0 spam prijava.**
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
