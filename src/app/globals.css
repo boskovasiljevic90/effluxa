@@ -4895,3 +4895,43 @@ select {
     white-space: normal;
   }
 }
+
+/* Homepage limits / two-sided message */
+.home-limits {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 36px;
+  align-items: start;
+}
+
+.home-limits-list {
+  display: grid;
+  gap: 12px;
+}
+
+.home-limit {
+  padding: 16px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.home-limit-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: #f8fafc;
+}
+
+.home-limit p {
+  margin-top: 6px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #94a3b8;
+}
+
+@media (max-width: 860px) {
+  .home-limits {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}

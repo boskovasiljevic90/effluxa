@@ -289,6 +289,37 @@ export default function HomePage() {
         }}
       />
 
+      <section style={{ borderTop: "1px solid rgba(148,163,184,0.2)", background: "rgba(255,255,255,0.02)" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "72px 24px" }}>
+          <div className="home-limits">
+            <div>
+              <div className="eyebrow" style={{ color: "#c7d2fe" }}>Where Effluxa stops</div>
+              <h2 style={{ marginTop: "12px", fontSize: "34px", lineHeight: 1.12, letterSpacing: "-1.2px", fontWeight: 950 }}>
+                Your judgement stays central.
+              </h2>
+              <p style={{ marginTop: "14px", color: "#cbd5e1", lineHeight: 1.7, fontSize: "16px" }}>
+                Effluxa gets you to the rows that deserve review faster. It does not decide what happened.
+              </p>
+              <a href="/methodology" className="instant-ghost" style={{ marginTop: "20px" }}>
+                Read the method and the limits
+              </a>
+            </div>
+            <div className="home-limits-list">
+              {[
+                ["Not an audit opinion", "It is a screening report. Not an audit, review engagement, tax or accounting advice."],
+                ["Cannot judge what it was not given", "Without the contract, credit note or confirmation, a finding stays a review signal."],
+                ["Some calls stay human", "Whether a price rise was agreed or a duplicate was credited is a person's decision."],
+              ].map(([title, body]) => (
+                <div key={title} className="home-limit">
+                  <div className="home-limit-title">{title}</div>
+                  <p>{body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="pricing" style={{ maxWidth: "1100px", margin: "0 auto", padding: "90px 24px" }}>
         <div style={{ textAlign: "center" }}>
           <div className="eyebrow">Pricing</div>

@@ -66,6 +66,11 @@ export default function PartnersPage() {
             self-serve today, no partner call and no implementation.
           </p>
 
+          <p style={{ marginTop: "12px", fontSize: "15px", lineHeight: 1.65, color: "#94a3b8" }}>
+            Your judgement stays central: Effluxa is a screening layer with evidence, not an audit opinion.{" "}
+            <Link href="/methodology" style={{ color: "#93c5fd" }}>Read the method and the limits</Link>.
+          </p>
+
           <div style={{ marginTop: "28px", display: "flex", gap: "14px", flexWrap: "wrap" }}>
             <Link href="/signup?plan=agency_monthly&utm_source=partners&utm_medium=owned&utm_campaign=partner_programme">
               <button className="primary-button" style={{ padding: "16px 24px" }}>Start Agency — €399/mo</button>

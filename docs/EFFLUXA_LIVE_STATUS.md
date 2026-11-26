@@ -184,6 +184,18 @@ Preostala 42 mejla su zakazana:
 
 Raspoređeno namerno: 8 → 20 → 19, da novi domen ne uđe u spam zbog naglog volumena.
 
+## Analiza knjige „Influencing the Masses" i primena (26.11.2026)
+
+Knjiga je analizirana u celini. Usvojeno je šest principa koji prolaze etički test iz njenog poglavlja 15; sve manipulativne tehnike su odbijene.
+
+Objavljeno:
+- **`/methodology`** — rule set po kategorijama, standard dokaza, sekcija „What Effluxa cannot do" i „When an audit fails".
+- **Homepage**: sekcija „Where Effluxa stops" (two-sided message).
+- **`/partners`**: „Your judgement stays central" (anchor framing).
+- **Potpis mejla**: diskretan link ka metodologiji.
+
+Detaljna mapa odluka: `docs/INFLUENCE_MASSES_ADAPTATION.md`.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
