@@ -212,6 +212,17 @@ Detaljna mapa odluka: `docs/INFLUENCE_MASSES_ADAPTATION.md`.
 
 Kumulativno: **25 mejlova poslato, 0 hard bounce, 0 spam prijava.**
 
+## Prvi odgovor na outreach (27.11.2026)
+
+**T2inc.ca** (Montreal, računovodstvo i porezi) odgovorio je 26.11. u 22:56: pristojno odbijanje uz obrazloženje „već imamo sopstvene procese revizije" i **zahtev za odjavu sa liste**.
+
+Postupljeno odmah:
+- adresa `support@t2inc.ca` upisana u suppression listu (`cold_outreach/UNSUBSCRIBED` u bazi),
+- CSV status `unsubscribed`, sa napomenom „do not contact again",
+- poslat će se kratak odgovor koji samo potvrđuje odjavu, bez ikakve prodaje i bez linkova.
+
+**Naučeno:** 1 odgovor na 25 poslatih (4%), ali odbijajuće. Najčešća zamka kod računovodstvenih firmi je „imamo svoj proces". Zato je u šablone za talase 3–5 dodata rečenica koja to neutrališe unapred: *„If your team already reviews every client file by hand, this does not replace that review; it only shortens the pass over the rows nobody has time to open."*
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
