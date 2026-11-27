@@ -223,6 +223,20 @@ Postupljeno odmah:
 
 **Naučeno:** 1 odgovor na 25 poslatih (4%), ali odbijajuće. Najčešća zamka kod računovodstvenih firmi je „imamo svoj proces". Zato je u šablone za talase 3–5 dodata rečenica koja to neutrališe unapred: *„If your team already reviews every client file by hand, this does not replace that review; it only shortens the pass over the rows nobody has time to open."*
 
+## Outreach: talas 3 poslat (27.11.2026)
+
+| Metrika | Rezultat |
+|---|---|
+| Poslato | **12 / 12** (UK i Irska) |
+| Delivered danas | 27, ukupno u kampanji 30 |
+| Hard bounce | **0** |
+| Soft bounce | 1 (isti `info@zhannacpa.ca` iz talasa 2) |
+| Spam prijave | **0** |
+| Jedinstveni klikovi | **2** |
+| Odjave | 1 (`support@t2inc.ca`) |
+
+Kumulativno: **36 poslatih, 1 odjava, 0 hard bounce, 0 spam.** Ostalo: talas 4 (6 firmi + 1 kontakt forma), talas 5 (3), i 4 ručne kontakt forme.
+
 ## Ograničenja trenutnog stanja
 
 - Vercel je sada **Pro**: cron radi na 2 minuta (job recovery) i 1 sat (nurture).
